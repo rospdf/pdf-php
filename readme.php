@@ -25,8 +25,8 @@ class Creport extends Cezpdf {
 
 var $reportContents = array();
 
-function Creport($p,$o){
-  $this->Cezpdf($p,$o);
+function Creport($p,$o,$t,$op){
+  $this->Cezpdf($p,$o,$t,$op);
 }
 
 function rf($info){
@@ -74,7 +74,7 @@ function dots($info){
 // this code has been modified to use ezpdf.
 
 //$pdf = new Cezpdf('a4','portrait');
-$pdf = new Creport('a4','portrait');
+$pdf = new Creport('a4','portrait','color',array(0.8,0.8,0.8));
 
 $pdf -> ezSetMargins(50,70,50,50);
 
@@ -102,7 +102,7 @@ $pdf->selectFont($mainFont);
 $pdf->ezText("PHP Pdf Creation\n",30,array('justification'=>'centre'));
 $pdf->ezText("Module-free creation of Pdf documents\nfrom within PHP\n",20,array('justification'=>'centre'));
 $pdf->ezText("developed by R&OS Ltd\n<c:alink:http://www.ros.co.nz/pdf/>http://www.ros.co.nz/pdf</c:alink>",18,array('justification'=>'centre'));
-$pdf->ezText("\n<c:alink:http://sourceforge.net/projects/pdf-php>http://sourceforge.net/projects/pdf-php</c:alink>\n\nversion 0.09",18,array('justification'=>'centre'));
+$pdf->ezText("\n<c:alink:http://sourceforge.net/projects/pdf-php>http://sourceforge.net/projects/pdf-php</c:alink>\n\nversion 0.10",18,array('justification'=>'centre'));
 
 $pdf->ezSetDy(-100);
 // modified to use the local file if it can
@@ -222,7 +222,6 @@ foreach ($data as $line){
     }
   } else if ($collecting){
     $code.=$line;
-//  } else if (((strlen($line)>1 && $line[1]=='<') || (strlen($line) && $line[0]=='<')) && $line[strlen($line)-1]=='>') {
   } else if (((strlen($line)>1 && $line[1]=='<') ) && $line[strlen($line)-1]=='>') {
     // then this is a title
     switch($line[0]){
@@ -284,7 +283,7 @@ foreach($contents as $k=>$v){
 }
 
 
-if (isset($d) && $d){
+if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
   $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
   echo '<html><body>';

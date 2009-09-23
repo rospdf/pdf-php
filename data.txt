@@ -31,6 +31,12 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 010>
+ 
+- sprintf output fixed for different locales by doint a uppercase 'F'
+- comments in ezTable changed / added
+- background color for ezTable columns supported
+- background for Cezpdf constructor
 
 2<version 009>
 
@@ -144,15 +150,35 @@ It is anticipated that in practise only the simplest of documents will be able t
 
 2<Cezpdf>
 
-Cezpdf([paper='a4'],[orientation='portrait'])
+Cezpdf([paper='a4'],[orientation='portrait'],[type='none'],[options=array()])
 
 This is the constructor function, and allows the user to set up a basic page without having to know exactly how many units across and up the page is going to be.
 Valid values for paper are listed below, a two or four member array can also be passed, a two member array will be interpreted as the size of the page in centimeters, and a four member array will be the size of the page in points, similar to the call to the base calss constructor function.
-Valid values for orientation are 'portrait','landscape'.
 Starting ezpdf with the code below will create an a4 portrait document.
 
+<b>$paper</b> The valid values for the paper (thanks to the work of Nicola Asuni) are:
+'4A0' (4767.87,6740.79), '2A0' (3370.39,4767.87), 'A0' (2383.94,3370.39), 'A1' (1683.78,2383.94), 'A2' (1190.55,1683.78), 'A3' (841.89,1190.55), 'A4' (595.28,841.89), 'A5' (419.53,595.28), 'A6' (297.64,419.53), 'A7' (209.76,297.64), 'A8' (147.40,209.76), 'A9' (104.88,147.40), 'A10' (73.70,104.88), 'B0' (2834.65,4008.19), 'B1' (2004.09,2834.65), 'B2' (1417.32,2004.09), 'B3' (1000.63,1417.32), 'B4' (708.66,1000.63), 'B5' (498.90,708.66), 'B6' (354.33,498.90), 'B7' (249.45,354.33), 'B8' (175.75,249.45), 'B9' (124.72,175.75), 'B10' (87.87,124.72), 'C0' (2599.37,3676.54), 'C1' (1836.85,2599.37), 'C2' (1298.27,1836.85), 'C3' (918.43,1298.27), 'C4' (649.13,918.43), 'C5' (459.21,649.13), 'C6' (323.15,459.21), 'C7' (229.61,323.15), 'C8' (161.57,229.61), 'C9' (113.39,161.57), 'C10' (79.37,113.39), 'RA0' (2437.80,3458.27), 'RA1' (1729.13,2437.80), 'RA2' (1218.90,1729.13), 'RA3' (864.57,1218.90), 'RA4' (609.45,864.57), 'SRA0' (2551.18,3628.35), 'SRA1' (1814.17,2551.18), 'SRA2' (1275.59,1814.17), 'SRA3' (907.09,1275.59), 'SRA4' (637.80,907.09), 'LETTER' (612.00,792.00), 'LEGAL' (612.00,1008.00), 'EXECUTIVE' (521.86,756.00), 'FOLIO' (612.00,936.00)
+
+<b>$orientation</b> 'portrait' and 'landscape' can be used
+
+<b>$type</b> following types are possible: 'none' | 'color' | 'colour' | 'image'
+
+<b>$options</b> if type is diffent then 'none' $options can be set as follows
+           if $type is set to 'color' | 'colour'
+               $options['r'] = red-component   of backgroundcolour ( 0 <= r <= 1)
+               $options['g'] = green-component of backgroundcolour ( 0 <= g <= 1)
+               $options['b'] = blue-component  of backgroundcolour ( 0 <= b <= 1)
+           if $type is set to 'image' then the $options array has other attributes
+               $options['img']    = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
+               $options['width']  = width of background image; default is width of page
+               $options['height'] = height of background image; default is height of page
+               $options['xpos']   = horizontal position of background image; default is 0
+               $options['ypos']   = vertical position of background image; default is 0
+
+This document shows you the 'color' type with following:
+
 #C
-$pdf =& new Cezpdf();
+$pdf = new Cezpdf('a4','portrait','color',array(0.8,0.8,0.8));
 #c
 
 If you want to get started in an easy manner, then here is the 'hello world' program:
@@ -171,11 +197,6 @@ Note that some people have reported that this gives an error - it appears that s
 #C
 $pdf = new Cezpdf();
 #c
-
-The valid values for the paper (thanks to the work of Nicola Asuni) are:
-
-'4A0' (4767.87,6740.79), '2A0' (3370.39,4767.87), 'A0' (2383.94,3370.39), 'A1' (1683.78,2383.94), 'A2' (1190.55,1683.78), 'A3' (841.89,1190.55), 'A4' (595.28,841.89), 'A5' (419.53,595.28), 'A6' (297.64,419.53), 'A7' (209.76,297.64), 'A8' (147.40,209.76), 'A9' (104.88,147.40), 'A10' (73.70,104.88), 'B0' (2834.65,4008.19), 'B1' (2004.09,2834.65), 'B2' (1417.32,2004.09), 'B3' (1000.63,1417.32), 'B4' (708.66,1000.63), 'B5' (498.90,708.66), 'B6' (354.33,498.90), 'B7' (249.45,354.33), 'B8' (175.75,249.45), 'B9' (124.72,175.75), 'B10' (87.87,124.72), 'C0' (2599.37,3676.54), 'C1' (1836.85,2599.37), 'C2' (1298.27,1836.85), 'C3' (918.43,1298.27), 'C4' (649.13,918.43), 'C5' (459.21,649.13), 'C6' (323.15,459.21), 'C7' (229.61,323.15), 'C8' (161.57,229.61), 'C9' (113.39,161.57), 'C10' (79.37,113.39), 'RA0' (2437.80,3458.27), 'RA1' (1729.13,2437.80), 'RA2' (1218.90,1729.13), 'RA3' (864.57,1218.90), 'RA4' (609.45,864.57), 'SRA0' (2551.18,3628.35), 'SRA1' (1814.17,2551.18), 'SRA2' (1275.59,1814.17), 'SRA3' (907.09,1275.59), 'SRA4' (637.80,907.09), 'LETTER' (612.00,792.00), 'LEGAL' (612.00,1008.00), 'EXECUTIVE' (521.86,756.00), 'FOLIO' (612.00,936.00)
-
 
 2<ezSetMargins>
 
@@ -235,7 +256,7 @@ guarantees that there will be 100 units of space above the final writing point.
 
 y=ezTable(array data,[array cols],[title],[array options]
 
-The easy way to throw a table of information onto the page, can be used with just the data variable, which must contain a two dimensional array of data. This function was made with data extracted from database queries in mind, so is expecting it in that format, a two dimensional array with the first array having one entry for each row (and each of those is another array).
+<b>$data</b> The easy way to throw a table of information onto the page, can be used with just the data variable, which must contain a two dimensional array of data. This function was made with data extracted from database queries in mind, so is expecting it in that format, a two dimensional array with the first array having one entry for each row (and each of those is another array).
 
 The table will start writing from the current writing point, and will proceed until the all the data has been presented, by default, borders will be drawn, alternate limes will be shaded gray, and the table will wrap over pages, re-printing the headers at the top of each page.
 
@@ -243,14 +264,15 @@ The return value from the function is the y-position of the writing pointer afte
 
 The other options are described here:
 
-$cols (optional) is an associative array, the keys are the names of the columns from $data to be presented (and in that order), the values are the titles to be given to the columns, if this is not wanted, but you do want later options then '' (the empty string) is a suitable placeholder.
+<b>$cols</b> (optional) is an associative array, the keys are the names of the columns from $data to be presented (and in that order), the values are the titles to be given to the columns, if this is not wanted, but you do want later options then '' (the empty string) is a suitable placeholder.
 
-$title (optional) is the title to be put on the top of the table
+<b>$title</b> (optional) is the title to be put on the top of the table
 
-$options is an associative array which can contain:
+<b>$options</b> is an associative array which can contain:
  'showLines'=> 0,1,2, default is 1 (1->show the borders, 0->no borders, 2-> show borders AND lines between rows.)
  'showHeadings' => 0 or 1
  'shaded'=> 0,1,2, default is 1 (1->alternate lines are shaded, 0->no shading, 2->both sets are shaded)
+ 'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)
  'shadeCol' => (r,g,b) array, defining the colour of the shading, default is (0.8,0.8,0.8)
  'shadeCol2' => (r,g,b) array, defining the colour of the shading of the second set, default is (0.7,0.7,0.7), used when 'shaded' is set to 2.
  'fontSize' => 10
@@ -263,10 +285,11 @@ $options is an associative array which can contain:
  'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'. This entry is to be used in conjunction with 'xPos' to give control over the lateral position of the table.
  'width' => <number>, the exact width of the table, the cell widths will be adjusted to give the table this width.
  'maxWidth' => <number>, the maximum width of the table, the cell widths will only be adjusted if the table width is going to be greater than this.
- 'cols' => array(<colname>=>array('justification'=>'left','width'=>100,'link'=><linkColName>),<colname>=>....) ,allow the setting of other paramaters for the individual columns, each column can have its width and/or its justification set.
+ 'cols' => array(<colname>=>array('justification'=>'left','width'=>100,'link'=><linkColName>,'bgcolor'=> (r,g,b)),<colname>=>....) ,allow the setting of other paramaters for the individual columns, each column can have its width and/or its justification set.
  'innerLineThickness' => <number>, the thickness of the inner lines, defaults to 1
  'outerLineThickness' => <number>, the thickness of the outer lines, defaults to 1
  'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
+  'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
  
 Note that the user will have had to have made a font selection already or this will not produce a valid pdf file.
 
@@ -393,6 +416,30 @@ $pdf->ezTable($data,array('type'=>'','name'=>'')
               ));
 #x
 
+Another example with colored columns
+
+#C
+$pdf->ezTable($data,array('type'=>'','name'=>'')
+        ,''
+        ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
+        ,'cols'=> array(
+                    'name'=>array('bgcolor'=>array(0.2,0.2,0.4))
+                   ,'type'=>array('bgcolor'=>array(0.4,0.6,0.6))
+                  )
+        ));
+#c
+
+#X
+$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->ezTable($data,array('type'=>'','name'=>'')
+        ,''
+        ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
+        ,'cols'=> array(
+                    'name'=>array('bgcolor'=>array(0.2,0.2,0.4))
+                   ,'type'=>array('bgcolor'=>array(0.4,0.6,0.6))
+                  )
+        ));
+#x
 
 2<ezText>
 
@@ -426,13 +473,13 @@ This function can be used by simply supplying the name of an image file as the f
 
 The arguments are:
 
-$image is a string containing the filename and path of the jpeg or png image you want to insert into the page.  If allow_url_fopen is enabled in the PHP ini settings this can be an HTTP or FTP URL.
+<b>$image</b> is a string containing the filename and path of the jpeg or png image you want to insert into the page.  If allow_url_fopen is enabled in the PHP ini settings this can be an HTTP or FTP URL.
 
-$padding (optional) is the number of page units that will pad the image on all sides.  The default is five (5).  If you do not want any padding, you may enter 0.
+<b>$padding</b> (optional) is the number of page units that will pad the image on all sides.  The default is five (5).  If you do not want any padding, you may enter 0.
 
-$width (optional) is the width of the image on the page.  The default is to use the actual width of the image in pixels.  Whether or not you specify a width, the actual width of the image on the page will depend on what you enter for the $resize argument as well as the placement of the image on the page.
+<b>$width</b> (optional) is the width of the image on the page.  The default is to use the actual width of the image in pixels.  Whether or not you specify a width, the actual width of the image on the page will depend on what you enter for the $resize argument as well as the placement of the image on the page.
 
-$resize (optional) can be one of 'full', 'width', or 'none'.  The default value is 'full'.  
+<b>$resize</b> (optional) can be one of 'full', 'width', or 'none'.  The default value is 'full'.  
 
 The value 'none' means that an image will not be sized up to fit the width of a column and will not be sized down vertically to fit within the current page. If the image is too long to fit on the page it will be placed on the next page or column.  If the image is too wide to fit within the current column, it will still be sized down.  This is because there is no alternative, other than to actually let the image run off the page.
 
@@ -440,9 +487,9 @@ The value 'width' behaves the same as 'none' with the exception that images will
 
 The value 'full' behaves the same as 'width' with the exception that images will be resized down vertically to fit within the current page and column if their height is too long to fit.
 
-$justification (optional) determines the horizontal position of the image within the current column.  The default is 'center', and can be specified as either 'center', 'left', or 'right'.  This setting has little meaning if the image has been resized to fit the column and only makes a practical difference if the width of the image is smaller than the width of the column.
+<b>$justification</b> (optional) determines the horizontal position of the image within the current column.  The default is 'center', and can be specified as either 'center', 'left', or 'right'.  This setting has little meaning if the image has been resized to fit the column and only makes a practical difference if the width of the image is smaller than the width of the column.
 
-$border (optional) is an array which specifies the details of the border around the image.  The default is no border if this argument is not given.  You may specify any of the following border elements:
+<b>$border</b> (optional) is an array which specifies the details of the border around the image.  The default is no border if this argument is not given.  You may specify any of the following border elements:
 
 $border['width'] is the width of the border.  The default is 1.
 $border['cap'] is the cap type as specified in setLineStyle.  The default is 'round'.

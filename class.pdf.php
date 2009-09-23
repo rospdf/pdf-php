@@ -427,7 +427,7 @@ function o_pages($id,$action,$options=''){
           $res.="\n>>";
           if (isset($o['info']['mediaBox'])){
             $tmp=$o['info']['mediaBox'];
-            $res.="\n/MediaBox [".sprintf('%.3f',$tmp[0]).' '.sprintf('%.3f',$tmp[1]).' '.sprintf('%.3f',$tmp[2]).' '.sprintf('%.3f',$tmp[3]).']';
+            $res.="\n/MediaBox [".$tmp[0].' '.$tmp[1].' '.$tmp[2].' '.$tmp[3].']';
           }
         }
         $res.="\n >>\nendobj";
@@ -437,6 +437,25 @@ function o_pages($id,$action,$options=''){
       return $res;
     break;
   }
+}
+
+/**
+* Beta Redirection function
+*/
+function o_redirect($id,$action,$options=''){
+	switch($action){
+		case 'new':
+			$this->objects[$id]=array('t'=>'redirect','data'=>$options['data'],'info'=>array());
+			$this->o_pages($this->currentNode,'xObject',array('label'=>$options['label'],'objNum'=>$id));
+			break;
+		case 'out':
+			$o =& $this->objects[$id];
+			$tmp=$o['data'];
+			$res= "\n".$id." 0 obj\n<<";
+			$res.="/R".$o['data']." ".$o['data']." 0 R>>\nendobj\n";
+			return $res;
+			break;
+	}
 }
 
 /**
@@ -806,7 +825,7 @@ function o_annotation($id,$action,$options=''){
       $res.="\n/H /I";
       $res.="\n/Rect [ ";
       foreach($o['info']['rect'] as $v){
-        $res.= sprintf("%.4f ",$v);
+        $res.= sprintf("%.4F ",$v);
       }
       $res.="]";
       $res.="\n>>\nendobj";
@@ -1231,8 +1250,8 @@ function output($debug=0){
   $this->checkAllHere();
 
   $xref=array();
-  $content="%PDF-1.3\n%âãÏÓ\n";
-//  $content="%PDF-1.3\n";
+//  $content="%PDF-1.3\n%âãÏÓ\n";
+  $content="%PDF-1.3\n";
   $pos=strlen($content);
   foreach($this->objects as $k=>$v){
     $tmp='o_'.$v['t'];
@@ -1654,7 +1673,7 @@ function addContent($content){
 */
 function setColor($r,$g,$b,$force=0){
   if ($r>=0 && ($force || $r!=$this->currentColour['r'] || $g!=$this->currentColour['g'] || $b!=$this->currentColour['b'])){
-    $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$r).' '.sprintf('%.3f',$g).' '.sprintf('%.3f',$b).' rg';
+    $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$r).' '.sprintf('%.3F',$g).' '.sprintf('%.3F',$b).' rg';
     $this->currentColour=array('r'=>$r,'g'=>$g,'b'=>$b);
   }
 }
@@ -1664,7 +1683,7 @@ function setColor($r,$g,$b,$force=0){
 */
 function setStrokeColor($r,$g,$b,$force=0){
   if ($r>=0 && ($force || $r!=$this->currentStrokeColour['r'] || $g!=$this->currentStrokeColour['g'] || $b!=$this->currentStrokeColour['b'])){
-    $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$r).' '.sprintf('%.3f',$g).' '.sprintf('%.3f',$b).' RG';
+    $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$r).' '.sprintf('%.3F',$g).' '.sprintf('%.3F',$b).' RG';
     $this->currentStrokeColour=array('r'=>$r,'g'=>$g,'b'=>$b);
   }
 }
@@ -1673,7 +1692,7 @@ function setStrokeColor($r,$g,$b,$force=0){
 * draw a line from one set of coordinates to another
 */
 function line($x1,$y1,$x2,$y2){
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$x1).' '.sprintf('%.3f',$y1).' m '.sprintf('%.3f',$x2).' '.sprintf('%.3f',$y2).' l S';
+  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1).' m '.sprintf('%.3F',$x2).' '.sprintf('%.3F',$y2).' l S';
 }
 
 /**
@@ -1682,8 +1701,8 @@ function line($x1,$y1,$x2,$y2){
 function curve($x0,$y0,$x1,$y1,$x2,$y2,$x3,$y3){
   // in the current line style, draw a bezier curve from (x0,y0) to (x3,y3) using the other two points
   // as the control points for the curve.
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$x0).' '.sprintf('%.3f',$y0).' m '.sprintf('%.3f',$x1).' '.sprintf('%.3f',$y1);
-  $this->objects[$this->currentContents]['c'].= ' '.sprintf('%.3f',$x2).' '.sprintf('%.3f',$y2).' '.sprintf('%.3f',$x3).' '.sprintf('%.3f',$y3).' c S';
+  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x0).' '.sprintf('%.3F',$y0).' m '.sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1);
+  $this->objects[$this->currentContents]['c'].= ' '.sprintf('%.3F',$x2).' '.sprintf('%.3F',$y2).' '.sprintf('%.3F',$x3).' '.sprintf('%.3F',$y3).' c S';
 }
 
 /**
@@ -1731,8 +1750,8 @@ function ellipse($x0,$y0,$r1,$r2=0,$angle=0,$nSeg=8,$astart=0,$afinish=360,$clos
   if ($angle != 0){
     $a = -1*deg2rad((float)$angle);
     $tmp = "\n q ";
-    $tmp .= sprintf('%.3f',cos($a)).' '.sprintf('%.3f',(-1.0*sin($a))).' '.sprintf('%.3f',sin($a)).' '.sprintf('%.3f',cos($a)).' ';
-    $tmp .= sprintf('%.3f',$x0).' '.sprintf('%.3f',$y0).' cm';
+    $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
+    $tmp .= sprintf('%.3F',$x0).' '.sprintf('%.3F',$y0).' cm';
     $this->objects[$this->currentContents]['c'].= $tmp;
     $x0=0;
     $y0=0;
@@ -1744,7 +1763,7 @@ function ellipse($x0,$y0,$r1,$r2=0,$angle=0,$nSeg=8,$astart=0,$afinish=360,$clos
   $c0 = -$r1*sin($t1);
   $d0 = $r2*cos($t1);
 
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$a0).' '.sprintf('%.3f',$b0).' m ';
+  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$a0).' '.sprintf('%.3F',$b0).' m ';
   for ($i=1;$i<=$nSeg;$i++){
     // draw this bit of the total curve
     $t1 = $i*$dt+$astart;
@@ -1752,8 +1771,8 @@ function ellipse($x0,$y0,$r1,$r2=0,$angle=0,$nSeg=8,$astart=0,$afinish=360,$clos
     $b1 = $y0+$r2*sin($t1);
     $c1 = -$r1*sin($t1);
     $d1 = $r2*cos($t1);
-    $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',($a0+$c0*$dtm)).' '.sprintf('%.3f',($b0+$d0*$dtm));
-    $this->objects[$this->currentContents]['c'].= ' '.sprintf('%.3f',($a1-$c1*$dtm)).' '.sprintf('%.3f',($b1-$d1*$dtm)).' '.sprintf('%.3f',$a1).' '.sprintf('%.3f',$b1).' c';
+    $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',($a0+$c0*$dtm)).' '.sprintf('%.3F',($b0+$d0*$dtm));
+    $this->objects[$this->currentContents]['c'].= ' '.sprintf('%.3F',($a1-$c1*$dtm)).' '.sprintf('%.3F',($b1-$d1*$dtm)).' '.sprintf('%.3F',$a1).' '.sprintf('%.3F',$b1).' c';
     $a0=$a1;
     $b0=$b1;
     $c0=$c1;
@@ -1817,9 +1836,9 @@ function setLineStyle($width=1,$cap='',$join='',$dash='',$phase=0){
 */
 function polygon($p,$np,$f=0){
   $this->objects[$this->currentContents]['c'].="\n";
-  $this->objects[$this->currentContents]['c'].=sprintf('%.3f',$p[0]).' '.sprintf('%.3f',$p[1]).' m ';
+  $this->objects[$this->currentContents]['c'].=sprintf('%.3F',$p[0]).' '.sprintf('%.3F',$p[1]).' m ';
   for ($i=2;$i<$np*2;$i=$i+2){
-    $this->objects[$this->currentContents]['c'].= sprintf('%.3f',$p[$i]).' '.sprintf('%.3f',$p[$i+1]).' l ';
+    $this->objects[$this->currentContents]['c'].= sprintf('%.3F',$p[$i]).' '.sprintf('%.3F',$p[$i+1]).' l ';
   }
   if ($f==1){
     $this->objects[$this->currentContents]['c'].=' f';
@@ -1833,7 +1852,7 @@ function polygon($p,$np,$f=0){
 * the coordinates of the upper-right corner
 */
 function filledRectangle($x1,$y1,$width,$height){
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$x1).' '.sprintf('%.3f',$y1).' '.sprintf('%.3f',$width).' '.sprintf('%.3f',$height).' re f';
+  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1).' '.sprintf('%.3F',$width).' '.sprintf('%.3F',$height).' re f';
 }
 
 /**
@@ -1841,7 +1860,7 @@ function filledRectangle($x1,$y1,$width,$height){
 * the coordinates of the upper-right corner
 */
 function rectangle($x1,$y1,$width,$height){
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$x1).' '.sprintf('%.3f',$y1).' '.sprintf('%.3f',$width).' '.sprintf('%.3f',$height).' re S';
+  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1).' '.sprintf('%.3F',$width).' '.sprintf('%.3F',$height).' re S';
 }
 
 /**
@@ -1913,10 +1932,11 @@ function stream($options=''){
   } else {
     $tmp = $this->output();
   }
-  header("Content-type: application/pdf");
-  header("Content-Length: ".strlen(ltrim($tmp)));
   $fileName = (isset($options['Content-Disposition'])?$options['Content-Disposition']:'file.pdf');
-  header("Content-Disposition: inline; filename=".$fileName);
+  $fileNameC = (isset($options['Content-Type'])?"; name=\"".$options['Content-Type']."\"":'');
+  header("Content-Type: application/pdf$fileNameC");
+  header("Content-Length: ".strlen(ltrim($tmp)));
+  header("Content-Disposition: inline; filename=\"".$fileName."\"");
   if (isset($options['Accept-Ranges']) && $options['Accept-Ranges']==1){
     header("Accept-Ranges: ".strlen(ltrim($tmp))); 
   }
@@ -2029,6 +2049,14 @@ function PRVTcheckTextDirective1(&$text,$i,&$f,$final,&$x,&$y,$size=0,$angle=0,$
               $directive=$j-$i+1;
             }
             break;
+          case 'r':
+			$j++;
+			$k = strpos($text,'>',$j);
+			if ($k!==false && $text[$j]==':'){
+				$directive=0; //$k-$i+1;
+				$f=0;
+			}
+            break;
           case 'c':
             // this this might be a callback function
             $j++;
@@ -2089,6 +2117,44 @@ function PRVTcheckTextDirective1(&$text,$i,&$f,$final,&$x,&$y,$size=0,$angle=0,$
           $this->currentTextState.=$text[$j-1];
           $directive=$j-$i+1;
         }
+        break;
+      case 'r':
+        // this this might be a callback function
+        $j++;
+      	$k = strpos($text,'>',$j);
+		if ($k!==false && $text[$j]==':'){
+			$f=0;
+			$directive = strlen($text); //$k-$i+1;
+			$tmp = substr($text,$j+1,$k-$j-1);
+			$b1 = strpos($tmp,':');
+			if ($b1!==false){
+				$func = substr($tmp,0,$b1);
+				$parm = substr($tmp,$b1+1);
+			} else {
+				$func=$tmp;
+				$parm='';
+			}
+			if($final){
+				$value=substr($text,($k-$i+1),strpos($text,'<',($k-$i+1))-($k-$i+1));
+				switch($func){
+					case 'rect':
+						if($parm){
+							$p=explode(",",$parm);
+							$rgb=$this->currentColour;
+							$this->setColor($p[0],$p[1],$p[2]);
+						}
+						$rect=explode(";",$value);
+						foreach($rect as $k=>$v){
+							$co=explode(",",$v);
+							if(count($co) >= 4){
+								$this->filledRectangle($x+$co[0],$y+$co[1],$co[2],$co[3]);
+							}
+						}
+						if($parm) $this->setColor($rgb['r'],$rgb['g'],$rgb['b']);
+						break;
+				}
+			}
+		}
         break;
       case 'C':
         $noClose=1;
@@ -2166,17 +2232,17 @@ function addText($x,$y,$size,$text,$angle=0,$wordSpaceAdjust=0){
     }
   }
   if ($angle==0){
-    $this->objects[$this->currentContents]['c'].="\n".'BT '.sprintf('%.3f',$x).' '.sprintf('%.3f',$y).' Td';
+    $this->objects[$this->currentContents]['c'].="\n".'BT '.sprintf('%.3F',$x).' '.sprintf('%.3F',$y).' Td';
   } else {
     $a = deg2rad((float)$angle);
     $tmp = "\n".'BT ';
-    $tmp .= sprintf('%.3f',cos($a)).' '.sprintf('%.3f',(-1.0*sin($a))).' '.sprintf('%.3f',sin($a)).' '.sprintf('%.3f',cos($a)).' ';
-    $tmp .= sprintf('%.3f',$x).' '.sprintf('%.3f',$y).' Tm';
+    $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
+    $tmp .= sprintf('%.3F',$x).' '.sprintf('%.3F',$y).' Tm';
     $this->objects[$this->currentContents]['c'] .= $tmp;
   }
   if ($wordSpaceAdjust!=0 || $wordSpaceAdjust != $this->wordSpaceAdjust){
     $this->wordSpaceAdjust=$wordSpaceAdjust;
-    $this->objects[$this->currentContents]['c'].=' '.sprintf('%.3f',$wordSpaceAdjust).' Tw';
+    $this->objects[$this->currentContents]['c'].=' '.sprintf('%.3F',$wordSpaceAdjust).' Tw';
   }
   $len=strlen($text);
   $start=0;
@@ -2187,7 +2253,7 @@ function addText($x,$y,$size,$text,$angle=0,$wordSpaceAdjust=0){
       // then we should write what we need to
       if ($i>$start){
         $part = substr($text,$start,$i-$start);
-        $this->objects[$this->currentContents]['c'].=' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ';
+        $this->objects[$this->currentContents]['c'].=' /F'.$this->currentFontNum.' '.sprintf('%.1F',$size).' Tf ';
         $this->objects[$this->currentContents]['c'].=' ('.$this->filterText($part).') Tj';
       }
       if ($f){
@@ -2202,17 +2268,17 @@ function addText($x,$y,$size,$text,$angle=0,$wordSpaceAdjust=0){
         
         // restart the text object
           if ($angle==0){
-            $this->objects[$this->currentContents]['c'].="\n".'BT '.sprintf('%.3f',$xp).' '.sprintf('%.3f',$yp).' Td';
+            $this->objects[$this->currentContents]['c'].="\n".'BT '.sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Td';
           } else {
             $a = deg2rad((float)$angle);
             $tmp = "\n".'BT ';
-            $tmp .= sprintf('%.3f',cos($a)).' '.sprintf('%.3f',(-1.0*sin($a))).' '.sprintf('%.3f',sin($a)).' '.sprintf('%.3f',cos($a)).' ';
-            $tmp .= sprintf('%.3f',$xp).' '.sprintf('%.3f',$yp).' Tm';
+            $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
+            $tmp .= sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Tm';
             $this->objects[$this->currentContents]['c'] .= $tmp;
           }
           if ($wordSpaceAdjust!=0 || $wordSpaceAdjust != $this->wordSpaceAdjust){
             $this->wordSpaceAdjust=$wordSpaceAdjust;
-            $this->objects[$this->currentContents]['c'].=' '.sprintf('%.3f',$wordSpaceAdjust).' Tw';
+            $this->objects[$this->currentContents]['c'].=' '.sprintf('%.3F',$wordSpaceAdjust).' Tw';
           }
       }
       // and move the writing point to the next piece of text
@@ -2223,7 +2289,7 @@ function addText($x,$y,$size,$text,$angle=0,$wordSpaceAdjust=0){
   }
   if ($start<$len){
     $part = substr($text,$start);
-    $this->objects[$this->currentContents]['c'].=' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ';
+    $this->objects[$this->currentContents]['c'].=' /F'.$this->currentFontNum.' '.sprintf('%.1F',$size).' Tf ';
     $this->objects[$this->currentContents]['c'].=' ('.$this->filterText($part).') Tj';
   }
   $this->objects[$this->currentContents]['c'].=' ET';
@@ -2630,10 +2696,10 @@ function PRVT_getBytes(&$data,$pos,$num){
   return $ret;
 }
 
-/**
-* add a PNG image into the document, from a file
-* this should work with remote files
+/*
+* Multiply - Images, with same Bitmap resource :-) makes PDF smaller | Updated: 2004-07-15
 */
+
 function addPngFromFile($file,$x,$y,$w=0,$h=0){
   // read in a png file, interpret it, then add to the system
   $error=0;
@@ -2811,10 +2877,17 @@ function addPngFromFile($file,$x,$y,$w=0,$h=0){
   if (isset($transparency)){
     $options['transparency']=$transparency;
   }
-  $this->o_image($this->numObj,'new',$options);
+  /* Optimierung: Redundanzfreies Bilder - Laden */
+  if(count($this->bg_files[$file])) {
+	$this->o_pages($this->currentNode,'xObject',array('label'=>$label,'objNum'=>$this->bg_files[$file]['obj']));
+	$this->numObj--;
+  }else{
+	$this->o_image($this->numObj,'new',$options);
+	$this->bg_files[$file] = array('obj'=>($this->numObj-1));
+  }
 
   $this->objects[$this->currentContents]['c'].="\nq";
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$w)." 0 0 ".sprintf('%.3f',$h)." ".sprintf('%.3f',$x)." ".sprintf('%.3f',$y)." cm";
+  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$w)." 0 0 ".sprintf('%.3F',$h)." ".sprintf('%.3F',$x)." ".sprintf('%.3F',$y)." cm";
   $this->objects[$this->currentContents]['c'].="\n/".$label.' Do';
   $this->objects[$this->currentContents]['c'].="\nQ";
 }
@@ -2936,9 +3009,8 @@ function addJpegImage_common(&$data,$x,$y,$w=0,$h=0,$imageWidth,$imageHeight,$ch
   $label='I'.$im;
   $this->numObj++;
   $this->o_image($this->numObj,'new',array('label'=>$label,'data'=>$data,'iw'=>$imageWidth,'ih'=>$imageHeight,'channels'=>$channels));
-
   $this->objects[$this->currentContents]['c'].="\nq";
-  $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3f',$w)." 0 0 ".sprintf('%.3f',$h)." ".sprintf('%.3f',$x)." ".sprintf('%.3f',$y)." cm";
+  $this->objects[$this->currentContents]['c'].="\n".$w." 0 0 ".$h." ".$x." ".$y." cm";
   $this->objects[$this->currentContents]['c'].="\n/".$label.' Do';
   $this->objects[$this->currentContents]['c'].="\nQ";
 }
