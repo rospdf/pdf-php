@@ -11,11 +11,13 @@ class Cezpdf extends Cpdf {
 // IMPORTANT NOTE
 // there is no warranty, implied or otherwise with this software.
 // 
-// version 009 (versioning is linked to class.pdf.php)
+// version 010a (versioning is linked to class.pdf.php)
 //
 // released under a public domain licence.
+// 
+// http://pdf-php.sourceforge.net/
 //
-// Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
+// Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf 
 //==============================================================================
 
 var $ez=array('fontSize'=>10); // used for storing most of the page configuration parameters
@@ -600,30 +602,30 @@ function ezSetDy($dy,$mod=''){
 // ------------------------------------------------------------------------------
 
 function ezPrvtTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
-  $x0=1000;
-  $x1=0;
-  $this->setStrokeColor($col[0],$col[1],$col[2]);
-  $cnt=0;
-  $n = count($pos);
-  foreach($pos as $x){
-    $cnt++;
-    if ($cnt==1 || $cnt==$n){
-      $this->setLineStyle($outer);
-    } else {
-      $this->setLineStyle($inner);
-    }
-    $this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
-    if ($x>$x1){ $x1=$x; };
-    if ($x<$x0){ $x0=$x; };
-  }
-  $this->setLineStyle($outer);
-  $this->line($x0-$gap/2-$outer/2,$y0,$x1-$gap/2+$outer/2,$y0);
-  // only do the second line if it is different to the first, AND each row does not have
-  // a line on it.
-  if ($y0!=$y1 && $opt<2){
-    $this->line($x0-$gap/2,$y1,$x1-$gap/2,$y1);
-  }
-  $this->line($x0-$gap/2-$outer/2,$y2,$x1-$gap/2+$outer/2,$y2);
+	$x0=1000;
+	$x1=0;
+	$this->setStrokeColor($col[0],$col[1],$col[2]);
+	$cnt=0;
+	$n = count($pos);
+	foreach($pos as $x){
+		$cnt++;
+		if ($cnt==1 || $cnt==$n)
+			$this->setLineStyle($outer);
+		else
+			$this->setLineStyle($inner);
+		
+		if ( $opt != 3 ) $this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
+		if ($x>$x1) $x1=$x;
+		if ($x<$x0) $x0=$x;
+	}
+	$this->setLineStyle($outer);
+	$this->line($x0-$gap/2 - $outer/2,$y0, $x1 - $gap/2+$outer/2,$y0);
+	// only do the second line if it is different to the first, AND each row does not have
+	// a line on it.
+	if ($y0!=$y1 && $opt<2)
+		$this->line($x0-$gap/2,$y1,$x1-$gap/2,$y1);
+
+	$this->line($x0-$gap/2 - $outer/2,$y2,$x1 - $gap/2+$outer/2,$y2);
 }
 
 // ------------------------------------------------------------------------------
@@ -1427,13 +1429,13 @@ function ezImage($image,$pad = 5,$width = 0,$resize = 'full',$just = 'center',$b
       			$cont.= fread($fp,1024);
    		}
    		fclose($fp);
-		$image = tempnam ("/tmp", "php-pdf");
+   		
+		$image = tempnam (sys_get_temp_dir(), "php-pdf");
 		$fp2 = @fopen($image,"w");
    		fwrite($fp2,$cont);
   		fclose($fp2);
 		$temp = true;
 	}
-
 	if (!(file_exists($image))) return false; //return immediately if image file does not exist
 	$imageInfo = getimagesize($image);
 	switch ($imageInfo[2]){
@@ -1451,13 +1453,9 @@ function ezImage($image,$pad = 5,$width = 0,$resize = 'full',$just = 'center',$b
 
 	//get maximum width of image
 	if (isset($this->ez['columns']) && $this->ez['columns']['on'] == 1)
-	{
 		$bigwidth = $this->ez['columns']['width'] - ($pad * 2);
-	}
 	else
-	{
-		$bigwidth = $this->ez['pageWidth'] - ($pad * 2);
-	}
+		$bigwidth = $this->ez['pageWidth'] - ($pad * 2) - $this->ez['leftMargin'] - $this->ez['rightMargin'];
 	//fix width if larger than maximum or if $resize=full
 	if ($resize == 'full' || $resize == 'width' || $width > $bigwidth)
 	{
@@ -1500,7 +1498,6 @@ function ezImage($image,$pad = 5,$width = 0,$resize = 'full',$just = 'center',$b
 			$offset = 0;
 		}
 	}
-
 
 	//call appropriate function
 	if ($type == "jpeg"){

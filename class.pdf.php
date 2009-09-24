@@ -2,6 +2,7 @@
 /**
 * Cpdf
 *
+* http://pdf-php.sourceforge.net/
 * http://www.ros.co.nz/pdf
 *
 * A PHP class to provide the basic functionality to create a pdf document without
@@ -17,7 +18,7 @@
 * This code has been placed in the Public Domain for all to enjoy.
 *
 * @author		Wayne Munro <pdf@ros.co.nz>
-* @version 	009
+* @version 	010a
 * @package	Cpdf
 */
 class Cpdf {
@@ -2971,8 +2972,7 @@ function addImage(&$img,$x,$y,$w=0,$h=0,$quality=75){
   // gotta get the data out of the img..
 
   // so I write to a temp file, and then read it back.. soo ugly, my apologies.
-  $tmpDir='/tmp';
-  $tmpName=tempnam($tmpDir,'img');
+  $tmpName=tempnam(sys_get_temp_dir(),'img');
   imagejpeg($img,$tmpName,$quality);
   $fp=fopen($tmpName,'rb');
 
