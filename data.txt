@@ -31,9 +31,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<version 010>
+2<version 010a>
 
-- ADDED: ID 1032222 - ezPrvtTableDrawLines supports parameter '3' for HEAD LINES (horizontal)
+- ezTable supports new different line modes (showLines), new params: 3 and 4
 - BUGFIX: ID 847597 - ezImage on align 'right' did not fix
 - sprintf output fixed for different locales by doint a uppercase 'F'
 - comments in ezTable changed / added
@@ -272,7 +272,7 @@ The other options are described here:
 <b>$title</b> (optional) is the title to be put on the top of the table
 
 <b>$options</b> is an associative array which can contain:
- 'showLines'=> 0,1,2, default is 1 (1->show the borders, 0->no borders, 2-> show borders AND lines between rows, 3-> show borders .)
+ 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
  'showHeadings' => 0 or 1
  'shaded'=> 0,1,2, default is 1 (1->alternate lines are shaded, 0->no shading, 2->both sets are shaded)
  'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)

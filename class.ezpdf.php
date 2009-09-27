@@ -614,7 +614,7 @@ function ezPrvtTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$
 		else
 			$this->setLineStyle($inner);
 		
-		if ( $opt != 3 ) $this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
+		if($opt != 3) $this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
 		if ($x>$x1) $x1=$x;
 		if ($x<$x0) $x0=$x;
 	}
@@ -719,7 +719,7 @@ function ezTable(&$data,$cols='',$title='',$options=''){
 // $title (optional) is the title to be put on the top of the table
 //
 // $options is an associative array which can contain:
-// 'showLines'=> 0,1,2, default is 1 (show outside and top lines only), 2=> lines on each row
+// 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
 // 'showHeadings' => 0 or 1
 // 'shaded'=> 0,1,2,3 default is 1 (1->alternate lines are shaded, 0->no shading, 2-> both shaded, second uses shadeCol2)
 // 'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)
@@ -1088,10 +1088,10 @@ function ezTable(&$data,$cols='',$title='',$options=''){
 							if (!$options['showHeadings']){
 								$y0=$y1;
 							}
-							if($options['showLines'] > 2){
+							if($options['showLines'] > 3){
 								$this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
 								$this->line($x0,$y1,$x1,$y1);
-							}else{
+							}else if($options['showLines'] < 3){
 								$this->ezPrvtTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
 							}
 						}
@@ -1235,7 +1235,7 @@ function ezTable(&$data,$cols='',$title='',$options=''){
 						} else {
 							$this->setLineStyle($options['innerLineThickness']);
 						}
-						if($options['showLines'] < 3){
+						if($options['showLines'] < 4){
 							$this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
 						}
 						$this->restoreState();
@@ -1294,10 +1294,10 @@ function ezTable(&$data,$cols='',$title='',$options=''){
 		if (!$options['showHeadings']){
 			$y0=$y1;
 		}
-		if($options['showLines'] > 2){
+		if($options['showLines'] > 3){
 			$this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
 			$this->line($x0,$y1,$x1,$y1);
-		}else{
+		}else if($options['showLines'] < 3){
 			$this->ezPrvtTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
 		}
 	}
