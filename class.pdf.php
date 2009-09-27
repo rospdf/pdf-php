@@ -2050,14 +2050,6 @@ function PRVTcheckTextDirective1(&$text,$i,&$f,$final,&$x,&$y,$size=0,$angle=0,$
               $directive=$j-$i+1;
             }
             break;
-          case 'r':
-			$j++;
-			$k = strpos($text,'>',$j);
-			if ($k!==false && $text[$j]==':'){
-				$directive=0; //$k-$i+1;
-				$f=0;
-			}
-            break;
           case 'c':
             // this this might be a callback function
             $j++;
@@ -2118,44 +2110,6 @@ function PRVTcheckTextDirective1(&$text,$i,&$f,$final,&$x,&$y,$size=0,$angle=0,$
           $this->currentTextState.=$text[$j-1];
           $directive=$j-$i+1;
         }
-        break;
-      case 'r':
-        // this this might be a callback function
-        $j++;
-      	$k = strpos($text,'>',$j);
-		if ($k!==false && $text[$j]==':'){
-			$f=0;
-			$directive = strlen($text); //$k-$i+1;
-			$tmp = substr($text,$j+1,$k-$j-1);
-			$b1 = strpos($tmp,':');
-			if ($b1!==false){
-				$func = substr($tmp,0,$b1);
-				$parm = substr($tmp,$b1+1);
-			} else {
-				$func=$tmp;
-				$parm='';
-			}
-			if($final){
-				$value=substr($text,($k-$i+1),strpos($text,'<',($k-$i+1))-($k-$i+1));
-				switch($func){
-					case 'rect':
-						if($parm){
-							$p=explode(",",$parm);
-							$rgb=$this->currentColour;
-							$this->setColor($p[0],$p[1],$p[2]);
-						}
-						$rect=explode(";",$value);
-						foreach($rect as $k=>$v){
-							$co=explode(",",$v);
-							if(count($co) >= 4){
-								$this->filledRectangle($x+$co[0],$y+$co[1],$co[2],$co[3]);
-							}
-						}
-						if($parm) $this->setColor($rgb['r'],$rgb['g'],$rgb['b']);
-						break;
-				}
-			}
-		}
         break;
       case 'C':
         $noClose=1;
