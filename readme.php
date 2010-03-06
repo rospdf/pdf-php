@@ -1,10 +1,10 @@
 <?php
 //===================================================================================================
-// this is the php file which creates the readme.pdf file, this is not seriously 
+// this is the php file which creates the readme.pdf file, this is not seriously
 // suggested as a good way to create such a file, nor a great example of prose,
 // but hopefully it will be useful
 //
-// adding ?d=1 to the url calling this will cause the pdf code itself to ve echoed to the 
+// adding ?d=1 to the url calling this will cause the pdf code itself to ve echoed to the
 // browser, this is quite useful for debugging purposes.
 // there is no option to save directly to a file here, but this would be trivial to implement.
 //
@@ -18,7 +18,7 @@
 error_reporting(E_ALL);
 set_time_limit(1800);
 
-include 'class.ezpdf.php';
+include 'src/class.ezpdf.php';
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
@@ -139,7 +139,7 @@ if (file_exists('ros.jpg')){
 } else {
   // comment out these two lines if you do not have GD jpeg support
   // I couldn't quickly see a way to test for this support from the code.
-  // you could also copy the file from the locatioin shown and put it in the directory, then 
+  // you could also copy the file from the locatioin shown and put it in the directory, then
   // the code above which doesn't use GD will be activated.
   $img = ImageCreatefromjpeg('http://www.ros.co.nz/pdf/ros.jpg');
   $pdf-> addImage($img,199,$pdf->y-100,200,0);
@@ -149,7 +149,7 @@ if (file_exists('ros.jpg')){
 // load up the document content
 $data=file('./data.txt');
 
-// try adding the faq's to the document, this will not work for people re-building the file from the 
+// try adding the faq's to the document, this will not work for people re-building the file from the
 // download as I am not going to put in the faq file with that
 $faqFile = '../ros/pdf/faqs.inc';
 if (file_exists($faqFile)){
@@ -189,7 +189,7 @@ $collecting=0;
 $code='';
 
 foreach ($data as $line){
-  // go through each line, showing it as required, if it is surrounded by '<>' then 
+  // go through each line, showing it as required, if it is surrounded by '<>' then
   // assume that it is a title
   $line=chop($line);
   if (strlen($line) && $line[0]=='#'){
@@ -259,7 +259,7 @@ foreach ($data as $line){
     // the ezpdf function will take care of all of the wrapping etc.
     $pdf->ezText($line,$size,$textOptions);
   }
-  
+
 }
 
 $pdf->ezStopPageNumbers(1,1);
