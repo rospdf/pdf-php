@@ -13,7 +13,7 @@ class CpdfTest extends PHPUnit_Framework_TestCase
 
     function testSelectFontAddsTheFontToTheFontStackWithAValidFont()
     {
-        $fontnr = $this->pdf->selectFont('../fonts/Courier');
+        $fontnr = $this->pdf->selectFont('../src/fonts/Courier');
         $this->assertEquals(1, $fontnr);
     }
 
