@@ -76,7 +76,7 @@ $pdf->closeObject();
 $pdf->addObject($all,'all');
 
 //$mainFont = './fonts/Helvetica.afm';
-$mainFont = '../fonts/Times-Roman.afm';
+$mainFont = '../src/fonts/Times-Roman.afm';
 // select a font
 $pdf->selectFont($mainFont);
 $size=12;
