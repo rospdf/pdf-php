@@ -600,6 +600,77 @@ class Cezpdf extends Cpdf {
         $this->ezSetMargins($top, $bottom, $left, $right);
     }
 
+	/**
+	 * 2003-11-21: DmiG (DmiG@nm.ru) - Change Margins in centimeters by dYtop, dYbottom, dYleft, dYright
+	 */
+	function ezChangeCmMargins($top,$bottom,$left,$right)
+	{
+		$top = ( $top / 2.54 ) * 72;
+		$bottom = ( $bottom / 2.54 ) * 72;
+		$left = ( $left / 2.54 ) * 72;
+		$right = ( $right / 2.54 ) * 72;
+		$this->ezChangeMargins($top,$bottom,$left,$right);
+	}
+
+	/**
+	 * 2003-11-21: DmiG (DmiG@nm.ru) - Get Margins
+	 */
+	function ezGetMargin($which)
+	{
+		switch(strtolower($which))
+		{
+			case 't':
+			case 'top': return $this->ez['topMargin'];
+			case 'tc':
+			case 'topc': return $this->ez['pageHeight']-$this->ez['topMargin'];
+			case 'l':
+			case 'left': return $this->ez['leftMargin'];
+			case 'r':
+			case 'right': return $this->ez['rightMargin'];
+			case 'rc':
+			case 'rightc': return $this->ez['pageWidth']-$this->ez['rightMargin'];
+			case 'b':
+			case 'bottom': return $this->ez['bottomMargin'];
+			default : return 0;
+		}
+	}
+
+	/**
+	 * 2003-11-21: DmiG (DmiG@nm.ru) - Change document margins by dYtop, dYbottom, dYleft, dYright
+	 */
+	function ezChangeMargins($top,$bottom,$left,$right)
+	{
+	  // sets the margins to new values
+	  $this->ez['topMargin']+=$top;
+	  $this->ez['bottomMargin']+=$bottom;
+	  $this->ez['leftMargin']+=$left;
+	  $this->ez['rightMargin']+=$right;
+	  // check to see if this means that the current writing position is outside the
+	  // writable area
+	  if ($this->y > ($this->ez['pageHeight']-$this->ez['topMargin']))
+	  {
+		// then move y down
+		$this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
+	  }
+	  if ( $this->y < $this->ez['bottomMargin'])
+	  {
+		// then make a new page
+		$this->ezNewPage();
+	  }
+	}
+	
+	function ezGetPageWidth()
+	{
+	  // return width of the current page in Pt
+	  return $this->ez['pageWidth'];
+	}
+
+	function ezGetPageHeight()
+	{
+	  // return width of the current page in Pt
+	  return $this->ez['pageHeight'];
+	}
+	
     function ezColumnsStart($options = array ()) {
         // start from the current y-position, make the set number of columne
         if (isset ($this->ez['columns']) && $this->ez['columns'] == 1) {
@@ -1771,6 +1842,7 @@ class Cezpdf extends Cpdf {
                     } else {
                         $this->ezNewPage();
                         // and then re-calc the left and right, in case they have changed due to columns
+                        $this->y = $this->y - $height;
                     }
                 }
                 if (is_array($options) && isset ($options['aleft'])) {
@@ -1835,9 +1907,8 @@ class Cezpdf extends Cpdf {
             $bigwidth = $this->ez['pageWidth'] - ($pad * 2);
         }
         //fix width if larger than maximum or if $resize=full
-        if ($resize == 'full' || $resize == 'width' || $width > $bigwidth) {
-            $width = $bigwidth;
-
+        if ($resize == 'full' || ($resize == 'width' && $width > $bigwidth) ) {
+            $width = $bigwidth - $this->ez['leftMargin'] - $this->ez['rightMargin'];
         }
 
         $height = ($width / $ratio); //set height

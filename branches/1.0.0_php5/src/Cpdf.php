@@ -1309,6 +1309,7 @@ class Cpdf
             $xref[]=$pos;
             $pos+=strlen($cont);
         }
+        ++$pos;
         $content.="\nxref\n0 ".(count($xref)+1)."\n0000000000 65535 f \n";
         foreach($xref as $p){
             $content.=substr('0000000000',0,10-strlen($p)).$p." 00000 n \n";
@@ -1439,7 +1440,7 @@ class Cpdf
                         $bits=explode(';',trim($row));
                         $dtmp=array();
                         foreach($bits as $bit) {
-                            $bits2 = explode(' ',trim($bit));
+                            $bits2 = split('[ ]+',trim($bit));
                             if (strlen($bits2[0])) {
                                 if (count($bits2)>2) {
                                     $dtmp[$bits2[0]]=array();
