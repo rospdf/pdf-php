@@ -1868,14 +1868,11 @@ class Cezpdf extends Cpdf {
     }
 
     function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
+    	$temp = false;
         //beta ezimage function
-        if (stristr($image, '://')) //copy to temp file
-            {
-            $fp = @ fopen($image, "rb");
-            while (!feof($fp)) {
-                $cont .= fread($fp, 1024);
-            }
-            fclose($fp);
+        if (stristr($image, '://')) { //copy to temp file
+        	$cont = file_get_contents($image);
+        	
             $image = tempnam("/tmp", "php-pdf");
             $fp2 = @ fopen($image, "w");
             fwrite($fp2, $cont);
