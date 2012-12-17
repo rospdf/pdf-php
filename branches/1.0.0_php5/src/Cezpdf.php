@@ -1919,16 +1919,15 @@ class Cezpdf extends Cpdf {
                 $width = ($height * $ratio); //fix width
             }
         }
-
         //fix x-offset if image smaller than bigwidth
         if ($width < $bigwidth) {
             //center if justification=center
             if ($just == 'center') {
-                $offset = ($bigwidth - $width) / 2;
+                $offset = (($bigwidth - $width) / 2) - $this->ez['leftMargin'];
             }
             //move to right if justification=right
             if ($just == 'right') {
-                $offset = ($bigwidth - $width);
+                $offset = ($bigwidth - $width) - $this->ez['leftMargin'] - $this->ez['rightMargin'];
             }
             //leave at left if justification=left
             if ($just == 'left') {
