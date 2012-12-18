@@ -1,5 +1,7 @@
 <?php
 /**
+ * Helper class to create pdf documents
+ *
  * this class will take the basic interaction facilities of the Cpdf class
  * and make more useful functions so that the user does not have to
  * know all the ins and outs of pdf presentation to produce something pretty.
@@ -7,14 +9,13 @@
  * IMPORTANT NOTE
  * there is no warranty, implied or otherwise with this software.
  *
- * PHP Version 4
- *
  * @package Cpdf
- * @version 010b (php5 support)
+ * @version 0.11.0
  * @license released under a public domain licence.
- * @link http://pdf-php.sourceforge.net/
+ * @link http://www.sourceforge.net/p/pdf-php/
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
+ * @author Ole Koeckemann <ole.k@web.de>
  */
 include_once 'Cpdf.php';
 
