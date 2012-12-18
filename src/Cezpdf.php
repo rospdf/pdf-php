@@ -10,13 +10,13 @@
  * PHP Version 4
  *
  * @package Cpdf
- * @version 010a (versioning is linked to class.pdf.php)
+ * @version 010b (php5 support)
  * @license released under a public domain licence.
  * @link http://pdf-php.sourceforge.net/
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
  */
-include_once 'class.pdf.php';
+include_once 'Cpdf.php';
 
 class Cezpdf extends Cpdf {
 
@@ -26,19 +26,7 @@ class Cezpdf extends Cpdf {
     var $ezPageCount=0;
 
     // Background color and image stuff added
-    var $bg_UseSameFile = true;
-    var $bg_files = array(); /* array('blank.png'=>array('obj'=>8)) */
-    var $bg_type;
-    var $bg_color = array();
-    var $bg_img;
-    var $bg_img_width;
-    var $bg_img_height;
-    var $bg_img_xpos;
-    var $bg_img_ypos;
-    var $bg_img_type;
-    var $bg_img_types_jpg = array('jpg', 'jpeg', 'pjpg', 'pjpeg');
-    var $bg_img_types_png = array('png');
-
+    var $ezBackground = array();
     /**
      *   $type        : { 'none' | 'color' | 'colour' | 'image' }
      *   $options     : if type == 'color' or 'colour':
@@ -70,7 +58,7 @@ class Cezpdf extends Cpdf {
      * @param $options
      * @return unknown_type
      */
-    function Cezpdf($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
+    function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
         if (!is_array($paper)){
             switch (strtoupper($paper)){
                 case '4A0': {$size = array(0,0,4767.87,6740.79); break;}
@@ -142,7 +130,7 @@ class Cezpdf extends Cpdf {
                 $size[3] = ( $paper[1] / 2.54 ) * 72;
             }
         }
-        $this->Cpdf($size);
+        parent::__construct($size);
         $this->ez['pageWidth']=$size[2];
         $this->ez['pageHeight']=$size[3];
 
@@ -161,59 +149,76 @@ class Cezpdf extends Cpdf {
         switch ($type) {
             case 'color'  :
             case 'colour' :
-                $this->bg_type = 'colour';
-                $this->saveState();
-                if (is_float($options[0]) && is_float($options[1]) && is_float($options[2])) {
-                    $this->bg_color = $options;
-                    $this->setColor($this->bg_color[0], $this->bg_color[1], $this->bg_color[2], 1);
-                } else {
-                    $this->bg_color = array(1, 1, 1);
-                }
-                $this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
-                $this->restoreState();
+            	$this->ezBackground['type'] = 'color';
+            	$this->ezBackground['color'] = $options;
                 break;
             case 'image'  :
-                $this->bg_type = 'image';
-                if (isset($options['img'])) {
-                    $bg_img_types = array_merge($this->bg_img_types_jpg, $this->bg_img_types_png);
-                    $bg_img_ext = strtolower(substr($options['img'], strpos($options['img'], '.') + 1));
-
-                    if (is_array($this->bg_img_types_jpg) && in_array($bg_img_ext, $this->bg_img_types_jpg)) {
-                        $this->bg_img_type = 'jpg';
-                    } else if (is_array($this->bg_img_types_png) && in_array($bg_img_ext, $this->bg_img_types_png)) {
-                        $this->bg_img_type = 'png';
-                    } else {
-                        $this->bg_img_type = NULL;
-                    }
-                } else {
-                    $this->bg_img_type = NULL;
-                }
-
-                // Don't continue if image does not exist, or if image has a wrong type
-                if (!isset($options['img']) || (!isset($this->bg_img_type)) || !file_exists($options['img'])) {
-                    if (!file_exists($options['img'])) {
-                        $errormsg="Background Image '".$options['img']."' does not exists";
-                    }
-
-                    $this->bg_type = 'none';
-                    break;
-                }
-                $this->bg_img = $options['img'];
-                if (is_numeric($options['width']))  $this->bg_img_width  = $options['width'];  else $this->bg_img_width  = $this->ez['pageWidth'];
-                if (is_numeric($options['height'])) $this->bg_img_height = $options['height']; else $this->bg_img_height = $this->ez['pageHeight'];
-                if (is_numeric($options['xpos']))   $this->bg_img_xpos   = $options['xpos'];   else $this->bg_img_xpos   = 0;
-                if (is_numeric($options['ypos']))   $this->bg_img_ypos   = $options['ypos'];   else $this->bg_img_ypos   = 0;
-                switch ($this->bg_img_type) {
-                    case 'jpg' : $this->addJpegFromFile($this->bg_img, $this->bg_img_xpos, $this->bg_img_ypos, $this->bg_img_width, $this->bg_img_height); break;
-                    case 'png' : $this->addPngFromFile($this->bg_img, $this->bg_img_xpos, $this->bg_img_ypos, $this->bg_img_width, $this->bg_img_height);  break;
-                }
+            	if(!isset($options['img']))
+            	{
+            		$errormsg="Background Image not set.";
+                	break;
+            	}
+            	
+                if (!file_exists($options['img']))
+                {
+                	$errormsg="Background Image does not exists: '".$options['img']."'";
+                	break;
+            	}
+            	
+            	$im = getimagesize($options['img']);
+            	if($im === false){
+            		$errormsg="Background Image is invalid: '".$options['img']."'";
+            		break;
+            	}
+            	
+            	$this->ezBackground['type'] = 'image';
+            	$this->ezBackground['image'] = $options['img'];
+            	$this->ezBackground['format'] = $im[2];
+            	
+            	if (isset($options['width']) && is_numeric($options['width']))  $this->ezBackground['width'] = $options['width'];  else $this->ezBackground['width']  = $this->ez['pageWidth'];
+            	if (isset($options['height']) && is_numeric($options['height'])) $this->ezBackground['height'] = $options['height']; else $this->ezBackground['height'] = $this->ez['pageHeight'];
+            	if (isset($options['xpos']) && is_numeric($options['xpos']))   $this->ezBackground['xpos']  = $options['xpos'];   else $this->ezBackground['xpos'] = 0;
+            	if (isset($options['ypos']) && is_numeric($options['ypos']))   $this->ezBackground['ypos']  = $options['ypos'];   else $this->ezBackground['ypos']   = 0;
                 break;
-            case 'none'   :
-            default      :
-                $this->bg_type = 'none';
+            case 'none':
+            default:
+                $this->ezBackground['type'] = 'none';
                 break;
         }
+        
+        $this->setBackground();
     }
+    
+    /**
+     * Set the background image or color on all pages
+     * gets executed in constructor and in ezNewPage
+     */
+	function setBackground(){
+		if(isset($this->ezBackground['type'])){
+	        switch ($this->ezBackground['type'])
+	        {
+	            case 'color' :
+	                $this->saveState();
+	                $this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
+	                $this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
+	                $this->restoreState();
+	                break;
+	            case 'image'  :
+	                switch ($this->ezBackground['format']) {
+	                    case 2:
+	                    	$this->addJpegFromFile($this->ezBackground['image'], $this->ezBackground['xpos'], $this->ezBackground['ypos'], $this->ezBackground['width'], $this->ezBackground['height']);
+	                    break;
+	                    case 3:
+	                    	$this->addPngFromFile($this->ezBackground['image'], $this->ezBackground['xpos'], $this->ezBackground['ypos'], $this->ezBackground['width'], $this->ezBackground['height']);
+	                    break;
+	                }
+	                break;
+	            case 'none':
+	            default:
+	                break;
+	        }
+        }
+	}
 
     /**
      * Set Margins in centimeters
@@ -232,6 +237,65 @@ class Cezpdf extends Cpdf {
         $right = ( $right / 2.54 ) * 72;
         $this->ezSetMargins($top,$bottom,$left,$right);
     }
+
+	/**
+	 * 2003-11-21: DmiG (DmiG@nm.ru) - Change Margins in centimeters by dYtop, dYbottom, dYleft, dYright
+	 */
+	function ezChangeCmMargins($top,$bottom,$left,$right)
+	{
+		$top = ( $top / 2.54 ) * 72;
+		$bottom = ( $bottom / 2.54 ) * 72;
+		$left = ( $left / 2.54 ) * 72;
+		$right = ( $right / 2.54 ) * 72;
+		$this->ezChangeMargins($top,$bottom,$left,$right);
+	}
+
+	/**
+	 * 2003-11-21: DmiG (DmiG@nm.ru) - Get Margins
+	 */
+	function ezGetMargin($which)
+	{
+		switch(strtolower($which))
+		{
+			case 't':
+			case 'top': return $this->ez['topMargin'];
+			case 'tc':
+			case 'topc': return $this->ez['pageHeight']-$this->ez['topMargin'];
+			case 'l':
+			case 'left': return $this->ez['leftMargin'];
+			case 'r':
+			case 'right': return $this->ez['rightMargin'];
+			case 'rc':
+			case 'rightc': return $this->ez['pageWidth']-$this->ez['rightMargin'];
+			case 'b':
+			case 'bottom': return $this->ez['bottomMargin'];
+			default : return 0;
+		}
+	}
+
+	/**
+	 * 2003-11-21: DmiG (DmiG@nm.ru) - Change document margins by dYtop, dYbottom, dYleft, dYright
+	 */
+	function ezChangeMargins($top,$bottom,$left,$right)
+	{
+	  // sets the margins to new values
+	  $this->ez['topMargin']+=$top;
+	  $this->ez['bottomMargin']+=$bottom;
+	  $this->ez['leftMargin']+=$left;
+	  $this->ez['rightMargin']+=$right;
+	  // check to see if this means that the current writing position is outside the
+	  // writable area
+	  if ($this->y > ($this->ez['pageHeight']-$this->ez['topMargin']))
+	  {
+		// then move y down
+		$this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
+	  }
+	  if ( $this->y < $this->ez['bottomMargin'])
+	  {
+		// then make a new page
+		$this->ezNewPage();
+	  }
+	}
 
     /**
      *
@@ -349,25 +413,8 @@ class Cezpdf extends Cpdf {
         } else {
             $this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
         }
-
-        switch ($this->bg_type)
-        {
-            case 'colour' :
-                $this->saveState();
-                $this->setColor($this->bg_color[0], $this->bg_color[1], $this->bg_color[2], 1);
-                $this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
-                $this->restoreState();
-                break;
-            case 'image'  :
-                switch ($this->bg_img_type) {
-                    case 'jpg' : $this->addJpegFromFile($this->bg_img, $this->bg_img_xpos, $this->bg_img_ypos, $this->bg_img_width, $this->bg_img_height); break;
-                    case 'png' : $this->addPngFromFile($this->bg_img, $this->bg_img_xpos, $this->bg_img_ypos, $this->bg_img_width, $this->bg_img_height);  break;
-                }
-                break;
-            case 'none'   :
-            default      :
-                break;
-        }
+        
+        $this->setBackground();
     }
 
     /**
@@ -1535,51 +1582,48 @@ class Cezpdf extends Cpdf {
      * @param $border
      * @return unknown_type
      */
-    function ezImage($image,$pad = 5,$width = 0,$resize = 'full',$just = 'center',$border = ''){
+    function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
+    	$temp = false;
         //beta ezimage function
-        if (stristr($image,'://'))//copy to temp file
-        {
-            $fp = @fopen($image,"rb");
-            while(!feof($fp))
-            {
-                $cont.= fread($fp,1024);
-            }
-            fclose($fp);
-
-            $image = tempnam (sys_get_temp_dir(), "php-pdf");
-            $fp2 = @fopen($image,"w");
-            fwrite($fp2,$cont);
+        if (stristr($image, '://')) { //copy to temp file
+        	$cont = file_get_contents($image);
+        	
+            $image = tempnam($this->tempPath, "ezImg");
+            $fp2 = @ fopen($image, "w");
+            fwrite($fp2, $cont);
             fclose($fp2);
             $temp = true;
         }
-        if (!(file_exists($image))) return false; //return immediately if image file does not exist
+
+        if (!(file_exists($image)))
+            return false; //return immediately if image file does not exist
         $imageInfo = getimagesize($image);
-        switch ($imageInfo[2]){
-            case 2:
+        switch ($imageInfo[2]) {
+            case 2 :
                 $type = "jpeg";
                 break;
-            case 3:
+            case 3 :
                 $type = "png";
                 break;
-            default:
+            default :
                 return false; //return if file is not jpg or png
         }
-        if ($width == 0) $width = $imageInfo[0]; //set width
-        $ratio = $imageInfo[0]/$imageInfo[1];
+        if ($width == 0)
+            $width = $imageInfo[0]; //set width
+        $ratio = $imageInfo[0] / $imageInfo[1];
 
         //get maximum width of image
-        if (isset($this->ez['columns']) && $this->ez['columns']['on'] == 1) {
+        if (isset ($this->ez['columns']) && $this->ez['columns']['on'] == 1) {
             $bigwidth = $this->ez['columns']['width'] - ($pad * 2);
         } else {
-            $bigwidth = $this->ez['pageWidth'] - ($pad * 2) - $this->ez['leftMargin'] - $this->ez['rightMargin'];
+            $bigwidth = $this->ez['pageWidth'] - ($pad * 2);
         }
         //fix width if larger than maximum or if $resize=full
-        if ($resize == 'full' || $resize == 'width' || $width > $bigwidth) {
-            $width = $bigwidth;
-
+        if ($resize == 'full' || ($resize == 'width' && $width > $bigwidth) ) {
+            $width = $bigwidth - $this->ez['leftMargin'] - $this->ez['rightMargin'];
         }
 
-        $height = ($width/$ratio); //set height
+        $height = ($width / $ratio); //set height
 
         //fix size if runs off page
         if ($height > ($this->y - $this->ez['bottomMargin'] - ($pad * 2))) {
@@ -1587,19 +1631,18 @@ class Cezpdf extends Cpdf {
                 $this->ezNewPage();
             } else {
                 $height = ($this->y - $this->ez['bottomMargin'] - ($pad * 2)); //shrink height
-                $width = ($height*$ratio); //fix width
+                $width = ($height * $ratio); //fix width
             }
         }
-
         //fix x-offset if image smaller than bigwidth
         if ($width < $bigwidth) {
             //center if justification=center
             if ($just == 'center') {
-                $offset = ($bigwidth - $width) / 2;
+                $offset = (($bigwidth - $width) / 2) - $this->ez['leftMargin'];
             }
             //move to right if justification=right
             if ($just == 'right') {
-                $offset = ($bigwidth - $width);
+                $offset = ($bigwidth - $width) - $this->ez['leftMargin'] - $this->ez['rightMargin'];
             }
             //leave at left if justification=left
             if ($just == 'left') {
@@ -1608,33 +1651,37 @@ class Cezpdf extends Cpdf {
         }
 
         //call appropriate function
-        if ($type == "jpeg"){
-            $this->addJpegFromFile($image,$this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height,$width);
+        if ($type == "jpeg") {
+            $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
         }
 
-        if ($type == "png"){
-            $this->addPngFromFile($image,$this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height,$width);
+        if ($type == "png") {
+            $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
         }
         //draw border
         if ($border != '') {
-            if (!(isset($border['color']))) {
+            if (!(isset ($border['color']))) {
                 $border['color']['red'] = .5;
                 $border['color']['blue'] = .5;
                 $border['color']['green'] = .5;
             }
-            if (!(isset($border['width']))) $border['width'] = 1;
-            if (!(isset($border['cap']))) $border['cap'] = 'round';
-            if (!(isset($border['join']))) $border['join'] = 'round';
+            if (!(isset ($border['width'])))
+                $border['width'] = 1;
+            if (!(isset ($border['cap'])))
+                $border['cap'] = 'round';
+            if (!(isset ($border['join'])))
+                $border['join'] = 'round';
 
-            $this->setStrokeColor($border['color']['red'],$border['color']['green'],$border['color']['blue']);
-            $this->setLineStyle($border['width'],$border['cap'],$border['join']);
-            $this->rectangle($this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height,$width,$height);
+            $this->setStrokeColor($border['color']['red'], $border['color']['green'], $border['color']['blue']);
+            $this->setLineStyle($border['width'], $border['cap'], $border['join']);
+            $this->rectangle($this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width, $height);
 
         }
         // move y below image
         $this->y = $this->y - $pad - $height;
         //remove tempfile for remote images
-        if ($temp == true) unlink($image);
+        if ($temp == true)
+            unlink($image);
     }
 
     /**

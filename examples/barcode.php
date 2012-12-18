@@ -1,7 +1,9 @@
 <?php
-//error_reporting(E_ALL);
+error_reporting(E_ALL);
 set_time_limit(1800);
-include '../src/class.ezpdf.php';
+set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
+
+include 'Cezpdf.php';
 
 function code39($text,$barcodethinwidth=2,$barcodeheight=40,$xpos=0,$ypos=0)
 {
@@ -43,7 +45,7 @@ function code39($text,$barcodethinwidth=2,$barcodeheight=40,$xpos=0,$ypos=0)
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->Cezpdf($p,$o);
+  		parent::__construct($p,$o);
 	}
 	// Rectangle Callback function for Text output
 	function rect($info){
@@ -101,9 +103,8 @@ for($i=0;$i<7;$i++){
 	$mydata[$i]['value'] = $r;
 	$mydata[$i]['barcode'] = $const;
 }
-$pdf->ezText("This Example shows you how to implement code39 barcodes in ROS PDF. It uses the Callback function 'rect' which is defined in the class Creport");
+$pdf->ezText("This example shows you how to implement code39 barcodes in ROS PDF class. It uses the Callback function 'rect' which is defined in the custom class Creport (inhierted from Cezpdf)");
 $pdf->ezTable($mydata,array('value'=>'Value','barcode'=>'Barcode'),'',array('showLines'=>3,'shaded'=>0,'rowGap'=>6,'showHeadings'=>1,'cols'=>array('barcode'=>array('width'=>$MAXcodeWidth + 10))));
-$pdf->ezText("You can find this example in 'examples/rectTable.php'. It also includes the code39line.php which returns the barcode as rectangle array");
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
