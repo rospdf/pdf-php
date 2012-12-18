@@ -31,6 +31,13 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 011>
+
+- object hashing using md5 method to free pdf from redundant images
+- PDF output optimization
+- image support for transparent PNG - examples/image.php
+- removed deprecated function "set_magic_qoutes_runtime" from code lines
+
 2<version 010a>
 
 - ezTable supports new different line modes (showLines), new params: 3 and 4
