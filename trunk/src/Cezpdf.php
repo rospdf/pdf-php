@@ -1548,6 +1548,7 @@ class Cezpdf extends Cpdf {
                     } else {
                         $this->ezNewPage();
                         // and then re-calc the left and right, in case they have changed due to columns
+                        $this->y= $this->y - $height;
                     }
                 }
                 if (is_array($options) && isset($options['aleft'])){
