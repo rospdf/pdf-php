@@ -26,6 +26,14 @@ $pdf->selectFont('../src/fonts/Times-Roman.afm');
 $pdf->openHere('Fit');
 
 $pdf->ezText("This example shows how to crypt the PDF document\n");
+
+$pdf->ezText("\nUse \"?mode=1\" for RC4 40bit encryption\n");
+$pdf->ezText("\nUse \"?mode=2\" for RC4 128bit encryption\n");
+
+$pdf->ezText("\nUse \"?nocrypt\" to disable the encryption\n");
+$pdf->ezText("\nUse \"?user=password\" to set a user password\n");
+$pdf->ezText("\nUse \"?owner=password\" to set a owner password\n");
+
 if(isset($_GET['nocrypt']))
 $pdf->ezText("<b>Not encrypt</b> - nocrypt parameter found");
 
