@@ -11,13 +11,36 @@
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
  * @author   Ole Koeckemann <ole.k@web.de>
- * @copyright 2007 The authors
+ * @copyright 2007 - 2012 The authors
  * @license   GPL http://www.opensource.org/licenses/gpl-license.php
  * @version  @package-version@
- * @link     http://code.google.com/p/pdf-php5
+ * @link     http://pdf-php.sf.net
  */
 class Cpdf
 {
+	/**
+	 * allow the programmer to output debug messages on serveral places
+	 * 'none' = no debug output at all
+	 * 'error_log' = use error_log
+	 * 'variable' = store in a variable called $this->messages
+	 *
+	 * @default 'error_log'
+	 */
+	var $DEBUG = 'error_log';
+	
+	/**
+	 * Set the debug level
+	 * E_USER_ERROR = only errors
+	 * E_USER_WARNING = errors and warning
+	 * E_USER_NOTICE =  nearly everything
+	 *
+	 * @default E_USER_NOTICE
+	 */
+	var $DEBUGLEVEL = E_USER_WARNING;
+	
+	/**
+	 * global defined temporary path used on several places
+	 */
 	var $tempPath = '/tmp';
     /**
      * the current number of pdf objects in the document
@@ -221,13 +244,24 @@ class Cpdf
      */
     var $encrypted=0;
 
+	/**
+	 * Set the encryption mode 
+	 * 1 = RC40bit
+	 * 2 = RC128bit (since PDF Version 1.4)
+	 */
+	 var $encryptionMode = 1;
     /**
-     * the ancryption key for the encryption of all the document content (structure is not encrypted)
+     * the encryption key for the encryption of all the document content (structure is not encrypted)
      *
      * @var string
      */
     var $encryptionKey='';
-
+	
+	/*
+	 * encryption padding fetched from the Adobe PDF reference
+	 */
+	var $encryptionPad;
+    
     /**
      * array which forms a stack to keep track of nested callback functions
      *
@@ -268,11 +302,14 @@ class Cpdf
      */
     function __construct($pageSize = array(0, 0, 612, 792))
     {
+    	// set the hardcoded encryption pad
+    	$this->encryptionPad = chr(0x28).chr(0xBF).chr(0x4E).chr(0x5E).chr(0x4E).chr(0x75).chr(0x8A).chr(0x41).chr(0x64).chr(0x00).chr(0x4E).chr(0x56).chr(0xFF).chr(0xFA).chr(0x01).chr(0x08).chr(0x2E).chr(0x2E).chr(0x00).chr(0xB6).chr(0xD0).chr(0x68).chr(0x3E).chr(0x80).chr(0x2F).chr(0x0C).chr(0xA9).chr(0xFE).chr(0x64).chr(0x53).chr(0x69).chr(0x7A);
+        
         $this->newDocument($pageSize);
 
         // also initialize the font families that are known about already
         $this->setFontFamily('init');
-        // $this->fileIdentifier = md5('xxxxxxxx'.time());
+        $this->fileIdentifier = md5('ROSPDF');
     }
 
     /**
@@ -612,7 +649,7 @@ class Cpdf
                         case 'Widths':
                         case 'FontDescriptor':
                         case 'SubType':
-                            $this->addMessage('o_font '.$k." : ".$v);
+                            $this->debug('o_font '.$k." : ".$v, E_USER_NOTICE);
                             $o['info'][$k] = $v;
                             break;
                     }
@@ -1092,58 +1129,173 @@ class Cpdf
             // make the new object
             $this->objects[$id]=array('t'=>'encryption','info'=>$options);
             $this->arc4_objnum=$id;
-            // figure out the additional paramaters required
-            $pad = chr(0x28).chr(0xBF).chr(0x4E).chr(0x5E).chr(0x4E).chr(0x75).chr(0x8A).chr(0x41).chr(0x64).chr(0x00).chr(0x4E).chr(0x56).chr(0xFF).chr(0xFA).chr(0x01).chr(0x08).chr(0x2E).chr(0x2E).chr(0x00).chr(0xB6).chr(0xD0).chr(0x68).chr(0x3E).chr(0x80).chr(0x2F).chr(0x0C).chr(0xA9).chr(0xFE).chr(0x64).chr(0x53).chr(0x69).chr(0x7A);
-            $len = strlen($options['owner']);
-            if ($len>32){
-                $owner = substr($options['owner'],0,32);
-            } else if ($len<32){
-                $owner = $options['owner'].substr($pad,0,32-$len);
-            } else {
-                $owner = $options['owner'];
-            }
-            $len = strlen($options['user']);
-            if ($len>32){
-                $user = substr($options['user'],0,32);
-            } else if ($len<32){
-                $user = $options['user'].substr($pad,0,32-$len);
-            } else {
-                $user = $options['user'];
-            }
-            $tmp = $this->md5_16($owner);
-            $okey = substr($tmp,0,5);
-            $this->ARC4_init($okey);
-            $ovalue=$this->ARC4($user);
-            $this->objects[$id]['info']['O']=$ovalue;
-            // now make the u value, phew.
-            $tmp = $this->md5_16($user.$ovalue.chr($options['p']).chr(255).chr(255).chr(255).$this->fileIdentifier);
-            $ukey = substr($tmp,0,5);
-
-            $this->ARC4_init($ukey);
-            $this->encryptionKey = $ukey;
+            
+            // Pad or truncate the owner password
+            $owner = substr($options['owner'].$this->encryptionPad,0,32);
+            $user = substr($options['user'].$this->encryptionPad,0,32);
+            
+            $this->debug("o_encryption: user password (".$options['user'].") / owner password (".$options['owner'].")");
+            
+            // convert permission set into binary string
+            $permissions = sprintf("%c%c%c%c", ($options['p'] & 255),  (($options['p'] >> 8) & 255) , (($options['p'] >> 16) & 255),  (($options['p'] >> 24) & 255));
+            
+            // Algo 3.3 Owner Password being set into /O Dictionary
+            $this->objects[$id]['info']['O'] = $this->encryptOwner($owner, $user); 
+            
+            // Algo 3.5 User Password - START
+            $this->objects[$id]['info']['U'] = $this->encryptUser($user, $this->objects[$id]['info']['O'], $permissions);
+            // encryption key is set in encryptUser function
+            //$this->encryptionKey = $encryptionKey;
+            
             $this->encrypted=1;
-            $uvalue=$this->ARC4($pad);
-
-            $this->objects[$id]['info']['U']=$uvalue;
-            $this->encryptionKey=$ukey;
-
-            // initialize the arc4 array
             break;
         case 'out':
             $res= "\n".$id." 0 obj\n<<";
             $res.=" /Filter /Standard";
-            $res.=" /V 1";
-            $res.=" /R 2";
+            if($this->encryptionMode > 1){ // RC4 128bit encryption
+            	$res.=" /V 2";
+            	$res.=" /R 3";
+            } else { // RC4 40bit encryption
+            	$res.=" /V 1";
+            	$res.=" /R 2";
+            }
             $res.=" /O (".$this->filterText($o['info']['O']).')';
             $res.=" /U (".$this->filterText($o['info']['U']).')';
             // and the p-value needs to be converted to account for the twos-complement approach
-            $o['info']['p'] = (($o['info']['p']^255)+1)*-1;
+            //$o['info']['p'] = (($o['info']['p'] ^ 0xFFFFFFFF)+1)*-1;
             $res.=" /P ".($o['info']['p']);
+            $res.=" /Length 40";
             $res.=" >>\nendobj";
             return $res;
             break;
         }
     }
+	
+	function encryptOwner($owner, $user){
+        $ownerHash = $this->md5_16($owner); // PDF 1.4 - repeat this 50 times in revision 3
+        if($this->encryptionMode > 1) { // if it is the RC4 128bit encryption
+        	for($i = 0; $i < 50; $i++){
+        		$ownerHash = $this->md5_16($ownerHash);
+        	}
+        }
+        
+        $ownerKey = substr($ownerHash,0,5); // PDF 1.4 - Create the encryption key (IMPORTANT: need to check Length)
+        
+        $this->ARC4_init($ownerKey); // 5 bytes of the encryption key (hashed 50 times)
+        $ovalue=$this->ARC4($user); // PDF 1.4 - Encrypt the padded user password using RC4
+        
+        if($this->encryptionMode > 1){
+            $len = strlen($ownerKey);
+            for($i = 1;$i<=19; ++$i){
+            	$ek = '';
+            	for($j=0; $j < $len; $j++){
+            		$ek .= chr( ord($ownerKey[$j]) ^ $i );
+            	}
+            	$this->ARC4_init($ek);
+            	$ovalue = $this->ARC4($ovalue);
+            }
+        }
+        return $ovalue;
+	}
+	
+	function encryptUser($user,$ownerDict, $permissions){
+		// make hash with user, encrypted owner, permission set and fileIdentifier
+        $hash = $this->md5_16($user.$ownerDict.$permissions.$this->hexToStr($this->fileIdentifier));
+        
+        // loop thru the hash process when it is revision 3 of encryption routine (usually RC4 128bit)
+        if($this->encryptionMode > 1) {
+	        for ($i = 0; $i < 50; ++$i) {
+	        	$hash = $this->md5_16(substr($hash, 0, 5)); // use only length of encryption key from the previous hash
+			}
+		}
+		
+        $this->encryptionKey = substr($hash,0,5); // PDF 1.4 - Create the encryption key (IMPORTANT: need to check Length)
+        
+        if($this->encryptionMode > 1){ // if it is the RC4 128bit encryption
+        	// make a md5 hash from padding string (hardcoded by Adobe) and the fileIdenfier
+        	$userHash = $this->md5_16($this->encryptionPad.$this->hexToStr($this->fileIdentifier));
+        	
+        	// encrypt the hash from the previous method by using the encryptionKey
+        	$this->ARC4_init($this->encryptionKey);
+        	$uvalue=$this->ARC4($userHash);
+        	
+        	$len = strlen($this->encryptionKey);
+            for($i = 1;$i<=19; ++$i){
+            	$ek = '';
+            	for($j=0; $j< $len; $j++){
+            		$ek .= chr( ord($this->encryptionKey[$j]) ^ $i );
+            	}
+            	$this->ARC4_init($ek);
+            	$uvalue = $this->ARC4($uvalue);
+            }
+            $uvalue .= substr($this->encryptionPad,0,16);
+            
+            //$this->encryptionKey = $encryptionKey;
+        }else{ // if it is the RC4 40bit encryption
+        	$this->ARC4_init($this->encryptionKey);
+        	//$this->encryptionKey = $encryptionKey;
+        	//$this->encrypted=1;
+        	$uvalue=$this->ARC4($this->encryptionPad);
+        }
+        return $uvalue;
+	}
+	
+	function decryptOwner(){
+		// Decryption routine - START
+        /*
+        $encryptionKey = substr($ownerHash,0,5);
+        error_log("--- RC4 decrypt | encryptionKey: ".$this->strToHex($encryptionKey));
+        while($i>0){
+        	$i--;
+        	for($j=0; $j<strlen($encryptionKey); $j++){
+        		$encryptionKey[$j] = chr( ord($encryptionKey[$j]) ^ $i );
+        	}
+        	$this->ARC4_init($encryptionKey);
+        	$ovalue = $this->ARC4($ovalue);
+        	error_log("r($i) decryptKey(".$this->strToHex($encryptionKey).") VALUE: ".$this->strToHex($ovalue));
+        }
+        
+        if($ovalue == $user){
+        	error_log("--- USER PASSWORD MATCH ---");
+        }else{
+       		error_log("--- USER PASSWORD DOES NOT MATCH ---");
+        }*/
+        // Decryption routine - STOP
+	}
+	
+	function decryptUser(){
+		// Decrypt user - START
+        /*$encryptionKey = substr($hash,0,5);
+        $this->ARC4_init($encryptionKey);
+    	$uvalue=$this->ARC4($userHash);
+    	
+        error_log("--- RC4 decrypt | encryptionKey: ".$this->strToHex($encryptionKey));
+        for($i = 1;$i<=19; $i++){
+        	for($j=0; $j<strlen($encryptionKey); $j++){
+        		$encryptionKey[$j] = chr( ord($encryptionKey[$j]) ^ $i );
+        	}
+        	$this->ARC4_init($encryptionKey);
+        	$uvalue = $this->ARC4($uvalue);
+        	error_log("r($i) newKey(".$this->strToHex($encryptionKey).") VALUE: ".$this->strToHex($uvalue));
+        }*/
+        // Decrypt user - END
+	}
+	
+	function strToHex($string)
+	{
+		$hex = '';
+		for ($i=0; $i < strlen($string); $i++)
+			$hex .= sprintf("%02x",ord($string[$i]));
+		return $hex;
+	}
+	
+	function hexToStr($hex)
+	{
+		$str = '';
+    	for($i=0;$i<strlen($hex);$i+=2)
+    	$str .= chr(hexdec(substr($hex,$i,2)));
+    	return $str;
+  	}
 
     /**
      * ARC4 functions
@@ -1155,10 +1307,7 @@ class Cpdf
      */
     function md5_16($string){
         $tmp = md5($string);
-        $out='';
-        for ($i=0;$i<=30;$i=$i+2){
-            $out.=chr(hexdec(substr($tmp,$i,2)));
-        }
+        $out = pack("H*", $tmp);
         return $out;
     }
 
@@ -1251,14 +1400,18 @@ class Cpdf
      * can be used to turn it on and/or set the passwords which it will have.
      * also the functions that the user will have are set here, such as print, modify, add
      */
-    function setEncryption($userPass='',$ownerPass='',$pc=array()){
-        $p=bindec(11000000);
+    function setEncryption($userPass = '',$ownerPass = '',$pc = array(), $mode = 1){
+        $p=bindec('01111111111111110000000000000000');
 
         $options = array(
             'print'=>4
             ,'modify'=>8
             ,'copy'=>16
             ,'add'=>32
+            ,'fill'=>512
+            ,'extract'=>1024
+            ,'assemble'=>2048
+            ,'represent'=>4096
         );
         foreach($pc as $k=>$v){
             if ($v && isset($options[$k])){
@@ -1267,6 +1420,10 @@ class Cpdf
                 $p+=$options[$v];
             }
         }
+        
+        // set the encryption mode to either RC4 40bit or RC4 128bit
+        $this->encryptionMode = $mode;
+        
         // implement encryption on the document
         if ($this->arc4_objnum == 0){
             // then the block does not exist already, add it.
@@ -1318,7 +1475,7 @@ class Cpdf
         $content.="trailer\n<< /Size ".(count($xref)+1)." /Root 1 0 R /Info ".$this->infoObject." 0 R";
         // if encryption has been applied to this document then add the marker for this dictionary
         if ($this->arc4_objnum > 0){
-            $content .= " /Encrypt ".$this->arc4_objnum." 0 R\n";
+            $content .= " /Encrypt ".$this->arc4_objnum." 0 R";
         }
         if (strlen($this->fileIdentifier)){
             $content .= " /ID[<".$this->fileIdentifier."><".$this->fileIdentifier.">]";
@@ -1389,20 +1546,20 @@ class Cpdf
         if (substr($name, -4) == '.afm') {
             $name = substr($name, 0, strlen($name) - 4);
         }
-        $this->addMessage('openFont: '.$font.' - '.$name);
+        $this->debug('openFont executed: '.$font.' - '.$name);
         if (file_exists($dir.'php_'.$name.'.afm')) {
-            $this->addMessage('openFont: php file exists '.$dir.'php_'.$name.'.afm');
+            $this->debug('openFont: php_'.$name.'.afm already exist');
             $tmp = file($dir.'php_'.$name.'.afm');
             $this->fonts[$font] = unserialize($tmp[0]);
             if (!isset($this->fonts[$font]['_version_']) || $this->fonts[$font]['_version_']<1) {
                 // if the font file is old, then clear it out and prepare for re-creation
-                $this->addMessage('openFont: clear out, make way for new version.');
+                $this->debug('openFont: clear out, make way for new version.');
                 unset($this->fonts[$font]);
             }
         }
         if (!isset($this->fonts[$font]) && file_exists($dir.$name.'.afm')) {
             // then rebuild the php_<font>.afm file from the <font>.afm file
-            $this->addMessage('openFont: build php file from '.$dir.$name.'.afm');
+            $this->debug('openFont: (re)create php_'.$name.'.afm');
             $data = array();
             $file = file($dir.$name.'.afm');
             foreach ($file as $rowA) {
@@ -1473,8 +1630,7 @@ class Cpdf
             fwrite($fp,serialize($data));
             fclose($fp);
         } else if (!isset($this->fonts[$font])) {
-            $this->addMessage('openFont: no font file found');
-            // echo 'Font not Found '.$font;
+            $this->debug('openFont: no font file found', E_USER_WARNING);
         }
     }
 
@@ -1537,14 +1693,12 @@ class Cpdf
                     $fbtype='';
                 }
                 $fbfile = $basefile.'.'.$fbtype;
-
-                // $pfbfile = substr($fontName, 0, strlen($fontName) - 4).'.pfb';
-                // $ttffile = substr($fontName, 0, strlen($fontName) - 4).'.ttf';
-                $this->addMessage('selectFont: checking for - '.$fbfile);
+                
+                $this->debug('selectFont: checking for '.$fbfile);
                 if (substr($fontName, -4) == '.afm' && strlen($fbtype) ){
                     $adobeFontName = $this->fonts[$fontName]['FontName'];
                     // $fontObj = $this->numObj;
-                    $this->addMessage('selectFont: adding font file - '.$fbfile.' - '.$adobeFontName);
+                    $this->debug('selectFont: adding font file '.$fbfile.' - '.$adobeFontName);
                     // find the array of fond widths, and put that into an object.
                     $firstChar = -1;
                     $lastChar = 0;
@@ -1577,8 +1731,8 @@ class Cpdf
                             }
                         }
                     }
-                    $this->addMessage('selectFont: FirstChar='.$firstChar);
-                    $this->addMessage('selectFont: LastChar='.$lastChar);
+                    $this->debug('selectFont: FirstChar='.$firstChar);
+                    $this->debug('selectFont: LastChar='.$lastChar);
                     $this->numObj++;
                     $this->o_contents($this->numObj, 'new', 'raw');
                     $this->objects[$this->numObj]['c'].='[';
@@ -1645,14 +1799,14 @@ class Cpdf
                     if ($fbtype=='ttf'){
                         $tmp['SubType']='TrueType';
                     }
-                    $this->addMessage('adding extra info to font.('.$fontObj.')');
+                    $this->debug('selectFont: adding extra info to font.('.$fontObj.')');
                     foreach($tmp as $fk=>$fv){
-                        $this->addMessage($fk." : ".$fv);
+                        $this->debug($fk." : ".$fv);
                     }
                     $this->o_font($fontObj,'add',$tmp);
 
                 } else {
-                    $this->addMessage('selectFont: pfb or ttf file not found, ok if this is one of the 14 standard fonts');
+                    $this->debug('selectFont: pfb/ttf file not found for '.$fontName.'. Is this a system font?', E_USER_WARNING);
                 }
 
 
@@ -1991,6 +2145,7 @@ class Cpdf
         //    this header seems to have caused some problems despite tha fact that it is supposed to solve
         //    them, so I am leaving it off by default.
         // 'compress'=> 1 or 0 - apply content stream compression, this is on (1) by default
+        // 'attached'=> 1 or 0 - provide download dialog
         if (!is_array($options)){
             $options=array();
         }
@@ -2002,7 +2157,11 @@ class Cpdf
         header("Content-type: application/pdf");
         header("Content-Length: ".strlen(ltrim($tmp)));
         $fileName = (isset($options['Content-Disposition'])?$options['Content-Disposition']:'file.pdf');
-        header("Content-Disposition: inline; filename=".$fileName);
+        if(isset($options['attached']) && $options['attached'] == 1)
+        	$attached = 'attached';
+        else
+        	$attached = 'inline';
+        header("Content-Disposition: $attached; filename=".$fileName);
         if (isset($options['Accept-Ranges']) && $options['Accept-Ranges']==1){
             header("Accept-Ranges: ".strlen(ltrim($tmp)));
         }
@@ -2866,16 +3025,18 @@ function reopenObject($id){
         $error = false;
     	$errormsg = "";
         
+        $this->debug('addPngFromFile: opening image ' . $file);
+        
         $data = file_get_contents($file);
         
         if($data === false){
-        	$this->addMessage('addPngFromFile - [ERROR] trouble opening file:' . $file);
+        	$this->debug('addPngFromFile: trouble opening file ' . $file, E_USER_WARNING);
         	return;
         }
         
 		$header = chr(137).chr(80).chr(78).chr(71).chr(13).chr(10).chr(26).chr(10);
 		if (substr($data,0,8)!=$header){
-			$this->addMessage('addPngFromFile - [ERROR] Invalid PNG header for file: ' . $file);
+			$this->debug('addPngFromFile: Invalid PNG header for file: ' . $file, E_USER_WARNING);
 			return;
         }
 
@@ -2917,7 +3078,7 @@ function reopenObject($id){
 		}
             
         if ($error){
-            $this->addMessage('addPngFromFile error - ('.$file.') '.$errormsg);
+            $this->debug('addPngFromFile: '.$errormsg, E_USER_WARNING);
             return;
         }
         if ($w==0){
@@ -3120,8 +3281,21 @@ function reopenObject($id){
     /**
      * used to add messages for use in debugging
      */
-    function addMessage($message){
-        $this->messages.=$message."\n";
+    function debug($message, $error_type = E_USER_NOTICE)
+    {
+    	if($error_type <= $this->DEBUGLEVEL){
+	    	switch(strtolower($this->DEBUG)){
+	    		default:
+	    		case 'none':
+	    			break;
+	    		case 'error_log':
+	    			trigger_error($message, $error_type);
+	    			break;
+	    		case 'variable':
+	    			$this->messages.=$message."\n";
+	    		break;
+	    	}
+    	}
     }
 
     /**
