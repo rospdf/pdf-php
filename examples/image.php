@@ -7,7 +7,7 @@ include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o);
+  		$this->__construct($p, $o,'color',array(0.8,0.8,0.8));
 	}
 }
 
@@ -27,13 +27,20 @@ $height = $pdf->getFontHeight($size);
 $pdf->openHere('Fit');
 
 $pdf->ezText("PNG grayscaled");
-$pdf->ezImage('images/test_grayscaled.png',0,0,'none','center');
-$pdf->ezText("PNG grayscaled with alpha channel - currently not working");
-$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','center');
+$pdf->ezImage('images/test_grayscaled.png',0,0,'none','right');
+$pdf->ezText("PNG grayscaled with alpha channel");
+$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG true color plus alpha channel #1");
-$pdf->ezImage('images/test_alpha.png',0,0,'none','left');
+$pdf->ezImage('images/test_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG true color plus alpha channel #2");
 $pdf->ezImage('images/test_alpha2.png',0,0,'none','right');
+$pdf->ezNewPage();
+$pdf->ezText("JPEG from an external resource");
+$pdf->ezImage('http://pdf-php.sf.net/pdf-php-code/ros.jpg',0,0,'none','right');
+
+$pdf->ezText("GIF image converted into JPG\n\n");
+$pdf->ezImage('images/test_alpha.gif',0,0,'none','right');
+
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
