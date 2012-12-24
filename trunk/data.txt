@@ -31,14 +31,28 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<version 011>
+2<version 0.11.2>
+
+- $DEBUG and $DEBUGLEVEL property to control the debug output
+- RC4 128 bit encryption implemented by setting the $mode to 2 in setEncryption method
+
+more info: http://sourceforge.net/p/pdf-php/blog/2012/12/debugging-and-encryption/
+
+
+2<version 0.11.1>
+
+- serveral patches implemented
+- bug fixes
+
+
+2<version 0.11.0>
 
 - object hashing using md5 method to free pdf from redundant images
 - PDF output optimization
 - image support for transparent PNG - examples/image.php
 - removed deprecated function "set_magic_qoutes_runtime" from code lines
 
-2<version 010a>
+2<version 0.10.1>
 
 - ezTable supports new different line modes (showLines), new params: 3 and 4
 - BUGFIX: ID 847597 - ezImage on align 'right' did not fix
@@ -1291,9 +1305,11 @@ $pdf->setFontFamily('Courier.afm',$tmp);
 
 2<setEncryption>
 
-setEncryption([userPass=''],[ownerPass=''],[pc=array])
+setEncryption([userPass=''],[ownerPass=''],[pc=array], [mode=1])
 
 Calling this function sets up the document to be encrypted, this is the only way to mark the document so that they user cannot use cut and paste, or printing.
+
+Since version 0.11.2 a new parameter "$mode" has been added to this function to allow RC4 128bit encryption (PDF 1.4 required)
 
 Using the call without options, defaults to preventing the user from cut & paste or printing. There are no passwords require to open the document.
 
