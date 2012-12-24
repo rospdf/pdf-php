@@ -1155,6 +1155,7 @@ class Cpdf
             if($this->encryptionMode > 1){ // RC4 128bit encryption
             	$res.=" /V 2";
             	$res.=" /R 3";
+            	$res.=" /Length 128";
             } else { // RC4 40bit encryption
             	$res.=" /V 1";
             	$res.=" /R 2";
@@ -1164,7 +1165,6 @@ class Cpdf
             // and the p-value needs to be converted to account for the twos-complement approach
             //$o['info']['p'] = (($o['info']['p'] ^ 0xFFFFFFFF)+1)*-1;
             $res.=" /P ".($o['info']['p']);
-            $res.=" /Length 40";
             $res.=" >>\nendobj";
             return $res;
             break;
@@ -1172,6 +1172,11 @@ class Cpdf
     }
 	
 	function encryptOwner($owner, $user){
+		$keylength = 5;
+		if($this->encryptionMode > 1){
+			$keylength = 16;
+		}
+		
         $ownerHash = $this->md5_16($owner); // PDF 1.4 - repeat this 50 times in revision 3
         if($this->encryptionMode > 1) { // if it is the RC4 128bit encryption
         	for($i = 0; $i < 50; $i++){
@@ -1179,7 +1184,7 @@ class Cpdf
         	}
         }
         
-        $ownerKey = substr($ownerHash,0,5); // PDF 1.4 - Create the encryption key (IMPORTANT: need to check Length)
+        $ownerKey = substr($ownerHash,0,$keylength); // PDF 1.4 - Create the encryption key (IMPORTANT: need to check Length)
         
         $this->ARC4_init($ownerKey); // 5 bytes of the encryption key (hashed 50 times)
         $ovalue=$this->ARC4($user); // PDF 1.4 - Encrypt the padded user password using RC4
@@ -1199,17 +1204,21 @@ class Cpdf
 	}
 	
 	function encryptUser($user,$ownerDict, $permissions){
+		$keylength = 5;
+		if($this->encryptionMode > 1){
+			$keylength = 16;
+		}
 		// make hash with user, encrypted owner, permission set and fileIdentifier
         $hash = $this->md5_16($user.$ownerDict.$permissions.$this->hexToStr($this->fileIdentifier));
         
         // loop thru the hash process when it is revision 3 of encryption routine (usually RC4 128bit)
         if($this->encryptionMode > 1) {
 	        for ($i = 0; $i < 50; ++$i) {
-	        	$hash = $this->md5_16(substr($hash, 0, 5)); // use only length of encryption key from the previous hash
+	        	$hash = $this->md5_16(substr($hash, 0, $keylength)); // use only length of encryption key from the previous hash
 			}
 		}
 		
-        $this->encryptionKey = substr($hash,0,5); // PDF 1.4 - Create the encryption key (IMPORTANT: need to check Length)
+        $this->encryptionKey = substr($hash,0,$keylength); // PDF 1.4 - Create the encryption key (IMPORTANT: need to check Length)
         
         if($this->encryptionMode > 1){ // if it is the RC4 128bit encryption
         	// make a md5 hash from padding string (hardcoded by Adobe) and the fileIdenfier
@@ -1322,7 +1331,11 @@ class Cpdf
         }
         $tmp.= chr(hexdec(substr($hex,4,2))).chr(hexdec(substr($hex,2,2))).chr(hexdec(substr($hex,0,2))).chr(0).chr(0);
         $key = $this->md5_16($tmp);
-        $this->ARC4_init(substr($key,0,10));
+        if($this->encryptionMode > 1){
+        	$this->ARC4_init(substr($key,0,16)); // use max 16 bytes for RC4 128bit encryption key
+        } else {
+        	$this->ARC4_init(substr($key,0,10)); // use (n + 5 bytes) for RC4 40bit encryption key
+        }
     }
 
     /**
