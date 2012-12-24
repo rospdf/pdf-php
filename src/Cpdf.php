@@ -2959,7 +2959,7 @@ function reopenObject($id){
 					$default['transparency']['r']=$this->PRVT_getBytes($data,$p+8,2); // r from truecolor
 					$default['transparency']['g']=$this->PRVT_getBytes($data,$p+10,2); // g from truecolor
 					$default['transparency']['b']=$this->PRVT_getBytes($data,$p+12,2); // b from truecolor
-				} elseif($default['info']['colorType'] == 6) {
+				} else if($default['info']['colorType'] == 6 || $default['info']['colorType'] == 4) {
 					// set transparency type to "alpha" and proceed with it in $this->o_image later
 					$default['transparency']['type'] = 'alpha';
 					
@@ -3069,7 +3069,7 @@ function reopenObject($id){
 			$errormsg = "only bit depth of 8 or less is supported.";
         }
 
-		if ($iChunk['info']['colorType']!=2 && $iChunk['info']['colorType']!=0 && $iChunk['info']['colorType']!=3 && $iChunk['info']['colorType']!=6){
+		if ($iChunk['info']['colorType']!=2 && $iChunk['info']['colorType']!=0 && $iChunk['info']['colorType']!=3 && $iChunk['info']['colorType']!=6 && $iChunk['info']['colorType']!=4){
 			$error = true;
 			$errormsg = 'transparancey alpha channel not supported, transparency only supported for palette images.';
 		} else if(isset($iChunk['info'])) {
@@ -3083,6 +3083,7 @@ function reopenObject($id){
 					$color = 'DeviceRGB';
 					$ncolor=3;
 				break;
+				case 4:
 				case 0:
 					$color = 'DeviceGray';
 					$ncolor=1;
@@ -3154,7 +3155,39 @@ function reopenObject($id){
         $this->addJpegImage_common($data,$x,$y,$w,$h,$imageWidth,$imageHeight,$channels);
     }
 
-    /**
+	function addGifFromFile($img, $x, $y, $w=0, $h=0){
+		if (!file_exists($img)){
+            return;
+        }
+        
+        if(!function_exists("imagecreatefromgif")){
+        	$this->debug('addGifFromFile: Missing GD function imageCreateFromGif', E_USER_ERROR);
+        	return;
+        }
+        
+        $tmp=getimagesize($img);
+        $imageWidth=$tmp[0];
+        $imageHeight=$tmp[1];
+        
+        
+        if ($w<=0 && $h<=0){
+            $w=$imageWidth;
+        }
+        if ($w==0){
+            $w=$h/$imageHeight*$imageWidth;
+        }
+        if ($h==0){
+            $h=$w*$imageHeight/$imageWidth;
+        }
+        
+        $imgres = imagecreatefromgif($img);
+        $tmpName=tempnam($this->tempPath,'img');
+        imagejpeg($imgres,$tmpName,90);
+        
+        $this->addJpegFromFile($tmpName,$x,$y,$w,$h);
+	}
+	
+	 /**
      * add an image into the document, from a GD object
      * this function is not all that reliable, and I would probably encourage people to use
      * the file based functions
@@ -3192,8 +3225,7 @@ function reopenObject($id){
         
         $data = file_get_contents($tmpName);
         if($data === false) {
-            $error = 1;
-            $errormsg = 'trouble opening file';
+            $this->debug('addImage: trouble opening image resource', E_USER_WARNING);
         }
         unlink($tmpName);
         $this->addJpegImage_common($data,$x,$y,$w,$h,$imageWidth,$imageHeight);
