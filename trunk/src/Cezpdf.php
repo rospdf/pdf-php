@@ -1602,19 +1602,19 @@ class Cezpdf extends Cpdf {
             $temp = true;
         }
 
-        if (!(file_exists($image)))
+		
+        if (!(file_exists($image))){
+        	$this->debug("ezImage: Could not find image '$image'", E_USER_WARNING);
             return false; //return immediately if image file does not exist
-        $imageInfo = getimagesize($image);
-        switch ($imageInfo[2]) {
-            case 2 :
-                $type = "jpeg";
-                break;
-            case 3 :
-                $type = "png";
-                break;
-            default :
-                return false; //return if file is not jpg or png
         }
+        
+        $imageInfo = getimagesize($image);
+        
+        
+        if($imageInfo === false){
+        	$this->debug("ezImage: Could not get image info for '$image'", E_USER_ERROR);
+        }
+        
         if ($width == 0)
             $width = $imageInfo[0]; //set width
         $ratio = $imageInfo[0] / $imageInfo[1];
@@ -1658,13 +1658,22 @@ class Cezpdf extends Cpdf {
         }
 
         //call appropriate function
-        if ($type == "jpeg") {
-            $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+        switch ($imageInfo[2]) {
+            case IMAGETYPE_JPEG:
+            	$this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+                break;
+            case IMAGETYPE_PNG:
+            	$this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+                break;
+            case IMAGETYPE_GIF:
+            	// use GD to convert the GIF image to PNG and allow transparency
+            	$this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+            	break;
+            default:
+            	$this->debug("ezImage: Unsupported image type".$imageInfo[2], E_USER_WARNING);
+                return false; //return if file is not jpg or png
         }
-
-        if ($type == "png") {
-            $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
-        }
+        
         //draw border
         if ($border != '') {
             if (!(isset ($border['color']))) {
