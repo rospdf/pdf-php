@@ -1040,63 +1040,53 @@ class Cpdf
         }
         switch($action){
         case 'new':
-        	if($this->hashed){
-        		$oHash = md5($options['data']);
-        	}
-        	if(isset($oHash) && isset($this->objectHash[$oHash])){
-        		$id = $this->objectHash[$oHash];
-        	}else{
-        		if(isset($oHash)){
-        			$this->objectHash[$oHash] = $id;
-        		}
-        		// make the new object
-	            $this->objects[$id]=array('t'=>'image','data'=>$options['data'],'info'=>array());
-	            $this->objects[$id]['info']['Type']='/XObject';
-	            $this->objects[$id]['info']['Subtype']='/Image';
-	            $this->objects[$id]['info']['Width']=$options['iw'];
-	            $this->objects[$id]['info']['Height']=$options['ih'];
-	            if (!isset($options['type']) || $options['type']=='jpg'){
-	                if (!isset($options['channels'])){
-	                    $options['channels']=3;
-	                }
-	                switch($options['channels']){
-	                case 1:
-	                    $this->objects[$id]['info']['ColorSpace']='/DeviceGray';
-	                    break;
-	                default:
-	                    $this->objects[$id]['info']['ColorSpace']='/DeviceRGB';
-	                    break;
-	                }
-	                $this->objects[$id]['info']['Filter']='/DCTDecode';
-	                $this->objects[$id]['info']['BitsPerComponent']=8;
-	            } else if ($options['type']=='png'){
-	                if (strlen($options['pdata'])){
-	                    $this->numObj++;
-	                    $this->o_contents($this->numObj,'new');
-	                    $this->o_contents($this->numObj,'add', array('Type'=>'/XObject', 'Subtype'=>'/Image', 'Width'=> $options['iw'], 'Height'=> $options['ih'], 'Filter'=>'/FlateDecode', 'ColorSpace'=>'/DeviceGray', 'BitsPerComponent'=>'8', 'DecodeParms'=>'<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>'));
-	                    $this->objects[$this->numObj]['c']=$options['pdata'];
-	                    if (isset($options['transparency'])){
-	                        switch($options['transparency']['type']){
-	                        case 'indexed':
-	                            $tmp=' [ '.$options['transparency']['data'].' '.$options['transparency']['data'].'] ';
-	                            $this->objects[$id]['info']['Mask'] = $tmp;
-	                            $this->objects[$id]['info']['ColorSpace'] = ' [ /Indexed /DeviceRGB '.(strlen($options['pdata'])/3-1).' '.$this->numObj.' 0 R ]';
-	                            break;
-	                        case 'alpha':
-	                            $this->objects[$id]['info']['SMask'] = $this->numObj.' 0 R';
-	                            $this->objects[$id]['info']['ColorSpace'] = '/DeviceRGB';
-	                        	break;
-	                        }
-	                    }
-	                } else {
-	                    $this->objects[$id]['info']['ColorSpace']='/'.$options['color'];
-	                }
-	                $this->objects[$id]['info']['BitsPerComponent']=$options['bitsPerComponent'];
-	                $this->objects[$id]['info']['Filter']='/FlateDecode';
-	                $this->objects[$id]['data'] = $options['data'];
-	                $this->objects[$id]['info']['DecodeParms']='<< /Predictor 15 /Colors '.$options['ncolor'].' /Columns '.$options['iw'].' /BitsPerComponent '.$options['bitsPerComponent'].'>>';
-	            }
-        	}
+    		// make the new object
+            $this->objects[$id]=array('t'=>'image','data'=>$options['data'],'info'=>array());
+            $this->objects[$id]['info']['Type']='/XObject';
+            $this->objects[$id]['info']['Subtype']='/Image';
+            $this->objects[$id]['info']['Width']=$options['iw'];
+            $this->objects[$id]['info']['Height']=$options['ih'];
+            if (!isset($options['type']) || $options['type']=='jpg'){
+                if (!isset($options['channels'])){
+                    $options['channels']=3;
+                }
+                switch($options['channels']){
+                case 1:
+                    $this->objects[$id]['info']['ColorSpace']='/DeviceGray';
+                    break;
+                default:
+                    $this->objects[$id]['info']['ColorSpace']='/DeviceRGB';
+                    break;
+                }
+                $this->objects[$id]['info']['Filter']='/DCTDecode';
+                $this->objects[$id]['info']['BitsPerComponent']=8;
+            } else if ($options['type']=='png'){
+                if (strlen($options['pdata'])){
+                    $this->numObj++;
+                    $this->o_contents($this->numObj,'new');
+                    $this->o_contents($this->numObj,'add', array('Type'=>'/XObject', 'Subtype'=>'/Image', 'Width'=> $options['iw'], 'Height'=> $options['ih'], 'Filter'=>'/FlateDecode', 'ColorSpace'=>'/DeviceGray', 'BitsPerComponent'=>'8', 'DecodeParms'=>'<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>'));
+                    $this->objects[$this->numObj]['c']=$options['pdata'];
+                    if (isset($options['transparency'])){
+                        switch($options['transparency']['type']){
+                        case 'indexed':
+                            $tmp=' [ '.$options['transparency']['data'].' '.$options['transparency']['data'].'] ';
+                            $this->objects[$id]['info']['Mask'] = $tmp;
+                            $this->objects[$id]['info']['ColorSpace'] = ' [ /Indexed /DeviceRGB '.(strlen($options['pdata'])/3-1).' '.$this->numObj.' 0 R ]';
+                            break;
+                        case 'alpha':
+                            $this->objects[$id]['info']['SMask'] = $this->numObj.' 0 R';
+                            $this->objects[$id]['info']['ColorSpace'] = '/DeviceRGB';
+                        	break;
+                        }
+                    }
+                } else {
+                    $this->objects[$id]['info']['ColorSpace']='/'.$options['color'];
+                }
+                $this->objects[$id]['info']['BitsPerComponent']=$options['bitsPerComponent'];
+                $this->objects[$id]['info']['Filter']='/FlateDecode';
+                $this->objects[$id]['data'] = $options['data'];
+                $this->objects[$id]['info']['DecodeParms']='<< /Predictor 15 /Colors '.$options['ncolor'].' /Columns '.$options['iw'].' /BitsPerComponent '.$options['bitsPerComponent'].'>>';
+            }
             // assign it a place in the named resource dictionary as an external object, according to
             // the label passed in with it.
             $this->o_pages($this->currentNode,'xObject',array('label'=>$options['label'],'objNum'=>$id));
@@ -3101,19 +3091,29 @@ function reopenObject($id){
         if ($h==0){
             $h=$w*$iChunk['info']['height']/$iChunk['info']['width'];
         }
-        // print_r($info);
-        // so this image is ok... add it in.
-        $this->numImages++;
-        $im=$this->numImages;
-        $label='I'.$im;
-        $this->numObj++;
-        $options = array('label'=>$label,'data'=>$iChunk['idata'],'bitsPerComponent'=>$iChunk['info']['bitDepth'],'pdata'=>$iChunk['pdata']
-                                      ,'iw'=>$iChunk['info']['width'],'ih'=>$iChunk['info']['height'],'type'=>'png','color'=>$color,'ncolor'=>$ncolor);
-        if (isset($iChunk['transparency'])){
-            $options['transparency']=$iChunk['transparency'];
+        
+        if($this->hashed){
+        	$oHash = md5($iChunk['idata']);
         }
-        $this->o_image($this->numObj,'new',$options);
-
+    	if(isset($oHash) && isset($this->objectHash[$oHash])){
+    		$label = $this->objectHash[$oHash];
+    	}else{
+    		$this->numImages++;
+        	$label='I'.$this->numImages;
+        	$this->numObj++;
+        	
+    		if(isset($oHash)){
+    			$this->objectHash[$oHash] = $label;
+    		}
+    		
+    		$options = array('label'=>$label,'data'=>$iChunk['idata'],'bitsPerComponent'=>$iChunk['info']['bitDepth'],'pdata'=>$iChunk['pdata']
+                                      ,'iw'=>$iChunk['info']['width'],'ih'=>$iChunk['info']['height'],'type'=>'png','color'=>$color,'ncolor'=>$ncolor);
+        	if (isset($iChunk['transparency'])){
+	            $options['transparency']=$iChunk['transparency'];
+    	    }
+        	$this->o_image($this->numObj,'new',$options);
+    	}
+    	
         $this->objects[$this->currentContents]['c'].="\nq ".sprintf('%.3F',$w)." 0 0 ".sprintf('%.3F',$h)." ".sprintf('%.3F',$x)." ".sprintf('%.3F',$y)." cm";
         $this->objects[$this->currentContents]['c'].=" /".$label.' Do';
         $this->objects[$this->currentContents]['c'].=" Q";
@@ -3239,11 +3239,22 @@ function reopenObject($id){
     protected function addJpegImage_common(&$data,$x,$y,$w=0,$h=0,$imageWidth,$imageHeight,$channels=3){
         // note that this function is not to be called externally
         // it is just the common code between the GD and the file options
-        $this->numImages++;
-        $im=$this->numImages;
-        $label='I'.$im;
-        $this->numObj++;
-        $this->o_image($this->numObj,'new',array('label'=>$label,'data'=>$data,'iw'=>$imageWidth,'ih'=>$imageHeight,'channels'=>$channels));
+        if($this->hashed){
+        	$oHash = md5($data);
+        }
+    	if(isset($oHash) && isset($this->objectHash[$oHash])){
+    		$label = $this->objectHash[$oHash];
+    	}else{
+    		$this->numImages++;
+        	$label='I'.$this->numImages;
+        	$this->numObj++;
+        	
+    		if(isset($oHash)){
+    			$this->objectHash[$oHash] = $label;
+    		}
+    		
+        	$this->o_image($this->numObj,'new',array('label'=>$label,'data'=>$data,'iw'=>$imageWidth,'ih'=>$imageHeight,'channels'=>$channels));
+    	}
 
         $this->objects[$this->currentContents]['c'].="\nq ".sprintf('%.3F',$w)." 0 0 ".sprintf('%.3F',$h)." ".sprintf('%.3F',$x)." ".sprintf('%.3F',$y)." cm";
         $this->objects[$this->currentContents]['c'].=" /".$label.' Do';
