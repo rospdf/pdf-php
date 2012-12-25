@@ -7,7 +7,7 @@ include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o,'color',array(0.8,0.8,0.8));
+  		$this->__construct($p, $o,'image',array('img'=>'images/bg.jpg'));
 	}
 }
 
@@ -32,9 +32,9 @@ $pdf->ezText("PNG grayscaled with alpha channel");
 $pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG true color plus alpha channel #1");
 $pdf->ezImage('images/test_alpha.png',0,0,'none','right');
+$pdf->ezNewPage();
 $pdf->ezText("PNG true color plus alpha channel #2");
 $pdf->ezImage('images/test_alpha2.png',0,0,'none','right');
-$pdf->ezNewPage();
 $pdf->ezText("JPEG from an external resource");
 $pdf->ezImage('http://pdf-php.sf.net/pdf-php-code/ros.jpg',0,0,'none','right');
 
