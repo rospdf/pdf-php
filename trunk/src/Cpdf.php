@@ -39,6 +39,11 @@ class Cpdf
 	var $DEBUGLEVEL = E_USER_WARNING;
 	
 	/**
+	 * flag to validate the output and if output method has be executed
+	 */
+	var $valid = false;
+	
+	/**
 	 * global defined temporary path used on several places
 	 */
 	var $tempPath = '/tmp';
@@ -1441,7 +1446,11 @@ class Cpdf
     /**
      * should be used for internal checks, not implemented as yet
      */
-    function checkAllHere() {}
+    function checkAllHere() {
+    	// set the validation flag to true when everything is ok.
+    	// currently it only checks if output function has been called
+    	$this->valid = true;
+    }
 
     /**
      * return the pdf stream as a string returned from the function
@@ -1456,6 +1465,10 @@ class Cpdf
         if ($this->arc4_objnum){
             $this->ARC4_init($this->encryptionKey);
         }
+        
+		if($this->valid){
+			$this->debug('The output method has been executed again', E_USER_WARNING);
+		}
 
         $this->checkAllHere();
 
