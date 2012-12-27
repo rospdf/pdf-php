@@ -7,13 +7,10 @@ include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o,'image',array('img'=>'images/bg.jpg'));
+  		$this->__construct($p, $o,'image',array('img'=>'images/bg.jpg','width'=>45, 'height'=>45, 'repeat'=>3));
 	}
 }
-
 $pdf = new Creport('a4','portrait');
-//$pdf->fileIdentifier = md5("Hallo");
-
 
 $pdf -> ezSetMargins(20,20,20,20);
 
@@ -28,8 +25,8 @@ $pdf->openHere('Fit');
 
 $pdf->ezText("PNG grayscaled");
 $pdf->ezImage('images/test_grayscaled.png',0,0,'none','right');
-$pdf->ezText("PNG grayscaled with alpha channel");
-$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
+$pdf->ezText("PNG grayscaled with alpha channel - make troubles");
+//$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG true color plus alpha channel #1");
 $pdf->ezImage('images/test_alpha.png',0,0,'none','right');
 $pdf->ezNewPage();
