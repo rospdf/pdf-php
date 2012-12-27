@@ -273,6 +273,32 @@ class Cezpdf extends Cpdf {
 	}
 
     /**
+     *
+     * @param $top
+     * @param $bottom
+     * @param $left
+     * @param $right
+     * @return unknown_type
+     */
+    function ezSetMargins($top,$bottom,$left,$right){
+        // sets the margins to new values
+        $this->ez['topMargin']=$top;
+        $this->ez['bottomMargin']=$bottom;
+        $this->ez['leftMargin']=$left;
+        $this->ez['rightMargin']=$right;
+        // check to see if this means that the current writing position is outside the
+        // writable area
+        if ($this->y > $this->ez['pageHeight']-$top){
+            // then move y down
+            $this->y = $this->ez['pageHeight']-$top;
+        }
+        if ( $this->y < $bottom){
+            // then make a new page
+            $this->ezNewPage();
+        }
+    }
+
+    /**
      * Set Margins in centimeters
      * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
      *
@@ -289,65 +315,6 @@ class Cezpdf extends Cpdf {
         $right = ( $right / 2.54 ) * 72;
         $this->ezSetMargins($top,$bottom,$left,$right);
     }
-
-	/**
-	 * 2003-11-21: DmiG (DmiG@nm.ru) - Change Margins in centimeters by dYtop, dYbottom, dYleft, dYright
-	 */
-	function ezChangeCmMargins($top,$bottom,$left,$right)
-	{
-		$top = ( $top / 2.54 ) * 72;
-		$bottom = ( $bottom / 2.54 ) * 72;
-		$left = ( $left / 2.54 ) * 72;
-		$right = ( $right / 2.54 ) * 72;
-		$this->ezChangeMargins($top,$bottom,$left,$right);
-	}
-
-	/**
-	 * 2003-11-21: DmiG (DmiG@nm.ru) - Get Margins
-	 */
-	function ezGetMargin($which)
-	{
-		switch(strtolower($which))
-		{
-			case 't':
-			case 'top': return $this->ez['topMargin'];
-			case 'tc':
-			case 'topc': return $this->ez['pageHeight']-$this->ez['topMargin'];
-			case 'l':
-			case 'left': return $this->ez['leftMargin'];
-			case 'r':
-			case 'right': return $this->ez['rightMargin'];
-			case 'rc':
-			case 'rightc': return $this->ez['pageWidth']-$this->ez['rightMargin'];
-			case 'b':
-			case 'bottom': return $this->ez['bottomMargin'];
-			default : return 0;
-		}
-	}
-
-	/**
-	 * 2003-11-21: DmiG (DmiG@nm.ru) - Change document margins by dYtop, dYbottom, dYleft, dYright
-	 */
-	function ezChangeMargins($top,$bottom,$left,$right)
-	{
-	  // sets the margins to new values
-	  $this->ez['topMargin']+=$top;
-	  $this->ez['bottomMargin']+=$bottom;
-	  $this->ez['leftMargin']+=$left;
-	  $this->ez['rightMargin']+=$right;
-	  // check to see if this means that the current writing position is outside the
-	  // writable area
-	  if ($this->y > ($this->ez['pageHeight']-$this->ez['topMargin']))
-	  {
-		// then move y down
-		$this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
-	  }
-	  if ( $this->y < $this->ez['bottomMargin'])
-	  {
-		// then make a new page
-		$this->ezNewPage();
-	  }
-	}
 
     /**
      *
@@ -467,32 +434,6 @@ class Cezpdf extends Cpdf {
         }
         
         $this->setBackground();
-    }
-
-    /**
-     *
-     * @param $top
-     * @param $bottom
-     * @param $left
-     * @param $right
-     * @return unknown_type
-     */
-    function ezSetMargins($top,$bottom,$left,$right){
-        // sets the margins to new values
-        $this->ez['topMargin']=$top;
-        $this->ez['bottomMargin']=$bottom;
-        $this->ez['leftMargin']=$left;
-        $this->ez['rightMargin']=$right;
-        // check to see if this means that the current writing position is outside the
-        // writable area
-        if ($this->y > $this->ez['pageHeight']-$top){
-            // then move y down
-            $this->y = $this->ez['pageHeight']-$top;
-        }
-        if ( $this->y < $bottom){
-            // then make a new page
-            $this->ezNewPage();
-        }
     }
 
     /**
