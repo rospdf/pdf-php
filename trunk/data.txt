@@ -36,6 +36,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 - fixed bug #58 JPEG images not shown when using Backgrounds
 - RC4 128bit uses the correct encryption key length
 - added image <c:ilink:toc17>repeat function</c:ilink> for backgrounds - demo available in examples/image.php
+- fixed an issue with grayscaled PNG images containing alpha channel
 
 2<version 0.11.2>
 
