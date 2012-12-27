@@ -79,82 +79,12 @@ more info: http://sourceforge.net/p/pdf-php/blog/2012/12/debugging-and-encryptio
 - numerous small bug fixes, including notably some bugs relating to the inclusion of fonts, especially when using the differences array to take care of characters normally outside the default set.
 
 
-2<version 008>
+2<previous versions>
 
-changes to class.pdf.php:
+all previous versions are still available thru download but we highly recommend to always use the latest version.
+If you need to know what has been changed in version 008 and earlier, please download the complete zip archive to find the README.pdf
 
-- adjustment to the way that type 1 fonts are loaded to make them more reliable
-- changes to that angled text can use bold and italic tags
-- implemented file encryption, which gives the ability to restrict user cut and paste, or printing.
-- added callback functions activated by text markers, see the misc section for full decription.
-- allow object to be added on the 'next' page.
-- extended the newPage function to allow insertion of extra pages between existing pages.
-- adjustment to ellipse function to allow partial curves.
-
-changes to class.ezpdf.php:
-
-- made the column headings in the tables have the same alignment as the settings for the column data.
-- adjusted the size of an A4 page to be more accurate.
-- fixed the table title alignment to stay centered on the table if the table position is fixed on the page
-- used callback functions to add clickable links to the text.
-- implemented a better algorithm for determining table widths when it needs to be shrunk to width.
-- changed ezTable and ezText to return the y-position.
-- made the page numbering system more functional.
-- added insert page functionality.
-- added link capability to tables, can specify one column to be links, using another column as URLs.
-
-
-2<version 007>
-
-This is it - the james bond version - though all similarity ends with the name, but there are some funky new features and a few bug fixes.
-
-The ezTable features have been extended, it is now possible to define the justification of the individual columns, and to specify colum widths as well as the width of the entire table.
-
-You can now have <b>extra fonts!</b>. It is possible to add type 1 postscript fonts, or TrueType fonts. Though note that for the postscript font you have to have both a .pfb file and a .afm file - but there are free products out there which can convert a .pfa to a .pfb. Also to use a TrueType file you have to have a corersponding .afm file as this is required to specify the character widths - luckily there is a program which will generate one from a ttf file.
-
-Bugfixes:
-- fix the open font command so that the font file can be in the same directory.
-- fix a bug with full justification, a space was being left at the end of each line - the justification now lines up much better.
-- added some binary characters near the start of the pdf file, this is so that transfer programs will recognise it as binary.
-- adjusted addTextWrap so that a text angle can now be supplied.
-- have found that the reasona that jpeg file loading was not working for a lot of people is that if magic_quotes_runtime is set on in the php.ini file, then the file read is not binary safe. Adjusted the code to turn that option off before the read, then on again afterwards - there is at least one report of it working much better now.
-- added the missing code to specify the xPos of a table - this was documented in the last version, but someone forgot to code it.
-
-
-2<version 006>
-
-Still more bug fixes of course, but also some improved functionality.
-
-It is now possible to use &lt;b>&lt;/b>&lt;i>&lt;/i> markers within the text stream to do the obvious functionality. This depends on 'font families' being set up, which are described later.
-
-The table functionality within ezPdf has been enhanced so that the width of a table can be specified and the cell contents will be wrapped to fit.
-
-There is some trial functionality to allow the specification of adjusted character maps, this does mean that this version will have to re-create your 'php_<font>.afm' files, but it will do it automatically on first use, <b>but make sure you have the adobe .afm files in the directory and that the web-server has write access</b>, alternatively download the new ones.
-
-Also there has been a slight attempt to tidy the code a little, and improve the documentation. This is partly in preparation for this project to be put into SourceForge, as it will be immediatly following this release.
-
-2<version 005>
-
-Contains a few bug fixes from 004, and the addition of the capability to draw arbitrary Bezier curves, and ellipses at arbitrary angles.
-
-2<version 004>
-
-This release includes a certain amount of functionality which should have been in 003. The enhancements are:
-- page numbering easily done within ezpdf, they can be started and stopped on any page, uses an arbitrary template for the format, and can be set to start numbering pages from a given number.
-- can now pass content-disposition through to the headers, for what it is worth
-- having the 'Accept-Ranges' header set is optional, and off by default - seemed to cause problems.
-- lines can now have their width, dash patterns, join types and endings set.
-- there is now a reopenObject function which will allow adding content to previous objects, as long as the id has been stored. This function will also now work on pages, and the newpage() function now returns an id so that these can be accessed. 
-- the first page of course does not return an id, so there is a getFirstPageId() function to find that one.
-
-2<notes from version 003>
-
-This is the document accompanying version 003 of this pdf class, the significant changes in this class version are:
-- Creation of the ezpdf class, an extension to the base class to make life simpler.
-Inclusion of compression within the content streams, code from Andrea Gagliardi (thanks).
-- A new image function which will include a jpeg file straight from the file, so image inclusion without using GD.
-- An extra content header, might improve life on some browsers (thanks John Arthur).
-
+#NP
 
 1<Use>
 
@@ -188,14 +118,14 @@ Valid values for paper are listed below, a two or four member array can also be 
 Starting ezpdf with the code below will create an a4 portrait document.
 
 <b>$paper</b> The valid values for the paper (thanks to the work of Nicola Asuni) are:
-'4A0' (4767.87,6740.79), '2A0' (3370.39,4767.87), 'A0' (2383.94,3370.39), 'A1' (1683.78,2383.94), 'A2' (1190.55,1683.78), 'A3' (841.89,1190.55), 'A4' (595.28,841.89), 'A5' (419.53,595.28), 'A6' (297.64,419.53), 'A7' (209.76,297.64), 'A8' (147.40,209.76), 'A9' (104.88,147.40), 'A10' (73.70,104.88), 'B0' (2834.65,4008.19), 'B1' (2004.09,2834.65), 'B2' (1417.32,2004.09), 'B3' (1000.63,1417.32), 'B4' (708.66,1000.63), 'B5' (498.90,708.66), 'B6' (354.33,498.90), 'B7' (249.45,354.33), 'B8' (175.75,249.45), 'B9' (124.72,175.75), 'B10' (87.87,124.72), 'C0' (2599.37,3676.54), 'C1' (1836.85,2599.37), 'C2' (1298.27,1836.85), 'C3' (918.43,1298.27), 'C4' (649.13,918.43), 'C5' (459.21,649.13), 'C6' (323.15,459.21), 'C7' (229.61,323.15), 'C8' (161.57,229.61), 'C9' (113.39,161.57), 'C10' (79.37,113.39), 'RA0' (2437.80,3458.27), 'RA1' (1729.13,2437.80), 'RA2' (1218.90,1729.13), 'RA3' (864.57,1218.90), 'RA4' (609.45,864.57), 'SRA0' (2551.18,3628.35), 'SRA1' (1814.17,2551.18), 'SRA2' (1275.59,1814.17), 'SRA3' (907.09,1275.59), 'SRA4' (637.80,907.09), 'LETTER' (612.00,792.00), 'LEGAL' (612.00,1008.00), 'EXECUTIVE' (521.86,756.00), 'FOLIO' (612.00,936.00)
+'4A0', '2A0', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6' , 'A7', 'A8', 'A9', 'A10', 'B0', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'C0', 'C1', 'C2' , 'C3', 'C4' , 'C5', 'C6', 'C7', 'C8', 'C9', 'C10' , 'RA0', 'RA1', 'RA2', 'RA3', 'RA4', 'SRA0', 'SRA1', 'SRA2', 'SRA3', 'SRA4', 'LETTER', 'LEGAL', 'EXECUTIVE', 'FOLIO'
 
 <b>$orientation</b> 'portrait' and 'landscape' can be used
 
-<b>$type</b> following types are possible: 'none' | 'color' | 'colour' | 'image'
+<b>$type</b> following types are possible: 'none' | 'color' | 'image'
 
 <b>$options</b> if type is diffent then 'none' $options can be set as follows
-     if $type is set to 'color' | 'colour'
+     if $type is set to 'color'
        $options['r'] = red-component   of backgroundcolour ( 0 <= r <= 1)
        $options['g'] = green-component of backgroundcolour ( 0 <= g <= 1)
        $options['b'] = blue-component  of backgroundcolour ( 0 <= b <= 1)
@@ -219,16 +149,11 @@ If you want to get started in an easy manner, then here is the 'hello world' pro
 #C
 <?php
 include ('class.ezpdf.php');
-$pdf =& new Cezpdf();
+$pdf = new Cezpdf();
 $pdf->selectFont('./fonts/Helvetica.afm');
 $pdf->ezText('Hello World!',50);
 $pdf->ezStream();
 ?>
-#c
-
-Note that some people have reported that this gives an error - it appears that some builds of PHP do not support the =& operator, if you are having problems then try changing the class instantiation line to:
-#C
-$pdf = new Cezpdf();
 #c
 
 2<ezSetMargins>
@@ -248,6 +173,35 @@ Sets the margins for the document using centimeters
 ezNewPage()
 
 Starts a new page. This is subtly different to the newPage command in the base class as it also places the ezpdf writing pointer back to the top of the page. So if you are using the ezpdf text functions, then this is the one to use when manually requesting a new page.
+
+2<ezColumnsStart>
+
+ezColumnsStart([options])
+
+This will start the text flowing into columns, <i>options</i> is an array which contains the control options.
+
+The options are:
+'gap' => the gap between the columns
+'num' => the number of columns.
+
+Both options (and the array itself) are optional, if missed out then the defaults are gap=10, num=2;
+
+Example calls could be (you would use only one of these):
+
+#C
+$pdf->ezColumnsStart();
+$pdf->ezColumnsStart(array('num'=>3));
+$pdf->ezColumnsStart(array('num'=>3,'gap'=>2));
+$pdf->ezColumnsStart(array('gap'=>20));
+#c 
+
+<i>ezColumnStop</i> is used to stop multi-column mode.
+
+2<ezColumnsStop>
+
+ezColumnsStop()
+
+This stops multi-column mode, it will leave the writing point at whatever level it was at, it is recommended that an ezNewPage() command is executed straight after this command, but for flexibility this is left up to the individual consumer.
 
 2<ezInsertMode>
 
@@ -284,6 +238,130 @@ ezSetDy(-100,'makeSpace')
 #c
 
 guarantees that there will be 100 units of space above the final writing point.
+
+2<ezStartPageNumbers>
+
+setNum = ezStartPageNumbers(x,y,size,[pos],[pattern],[num])
+
+ Add page numbers on the pages from here, place then on the 'pos' side of the coordinates (x,y) (pos can be 'left' or 'right').
+ Use the given 'pattern' for display, where {PAGENUM} and {TOTALPAGENUM} are replaced as required, by default the pattern is set to '{PAGENUM} of {TOTALPAGENUM}'
+ If $num is set, then make the first page this number, the number of total pages will be adjusted to account for this.
+
+ the following code produces a seven page document, numbered from the second page (which will be labelled '1 of 6'), and numbered until the 6th page (labelled '5 of 6')
+
+#C
+$pdf = new Cezpdf();
+$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->ezNewPage();
+$pdf->ezStartPageNumbers(300,500,20,'','',1);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->line(300,400,300,600); // line drawn to check 'pos' is working
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezStopPageNumbers(); 
+$pdf->ezStream();
+#c
+
+This function was modified in version 009 to return a page numbering set number (setNum in the call above), this allows independent numbering schemes to be started and stopped within a single document. This number is passed back into <i>ezStopPageNumbers</i> when it is called.
+
+Here is a more complex example:
+
+#C
+
+$pdf->selectFont('./fonts/Helvetica');
+$pdf->ezNewPage();
+$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezStopPageNumbers(1,1,$i);
+$pdf->ezNewPage();
+$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezStopPageNumbers(1,1,$i);
+$pdf->ezNewPage();
+$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->setColor(1,0,0);
+$pdf->ezNewPage();
+$pdf->ezStopPageNumbers(1,1,$i);
+$pdf->ezNewPage();
+$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$j=$pdf->ezStartPageNumbers(300,400,20,'','',1);
+$k=$pdf->ezStartPageNumbers(300,300,20,'','',1);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezStopPageNumbers(1,1,$i);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+$pdf->ezStopPageNumbers(1,1,$j);
+$pdf->ezStopPageNumbers(0,1,$k);
+$pdf->ezNewPage();
+$pdf->ezNewPage();
+#c
+
+This will create a document with 23 pages, the numbering shown on each of the pages is:
+
+#X
+$array = array(
+array('p'=>1,'c'=>'blank')
+,array('p'=>2,'c'=>'1 of 3')
+,array('p'=>3,'c'=>'2 of 3')
+,array('p'=>4,'c'=>'3 of 3')
+,array('p'=>5,'c'=>'1 of 3')
+,array('p'=>6,'c'=>'2 of 3')
+,array('p'=>7,'c'=>'3 of 3')
+,array('p'=>8,'c'=>'1 of 3')
+,array('p'=>9,'c'=>'2 of 3')
+,array('p'=>10,'c'=>'3 of 3')
+,array('p'=>11,'c'=>'4 of 4')
+,array('p'=>12,'c'=>'1 of 8')
+,array('p'=>13,'c'=>'2 of 8')
+,array('p'=>14,'c'=>'3 of 8')
+,array('p'=>15,'c'=>'4 of 8')
+,array('p'=>16,'c'=>'5 of 8, 1 of 6, 1 of 8')
+,array('p'=>17,'c'=>'6 of 8, 2 of 6, 2 of 8')
+,array('p'=>18,'c'=>'7 of 8, 3 of 6, 3 of 8')
+,array('p'=>19,'c'=>'8 of 8, 4 of 6, 4 of 8')
+,array('p'=>20,'c'=>'5 of 6, 5 of 8')
+,array('p'=>21,'c'=>'6 of 6, 6 of 8')
+,array('p'=>22,'c'=>'blank')
+,array('p'=>23,'c'=>'blank')
+);
+$pdf->ezTable($array,array('p'=>'page','c'=>'contents'));
+#x
+
+
+2<ezWhatPageNumber>
+
+num = ezWhatPageNumber(pageNum,[setNum])
+
+Returns the number of a page within the specified page numbering system.
+
+'pageNum' => the absolute number of the page within the document (this is based on the order that they are created).
+'setNum' => the page numbering set, returned from the <i>ezStartPageNumbers</i> command.
+
+2<ezGetCurrentPageNumber>
+
+return the page number of the current page
+
+2<ezStopPageNumbers>
+
+ezStopPageNumbers([stopTotal],[next],[setNum])
+
+In version 009 this function was enhanced to include a number of extra parameters:
+
+'stopTotal' => 0 or 1 (default 0), stops the totaling for the page numbering set. So for example if you start numbering a 10 page document on the second page, and stop it on the 4th page, with stopTotal set to 1, then the numbers will be reported as "x of 3".
+'next' => 0 or 1, stops on the next page, not this one.
+'setNum' => (defaults to 0) define which set number is to be stopped, this is the number returned from the <i>ezStartPageNumbers</i> command.
 
 2<ezTable>
 
@@ -328,14 +406,9 @@ Note that the user will have had to have made a font selection already or this w
 
 Note that in version 009, with the introduction of colGap and rowGap, the defaults for these have changed slightly, so default tables may appear slightly different, it will pay to check your documents if this is likely to cause a formatting problem for you. Problems could also be caused by the new default behaviour to not allow rows to be split across page boundaries. Another possible problem is that 'titleGap' was removed, as it was felt that this functionality was replaced by rowGap and colGap.
 
-A simple table example:
+A simple table example containing the following $data array:
 
 #C
-<?php
-include ('class.ezpdf.php');
-$pdf =& new Cezpdf();
-$pdf->selectFont('./fonts/Helvetica.afm');
-
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
 ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
@@ -345,14 +418,10 @@ $data = array(
 );
 
 $pdf->ezTable($data);
-
-$pdf->ezStream();
-?>
 #c
 
 #X
 $pdf->selectFont('./fonts/Helvetica.afm');
-
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
 ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
@@ -360,7 +429,6 @@ $data = array(
 ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
 ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
 );
-
 $pdf->ezTable($data);
 #x
 
@@ -393,19 +461,32 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
 #x
 
 
-Here is another example with showLines set to 3 for HEAD LINES<b>*new*</b>
+Another example with <b>showLines</b> option set to 3 for horizontal lines
 
 #C
 $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
               ,'Some LOTR Characters'
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
 #c
-
 #X
 $pdf->selectFont('./fonts/Helvetica.afm');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
+#x
+
+Another example with <b>showLines</b> option set to 4 , only head line
+
+#C
+$pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
+              ,'Some LOTR Characters'
+              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
+#c
+#X
+$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
+              ,''
+              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>5));
 #x
 
 
@@ -549,127 +630,7 @@ The values are as specified in setStrokeColor and should be assigned to:
 $border['color']['red'], $border['color']['green'] and $border['color']['blue'] respectively.
 
 
-2<ezStartPageNumbers>
 
-setNum = ezStartPageNumbers(x,y,size,[pos],[pattern],[num])
-
- Add page numbers on the pages from here, place then on the 'pos' side of the coordinates (x,y) (pos can be 'left' or 'right').
- Use the given 'pattern' for display, where {PAGENUM} and {TOTALPAGENUM} are replaced as required, by default the pattern is set to '{PAGENUM} of {TOTALPAGENUM}'
- If $num is set, then make the first page this number, the number of total pages will be adjusted to account for this.
-
- the following code produces a seven page document, numbered from the second page (which will be labelled '1 of 6'), and numbered until the 6th page (labelled '5 of 6')
-
-#C
-$pdf = new Cezpdf();
-$pdf->selectFont('./fonts/Helvetica.afm');
-$pdf->ezNewPage();
-$pdf->ezStartPageNumbers(300,500,20,'','',1);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->line(300,400,300,600); // line drawn to check 'pos' is working
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezStopPageNumbers(); 
-$pdf->ezStream();
-#c
-
-This function was modified in version 009 to return a page numbering set number (setNum in the call above), this allows independent numbering schemes to be started and stopped within a single document. This number is passed back into <i>ezStopPageNumbers</i> when it is called.
-
-Here is a more complex example:
-
-#C
-
-$pdf->selectFont('./fonts/Helvetica');
-$pdf->ezNewPage();
-$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezStopPageNumbers(1,1,$i);
-$pdf->ezNewPage();
-$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezStopPageNumbers(1,1,$i);
-$pdf->ezNewPage();
-$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->setColor(1,0,0);
-$pdf->ezNewPage();
-$pdf->ezStopPageNumbers(1,1,$i);
-$pdf->ezNewPage();
-$i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$j=$pdf->ezStartPageNumbers(300,400,20,'','',1);
-$k=$pdf->ezStartPageNumbers(300,300,20,'','',1);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezStopPageNumbers(1,1,$i);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-$pdf->ezStopPageNumbers(1,1,$j);
-$pdf->ezStopPageNumbers(0,1,$k);
-$pdf->ezNewPage();
-$pdf->ezNewPage();
-#c
-
-This will create a document with 23 pages, the numbering shown on each of the pages is:
-
-#X
-$array = array(
-array('p'=>1,'c'=>'blank')
-,array('p'=>2,'c'=>'1 of 3')
-,array('p'=>3,'c'=>'2 of 3')
-,array('p'=>4,'c'=>'3 of 3')
-,array('p'=>5,'c'=>'1 of 3')
-,array('p'=>6,'c'=>'2 of 3')
-,array('p'=>7,'c'=>'3 of 3')
-,array('p'=>8,'c'=>'1 of 3')
-,array('p'=>9,'c'=>'2 of 3')
-,array('p'=>10,'c'=>'3 of 3')
-,array('p'=>11,'c'=>'4 of 4')
-,array('p'=>12,'c'=>'1 of 8')
-,array('p'=>13,'c'=>'2 of 8')
-,array('p'=>14,'c'=>'3 of 8')
-,array('p'=>15,'c'=>'4 of 8')
-,array('p'=>16,'c'=>'5 of 8, 1 of 6, 1 of 8')
-,array('p'=>17,'c'=>'6 of 8, 2 of 6, 2 of 8')
-,array('p'=>18,'c'=>'7 of 8, 3 of 6, 3 of 8')
-,array('p'=>19,'c'=>'8 of 8, 4 of 6, 4 of 8')
-,array('p'=>20,'c'=>'5 of 6, 5 of 8')
-,array('p'=>21,'c'=>'6 of 6, 6 of 8')
-,array('p'=>22,'c'=>'blank')
-,array('p'=>23,'c'=>'blank')
-);
-$pdf->ezTable($array,array('p'=>'page','c'=>'contents'));
-#x
-
-
-2<ezWhatPageNumber>
-
-num = ezWhatPageNumber(pageNum,[setNum])
-
-Returns the number of a page within the specified page numbering system.
-
-'pageNum' => the absolute number of the page within the document (this is based on the order that they are created).
-'setNum' => the page numbering set, returned from the <i>ezStartPageNumbers</i> command.
-
-
-2<ezStopPageNumbers>
-
-ezStopPageNumbers([stopTotal],[next],[setNum])
-
-In version 009 this function was enhanced to include a number of extra parameters:
-
-'stopTotal' => 0 or 1 (default 0), stops the totaling for the page numbering set. So for example if you start numbering a 10 page document on the second page, and stop it on the 4th page, with stopTotal set to 1, then the numbers will be reported as "x of 3".
-'next' => 0 or 1, stops on the next page, not this one.
-'setNum' => (defaults to 0) define which set number is to be stopped, this is the number returned from the <i>ezStartPageNumbers</i> command.
- 
 2<ezOutput>
 
 ezOutput([debug])
@@ -685,35 +646,6 @@ ezStream([options])
 Very similar to the stream function from the base class (all the same options, see later in this document), but performs any closing tasks that ezpdf requires, such as adding the page numbers.
 
 If you are using ezpdf, then you should use this function, rather than the one from the base class.
-
-2<ezColumnsStart>
-
-ezColumnsStart([options])
-
-This will start the text flowing into columns, <i>options</i> is an array which contains the control options.
-
-The options are:
-'gap' => the gap between the columns
-'num' => the number of columns.
-
-Both options (and the array itself) are optional, if missed out then the defaults are gap=10, num=2;
-
-Example calls could be (you would use only one of these):
-
-#C
-$pdf->ezColumnsStart();
-$pdf->ezColumnsStart(array('num'=>3));
-$pdf->ezColumnsStart(array('num'=>3,'gap'=>2));
-$pdf->ezColumnsStart(array('gap'=>20));
-#c 
-
-<i>ezColumnStop</i> is used to stop multi-column mode.
-
-2<ezColumnsStop>
-
-ezColumnsStop()
-
-This stops multi-column mode, it will leave the writing point at whatever level it was at, it is recommended that an ezNewPage() command is executed straight after this command, but for flexibility this is left up to the individual consumer.
 
 2<inline codes>
 
@@ -1390,8 +1322,6 @@ Notes:
 - though often it seems that you do not need to 'commit' if you are happy with your changes, it is good practice, the 'start' command is effectively making an internal copy of the document, if you are working on a large document you may run out of space. The 'commit' command frees up that space once more.
 - these commands, though they are part of the base class, save all the setting of the object in which they are contained, this means most often that they will work fine with an ezPdf object, and will also work with user class extensions.
 
-
-#NP
 1<Misc>
 
 2<Callback functions>
