@@ -93,9 +93,9 @@ $pdf->addObject($all,'all');
 
 $pdf->ezSetDy(-100);
 
-//$mainFont = './fonts/Helvetica.afm';
-$mainFont = './fonts/Times-Roman.afm';
-$codeFont = './fonts/Courier.afm';
+//$mainFont = './src/fonts/Helvetica.afm';
+$mainFont = './src/fonts/Times-Roman.afm';
+$codeFont = './src/fonts/Courier.afm';
 // select a font
 $pdf->selectFont($mainFont);
 
