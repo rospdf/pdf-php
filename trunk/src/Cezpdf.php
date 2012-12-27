@@ -35,11 +35,13 @@ class Cezpdf extends Cpdf {
      *                    $options[1] = green-component of backgroundcolour ( 0 <= g <= 1)
      *                    $options[2] = blue-component  of backgroundcolour ( 0 <= b <= 1)
  	 *                   if type == 'image':
-     *                    $options['img']    = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
-     *                    $options['width']  = width of background image; default is width of page
-     *                    $options['height'] = height of background image; default is height of page
-     *                    $options['xpos']   = horizontal position of background image; default is 0
-     *                    $options['ypos']   = vertical position of background image; default is 0
+     *                    $options['img']     = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
+     *                    $options['width']   = width of background image; default is width of page
+     *                    $options['height']  = height of background image; default is height of page
+     *                    $options['xpos']    = horizontal position of background image; default is 0
+     *                    $options['ypos']    = vertical position of background image; default is 0
+     *           *new*    $options['repeat']  = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0
+     *                                          highly recommend to set this->hashed to true when using repeat function
 	 *
      * Assuming that people don't want to specify the paper size using the absolute coordinates
      * allow a couple of options:
@@ -175,6 +177,7 @@ class Cezpdf extends Cpdf {
             	$this->ezBackground['type'] = 'image';
             	$this->ezBackground['image'] = $options['img'];
             	$this->ezBackground['format'] = $im[2];
+            	$this->ezBackground['repeat'] = $options['repeat'];
             	
             	if (isset($options['width']) && is_numeric($options['width']))  $this->ezBackground['width'] = $options['width'];  else $this->ezBackground['width']  = $this->ez['pageWidth'];
             	if (isset($options['height']) && is_numeric($options['height'])) $this->ezBackground['height'] = $options['height']; else $this->ezBackground['height'] = $this->ez['pageHeight'];
@@ -198,9 +201,7 @@ class Cezpdf extends Cpdf {
 		if(isset($this->ezBackground['type'])){
 	        switch ($this->ezBackground['type'])
 	        {
-	            case 'color' :
-	            	
-	            				
+	            case 'color':
 	            	if (isset($this->ezBackground['color']) && count(array_filter( array_map( function($_){ return is_numeric($_)&&0<=$_&&$_<=1; }, $this->ezBackground['color']))) == 3)
 	            	{
 	                	$this->saveState();
@@ -209,20 +210,65 @@ class Cezpdf extends Cpdf {
 	                	$this->restoreState();
 	            	}
 	                break;
-	            case 'image'  :
-	                switch ($this->ezBackground['format']) {
-	                    case 2:
-	                    	$this->addJpegFromFile($this->ezBackground['image'], $this->ezBackground['xpos'], $this->ezBackground['ypos'], $this->ezBackground['width'], $this->ezBackground['height']);
-	                    break;
-	                    case 3:
-	                    	$this->addPngFromFile($this->ezBackground['image'], $this->ezBackground['xpos'], $this->ezBackground['ypos'], $this->ezBackground['width'], $this->ezBackground['height']);
-	                    break;
-	                }
+	            case 'image':
+	            	$ypos = 0;
+	            	if($this->ezBackground['repeat'] == 1){
+	            		$ypos = $this->ezBackground['ypos'];
+	            	}
+	        		
+	        		$xpos = 0;
+	            	if($this->ezBackground['repeat'] == 2){
+	            		$xpos = $this->ezBackground['xpos'];;
+	            	}
+	            	
+	            	$this->addBackgroundImage($xpos, $ypos);
+	            	
+	            	if($this->ezBackground['repeat'] & 1){ // repeat-x
+	            		$numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
+	            		for($i = 1; $i <= $numX; $i++){
+	            			$xpos = ($this->ezBackground['width'] * $i);
+	            			$this->addBackgroundImage($xpos,$ypos);
+	            		}
+	            	}
+	            	
+	            	$xpos = 0;
+	            	if($this->ezBackground['repeat'] & 2){ // repeat-y
+	            		$numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
+        				for($i = 1; $i <= $numY; $i++){
+        					$ypos = ($this->ezBackground['height'] * $i);
+        					$this->addBackgroundImage($xpos,$ypos);
+        				}
+        			}
+        			
+        			if($this->ezBackground['repeat'] == 3){ // repeat all
+	            		$numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
+	            		$numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
+	            		
+	            		for($i = 1; $i <= $numX; $i++){
+	            			$xpos = ($this->ezBackground['width'] * $i);
+	            			for($j = 1; $j <= $numY; $j++){
+	            				$ypos = ($this->ezBackground['height'] * $j);
+	            				$this->addBackgroundImage($xpos,$ypos);
+	            			}
+	            		}
+	            	}
+        			
 	                break;
 	            case 'none':
 	            default:
 	                break;
 	        }
+        }
+	}
+	
+	function addBackgroundImage($xOffset = 0, $yOffset = 0){
+		switch ($this->ezBackground['format']) {
+            case IMAGETYPE_JPEG:
+            	$this->addJpegFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
+            break;
+            case IMAGETYPE_PNG:
+            	$this->addPngFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
+            break;
         }
 	}
 
