@@ -316,6 +316,51 @@ class Cezpdf extends Cpdf {
         $this->ezSetMargins($top,$bottom,$left,$right);
     }
 
+	/**
+     *
+     * @return unknown_type
+     */
+    function ezNewPage(){
+        $pageRequired=1;
+        if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
+            // check if this is just going to a new column
+            // increment the column number
+            //echo 'HERE<br>';
+            $this->ez['columns']['colNum']++;
+            //echo $this->ez['columns']['colNum'].'<br>';
+            if ($this->ez['columns']['colNum'] <= $this->ez['columns']['options']['num']){
+                // then just reset to the top of the next column
+                $pageRequired=0;
+            } else {
+                $this->ez['columns']['colNum']=1;
+                $this->ez['topMargin']=$this->ez['columns']['margins'][2];
+            }
+
+            $width = $this->ez['columns']['width'];
+            $this->ez['leftMargin']=$this->ez['columns']['margins'][0]+($this->ez['columns']['colNum']-1)*($this->ez['columns']['options']['gap']+$width);
+            $this->ez['rightMargin']=$this->ez['pageWidth']-$this->ez['leftMargin']-$width;
+        }
+
+        if ($pageRequired){
+            // make a new page, setting the writing point back to the top
+            $this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
+            // make the new page with a call to the basic class.
+            $this->ezPageCount++;
+            if (isset($this->ez['insertMode']) && $this->ez['insertMode']==1){
+                $id = $this->ezPages[$this->ezPageCount] = $this->newPage(1,$this->ez['insertOptions']['id'],$this->ez['insertOptions']['pos']);
+                // then manipulate the insert options so that inserted pages follow each other
+                $this->ez['insertOptions']['id']=$id;
+                $this->ez['insertOptions']['pos']='after';
+            } else {
+                $this->ezPages[$this->ezPageCount] = $this->newPage();
+            }
+        } else {
+            $this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
+        }
+        
+        $this->setBackground();
+    }
+
     /**
      *
      * @param $options
@@ -391,58 +436,40 @@ class Cezpdf extends Cpdf {
         }
     }
 
-    /**
-     *
+	/**
+     * sets the Y position of the document
+     * @param $y
      * @return unknown_type
      */
-    function ezNewPage(){
-        $pageRequired=1;
-        if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
-            // check if this is just going to a new column
-            // increment the column number
-            //echo 'HERE<br>';
-            $this->ez['columns']['colNum']++;
-            //echo $this->ez['columns']['colNum'].'<br>';
-            if ($this->ez['columns']['colNum'] <= $this->ez['columns']['options']['num']){
-                // then just reset to the top of the next column
-                $pageRequired=0;
-            } else {
-                $this->ez['columns']['colNum']=1;
-                $this->ez['topMargin']=$this->ez['columns']['margins'][2];
-            }
-
-            $width = $this->ez['columns']['width'];
-            $this->ez['leftMargin']=$this->ez['columns']['margins'][0]+($this->ez['columns']['colNum']-1)*($this->ez['columns']['options']['gap']+$width);
-            $this->ez['rightMargin']=$this->ez['pageWidth']-$this->ez['leftMargin']-$width;
+    function ezSetY($y){
+        // used to change the vertical position of the writing point.
+        $this->y = $y;
+        if ( $this->y < $this->ez['bottomMargin']){
+            // then make a new page
+            $this->ezNewPage();
         }
-
-        if ($pageRequired){
-            // make a new page, setting the writing point back to the top
-            $this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
-            // make the new page with a call to the basic class.
-            $this->ezPageCount++;
-            if (isset($this->ez['insertMode']) && $this->ez['insertMode']==1){
-                $id = $this->ezPages[$this->ezPageCount] = $this->newPage(1,$this->ez['insertOptions']['id'],$this->ez['insertOptions']['pos']);
-                // then manipulate the insert options so that inserted pages follow each other
-                $this->ez['insertOptions']['id']=$id;
-                $this->ez['insertOptions']['pos']='after';
-            } else {
-                $this->ezPages[$this->ezPageCount] = $this->newPage();
-            }
-        } else {
-            $this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
-        }
-        
-        $this->setBackground();
     }
 
     /**
-     *
+     * changes the Y position of the document by writing positive or negative numbers
+     * @param $dy
+     * @param $mod
      * @return unknown_type
      */
-    function ezGetCurrentPageNumber(){
-        // return the strict numbering (1,2,3,4..) number of the current page
-        return $this->ezPageCount;
+    function ezSetDy($dy,$mod=''){
+        // used to change the vertical position of the writing point.
+        // changes up by a positive increment, so enter a negative number to go
+        // down the page
+        // if $mod is set to 'makeSpace' and a new page is forced, then the pointed will be moved
+        // down on the new page, this will allow space to be reserved for graphics etc.
+        $this->y += $dy;
+        if ( $this->y < $this->ez['bottomMargin']){
+            // then make a new page
+            $this->ezNewPage();
+            if ($mod=='makeSpace'){
+                $this->y += $dy;
+            }
+        }
     }
 
     /**
@@ -511,6 +538,15 @@ class Cezpdf extends Cpdf {
             }
         }
         return $num;
+    }
+    
+	/**
+     *
+     * @return unknown_type
+     */
+    function ezGetCurrentPageNumber(){
+        // return the strict numbering (1,2,3,4..) number of the current page
+        return $this->ezPageCount;
     }
 
     /**
@@ -647,62 +683,6 @@ class Cezpdf extends Cpdf {
      */
     function ezPRVTcleanUp(){
         $this->ezPRVTaddPageNumbers();
-    }
-
-    /**
-     *
-     * @param $options
-     * @return unknown_type
-     */
-    function ezStream($options=''){
-        $this->ezPRVTcleanUp();
-        $this->stream($options);
-    }
-
-    /**
-     *
-     * @param $options
-     * @return unknown_type
-     */
-    function ezOutput($options=0){
-        $this->ezPRVTcleanUp();
-        return $this->output($options);
-    }
-
-    /**
-     *
-     * @param $y
-     * @return unknown_type
-     */
-    function ezSetY($y){
-        // used to change the vertical position of the writing point.
-        $this->y = $y;
-        if ( $this->y < $this->ez['bottomMargin']){
-            // then make a new page
-            $this->ezNewPage();
-        }
-    }
-
-    /**
-     *
-     * @param $dy
-     * @param $mod
-     * @return unknown_type
-     */
-    function ezSetDy($dy,$mod=''){
-        // used to change the vertical position of the writing point.
-        // changes up by a positive increment, so enter a negative number to go
-        // down the page
-        // if $mod is set to 'makeSpace' and a new page is forced, then the pointed will be moved
-        // down on the new page, this will allow space to be reserved for graphics etc.
-        $this->y += $dy;
-        if ( $this->y < $this->ez['bottomMargin']){
-            // then make a new page
-            $this->ezNewPage();
-            if ($mod=='makeSpace'){
-                $this->y += $dy;
-            }
-        }
     }
 
     /**
@@ -1685,6 +1665,26 @@ class Cezpdf extends Cpdf {
         //remove tempfile for remote images
         if ($temp == true)
             unlink($image);
+    }
+
+    /**
+     *
+     * @param $options
+     * @return unknown_type
+     */
+    function ezStream($options=''){
+        $this->ezPRVTcleanUp();
+        $this->stream($options);
+    }
+
+    /**
+     *
+     * @param $options
+     * @return unknown_type
+     */
+    function ezOutput($options=0){
+        $this->ezPRVTcleanUp();
+        return $this->output($options);
     }
 
     /**
