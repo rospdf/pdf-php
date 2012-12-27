@@ -25,8 +25,8 @@ $pdf->openHere('Fit');
 
 $pdf->ezText("PNG grayscaled");
 $pdf->ezImage('images/test_grayscaled.png',0,0,'none','right');
-$pdf->ezText("PNG grayscaled with alpha channel - make troubles");
-//$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
+$pdf->ezText("PNG grayscaled with alpha channel");
+$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG true color plus alpha channel #1");
 $pdf->ezImage('images/test_alpha.png',0,0,'none','right');
 $pdf->ezNewPage();
