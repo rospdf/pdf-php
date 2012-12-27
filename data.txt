@@ -31,6 +31,12 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.11.3>
+
+- fixed bug #58 JPEG images not shown when using Backgrounds
+- RC4 128bit uses the correct encryption key length
+- added image <c:ilink:toc17>repeat function</c:ilink> for backgrounds - demo available in examples/image.php
+
 2<version 0.11.2>
 
 - $DEBUG and $DEBUGLEVEL property to control the debug output
@@ -188,16 +194,18 @@ Starting ezpdf with the code below will create an a4 portrait document.
 <b>$type</b> following types are possible: 'none' | 'color' | 'colour' | 'image'
 
 <b>$options</b> if type is diffent then 'none' $options can be set as follows
-           if $type is set to 'color' | 'colour'
-               $options['r'] = red-component   of backgroundcolour ( 0 <= r <= 1)
-               $options['g'] = green-component of backgroundcolour ( 0 <= g <= 1)
-               $options['b'] = blue-component  of backgroundcolour ( 0 <= b <= 1)
-           if $type is set to 'image' then the $options array has other attributes
-               $options['img']    = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
-               $options['width']  = width of background image; default is width of page
-               $options['height'] = height of background image; default is height of page
-               $options['xpos']   = horizontal position of background image; default is 0
-               $options['ypos']   = vertical position of background image; default is 0
+     if $type is set to 'color' | 'colour'
+       $options['r'] = red-component   of backgroundcolour ( 0 <= r <= 1)
+       $options['g'] = green-component of backgroundcolour ( 0 <= g <= 1)
+       $options['b'] = blue-component  of backgroundcolour ( 0 <= b <= 1)
+     if $type is set to 'image' then the $options array has other attributes
+       $options['img']    = location of image file; URI's are allowed if allow_url_open is enabled
+       $options['width']  = width of background image; default is width of page
+       $options['height'] = height of background image; default is height of page
+       $options['xpos']   = horizontal position of background image; default is 0
+       $options['ypos']   = vertical position of background image; default is 0
+       $options['repeat'] = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0
+                            highly recommend to set this->hashed to true when using repeat function
 
 This document shows you the 'color' type with following:
 
