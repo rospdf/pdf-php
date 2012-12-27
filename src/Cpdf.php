@@ -1075,7 +1075,7 @@ class Cpdf
                             break;
                         case 'alpha':
                             $this->objects[$id]['info']['SMask'] = $this->numObj.' 0 R';
-                            $this->objects[$id]['info']['ColorSpace'] = '/DeviceRGB';
+                            $this->objects[$id]['info']['ColorSpace'] = '/'.$options['color'];
                         	break;
                         }
                     }
@@ -2882,8 +2882,7 @@ function reopenObject($id){
 
     function readPngChunks(&$data){
     	$default = array('info'=> array(), 'transparency'=> null, 'idata'=> null, 'pdata'=> null, 'haveHeader'=> false);
-    	
-    // set pointer
+    	// set pointer
 		$p = 8;
 		$len = strlen($data);
 		// cycle through the file, identifying chunks
@@ -2902,7 +2901,8 @@ function reopenObject($id){
 				$default['info']['filterMethod']=ord($data[$p+19]);
 				$default['info']['interlaceMethod']=ord($data[$p+20]);
 				
-				//error_log('ColorType:' . $default['info']['colorType']);
+				$this->debug('readPngChunks: ColorType is' . $default['info']['colorType'], E_USER_NOTICE);
+				
 				$default['haveHeader'] = true;
 				
 				if ($default['info']['compressionMethod']!=0){
@@ -3042,7 +3042,7 @@ function reopenObject($id){
 			$this->debug('addPngFromFile: Invalid PNG header for file: ' . $file, E_USER_WARNING);
 			return;
         }
-
+		
 		$iChunk = $this->readPngChunks($data);
 		
 		if(!$iChunk['haveHeader']){
@@ -3059,9 +3059,9 @@ function reopenObject($id){
 			$errormsg = "only bit depth of 8 or less is supported.";
         }
 
-		if ($iChunk['info']['colorType']!=2 && $iChunk['info']['colorType']!=0 && $iChunk['info']['colorType']!=3 && $iChunk['info']['colorType']!=6 && $iChunk['info']['colorType']!=4){
+		if ($iChunk['info']['colorType'] == 1 || $iChunk['info']['colorType'] == 5 || $iChunk['info']['colorType']== 7){
 			$error = true;
-			$errormsg = 'transparancey alpha channel not supported, transparency only supported for palette images.';
+			$errormsg = 'Unsupported PNG color type: '.$iChunk['info']['colorType'];
 		} else if(isset($iChunk['info'])) {
 			switch ($iChunk['info']['colorType']){
 				case 3:
