@@ -22,24 +22,14 @@
  * the php gd2 extension must be enabled for remote files and local gif files. 
  * local png- and jpeg-files are supported without the gd2 extension. 
  *
- *
+ * @author Kristian Herpel <Kristian.Herpel@gmx.net>
+ * @author Ole K <ole1986@users.sourceforge.net>
+ * @version 1.11 fix for problems with big pictures (pictures with width > 2000px were not shown in the table)
  */
 error_reporting(E_ALL);
 set_time_limit(1800);
 set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
 include 'Cezpdf.php';
-
-/*
- * #4 added include
- * #27 added new class variable for table extension
- * #133 initialization of the new class variable
- * #597-629 new methods
- * #1066-1067 image parse call added
- * #1091-1103 image height calculation added
- * 
- * @author Kristian Herpel <Kristian.Herpel@gmx.net>
- * @version 1.11 fix for problems with big pictures (pictures with width > 2000px were not shown in the table)
- */
 
 /**
  * cezpdf extension for displaying images in table cells
@@ -53,12 +43,11 @@ class CezTableImage extends Cezpdf {
 		parent::__construct($p, $o,$t,$op);
 	}
 	
-	
 	/**
 	 * Modification to this function from Cezpdf
-	 * line 457-458: added parseImages function
-	 * line 480-487: added some condition to calculate cell height
-	 * line 491    : modified to set the new cell height
+	 * line 447-447: added parseImages function
+	 * line 470-477: added some condition to calculate cell height
+	 * line 481    : modified to set the new cell height
 	 */
 	function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){
