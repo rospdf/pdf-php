@@ -53,6 +53,13 @@ class CezTableImage extends Cezpdf {
 		parent::__construct($p, $o,$t,$op);
 	}
 	
+	
+	/**
+	 * Modification to this function from Cezpdf
+	 * line 457-458: added parseImages function
+	 * line 480-487: added some condition to calculate cell height
+	 * line 491    : modified to set the new cell height
+	 */
 	function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){
             return;
@@ -650,25 +657,15 @@ class CezTableImage extends Cezpdf {
 	 * @access public
 	 */ 
 	function checkForImage($text) {
-		
 		$height = 0;
-		
 		$matches = $this->getImagesFromText($text);
-		
 		for ($key=0; $key<count($matches[0]); $key++) {
-	  	
 	  		$params = & CezShowimageParameter::create($matches[1][$key]);
-			
 			if ($params->getHeight()>0) {
-				
 				$height = $height + $params->getHeight();
-				
 			} else {
-				
 				$height = $height + $params->getOriginalHeight();
-				
 			}
-			
 		}
 		return $height;
 	}
@@ -724,20 +721,13 @@ class CezTableImage extends Cezpdf {
 	 * @access public 
 	 */
 	function showimage($info) {
-		
 		if ($info['status']=='start') {
-			
 			$params = & CezShowimageParameter::create($info['p']);
 			if ($params->isReadable()) {
-
 				$y = ($params->getPositionY()>0) ? $params->getPositionY() : $info['y'];
-
 				$this->addImage($params, $info['x'], $y);
-
 			}
-			
 		}
-	   
 	}
 	
 	/**
@@ -754,52 +744,31 @@ class CezTableImage extends Cezpdf {
 	 */		
 	function parseImages(&$text, $maxwidth = 0, $maxheight = 0, $currenty = 0) {
 		$matches = $this->getImagesFromText($text);
-		
 		for ($key=0; $key<count($matches[0]); $key++) {
-			
 			$params = & CezShowimageParameter::create($matches[1][$key]);
-
 			if ($params->isReadable()) {
 				$width = $params->getWidth();
 				$height = $params->getHeight();
-				
 				if ($width==0 && $height>0) {
-		
 					$width = $height/$params->getOriginalHeight() * $params->getOriginalWidth();
-					
 				} elseif ($height==0 && $width>0) {
-					
 					$height = $width/$params->getOriginalWidth() * $params->getOriginalHeight();
-					
 				} elseif ($height==0 && $width==0) {
-				
 					$width = $params->getOriginalWidth();
 					$height = $params->getOriginalHeight();
-				
 				}
-				
 				if ($maxwidth>0 && $width>$maxwidth) {
-					
 					$height = ($maxwidth * $height)/$width;
 					$width = $maxwidth;
-					
 				}
-				
 				if ($maxheight>0 && $height>$maxheight) {
-					
 					$width = ($maxheight * $width)/$height;
 					$height = $maxheight;
-					
 				}
-				
 				$currenty = $currenty - $height;
-				
 				$imagetag = '<C:showimage:'.$params->getFilename().' '.round($width).' '.round($height).' '.$currenty.'>';
-				
 			} else {
-				
 				$imagetag = '';
-				
 			}
 			$text = str_replace($matches[0][$key],$imagetag,$text);
 		}
@@ -816,38 +785,23 @@ class CezTableImage extends Cezpdf {
 	 * @access public
 	 */
 	function parseMaximumWidth(& $text) {
-		
 		$mx = 0;
-		
 		$matches = $this->getImagesFromText($text);
-		
 		for ($key=0; $key<count($matches[0]); $key++) {
-
 			$params = & CezShowimageParameter::create($matches[1][$key]);
-		    	
 	    	if ($params->getWidth()>$mx) {
-	    		
 	    		$mx = $params->getWidth();
-	    		
 	    	} elseif ($params->getOriginalWidth()>$mx) {
-	    		
 	    		$mx = $params->getOriginalWidth();
-	          
 	      	}
-	      	
 	      	// remove the Image-Tag from the text for further calculation
 	    	$text = str_replace($matches[0][$key],'',$text);
-		      	
 	    }
-	    
 	    $mx = min($mx, $this->ezPdf->ez['pageWidth']);
-	    
 	    return $mx;
-		
 	}
-	
 }
-	
+
 /**
  * parameter object 
  */
