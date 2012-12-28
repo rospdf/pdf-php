@@ -37,6 +37,10 @@ class Cpdf
 	 * @default E_USER_NOTICE
 	 */
 	var $DEBUGLEVEL = E_USER_WARNING;
+	/**
+	 * Reversed char string to allow arabic or Hebrew
+	 */
+	var $rtl = false;
 	
 	/**
 	 * flag to validate the output and if output method has be executed
@@ -388,6 +392,7 @@ class Cpdf
                         case 'HideWindowUI':
                         case 'FitWindow':
                         case 'CenterWindow':
+                        case 'DisplayDocTitle':
                         case 'NonFullScreenPageMode':
                         case 'Direction':
                             $o['info'][$k]=$v;
@@ -2174,7 +2179,7 @@ class Cpdf
         header("Content-Length: ".strlen(ltrim($tmp)));
         $fileName = (isset($options['Content-Disposition'])?$options['Content-Disposition']:'file.pdf');
         if(isset($options['attached']) && $options['attached'] == 1)
-        	$attached = 'attached';
+        	$attached = 'attachment';
         else
         	$attached = 'inline';
         header("Content-Disposition: $attached; filename=".$fileName);
@@ -2225,6 +2230,10 @@ class Cpdf
         $text = str_replace('&#039;','\'',$text);
         $text = str_replace('&quot;','"',$text);
         $text = str_replace('&amp;','&',$text);
+
+		if($this->rtl){
+			$text = strrev($text);
+		}
 
         return $text;
     }
@@ -2489,7 +2498,6 @@ class Cpdf
             $this->objects[$this->currentContents]['c'].=' ('.$this->filterText($part).') Tj';
         }
         $this->objects[$this->currentContents]['c'].=' ET';
-
         // if there are any open callbacks, then they should be called, to show the end of the line
         if ($this->nCallback > 0){
             for ($i=$this->nCallback;$i>0;$i--){
