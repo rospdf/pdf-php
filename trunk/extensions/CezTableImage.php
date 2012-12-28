@@ -670,9 +670,7 @@ class CezTableImage extends Cezpdf {
 			}
 			
 		}
-		$this->debug('checkForImage: '.$height, E_USER_WARNING);
 		return $height;
-		
 	}
 	
 	/**
