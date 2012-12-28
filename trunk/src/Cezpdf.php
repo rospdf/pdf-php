@@ -10,12 +10,12 @@
  * there is no warranty, implied or otherwise with this software.
  *
  * @package Cpdf
- * @version 0.11.0
+ * @version 0.11.4
  * @license released under a public domain licence.
  * @link http://www.sourceforge.net/p/pdf-php/
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
- * @author Ole Koeckemann <ole.k@web.de>
+ * @author Ole K <ole1986@users.sourceforge.net>
  */
 include_once 'Cpdf.php';
 
