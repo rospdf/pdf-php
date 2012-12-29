@@ -31,6 +31,17 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.11.5>
+
+- fixed bug #60 - Encryption problems
+- fixed bug #61 - pdf as attachment
+
+2<version 0.11.4>
+
+- ready to receive extensions (extensions folder added)
+- new extension to show images in table cells - thank you Kristian Herpel
+- added dummy extension to support extension developers with a standard
+
 2<version 0.11.3>
 
 - fixed bug #58 JPEG images not shown when using Backgrounds
