@@ -1414,17 +1414,21 @@ class Cpdf
      * also the functions that the user will have are set here, such as print, modify, add
      */
     function setEncryption($userPass = '',$ownerPass = '',$pc = array(), $mode = 1){
-        $p=bindec('01111111111111110000000000000000');
-
+    	if($mode > 1){
+        	$p=bindec('11111111111111111111000011000000'); // revision 3 is using bit 3 - 6 AND 9 - 12
+        }else{
+        	$p=bindec('11111111111111111111111111000000'); // while revision 2 is using bit 3 - 6 only
+        }
+        
         $options = array(
             'print'=>4
             ,'modify'=>8
             ,'copy'=>16
             ,'add'=>32
-            ,'fill'=>512
-            ,'extract'=>1024
-            ,'assemble'=>2048
-            ,'represent'=>4096
+            ,'fill'=>256
+            ,'extract'=>512
+            ,'assemble'=>1024
+            ,'represent'=>2048
         );
         foreach($pc as $k=>$v){
             if ($v && isset($options[$k])){
