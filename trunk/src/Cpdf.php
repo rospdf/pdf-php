@@ -1415,9 +1415,9 @@ class Cpdf
      */
     function setEncryption($userPass = '',$ownerPass = '',$pc = array(), $mode = 1){
     	if($mode > 1){
-        	$p=bindec('11111111111111111111000011000000'); // revision 3 is using bit 3 - 6 AND 9 - 12
+        	$p=bindec('01111111111111111111000011000000'); // revision 3 is using bit 3 - 6 AND 9 - 12
         }else{
-        	$p=bindec('11111111111111111111111111000000'); // while revision 2 is using bit 3 - 6 only
+        	$p=bindec('01111111111111111111111111000000'); // while revision 2 is using bit 3 - 6 only
         }
         
         $options = array(
