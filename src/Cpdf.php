@@ -1622,7 +1622,7 @@ class Cpdf
                         $bits=explode(';',trim($row));
                         $dtmp=array();
                         foreach($bits as $bit) {
-                            $bits2 = split('[ ]+',trim($bit));
+                            $bits2 = preg_split('/[\s]+/',trim($bit));
                             if (strlen($bits2[0])) {
                                 if (count($bits2)>2) {
                                     $dtmp[$bits2[0]]=array();
