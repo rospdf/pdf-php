@@ -2229,6 +2229,11 @@ class Cpdf
         $text = str_replace('\\','\\\\',$text);
         $text = str_replace('(','\(',$text);
         $text = str_replace(')','\)',$text);
+        $text = str_replace(chr(8),'\\b',$text);
+    	$text = str_replace(chr(9),'\\t',$text);
+    	$text = str_replace(chr(10),'\\n',$text);
+    	$text = str_replace(chr(12),'\\f',$text);
+    	$text = str_replace(chr(13),'\\r',$text);
         $text = str_replace('&lt;','<',$text);
         $text = str_replace('&gt;','>',$text);
         $text = str_replace('&#039;','\'',$text);
