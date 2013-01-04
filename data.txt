@@ -31,6 +31,15 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.11.6>
+
+- possibility to use unicode - thanks to Fabien Ménager (dompdf) and Nicola Asuni (tcpdf)
+- added support for *.ufm files to provide UNICODE - use ttf2ufm to generate such files
+- improved reading and caching for fonts
+- added ttf font FreeSerif.ttf
+
+more info: https://sourceforge.net/p/pdf-php/blog/2013/01/all-about-fonts---unicode-arabic-support-and-freeserif/
+
 2<version 0.11.5>
 
 - fixed bug #60 - Encryption problems
@@ -161,7 +170,7 @@ If you want to get started in an easy manner, then here is the 'hello world' pro
 <?php
 include ('class.ezpdf.php');
 $pdf = new Cezpdf();
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezText('Hello World!',50);
 $pdf->ezStream();
 ?>
@@ -262,7 +271,7 @@ setNum = ezStartPageNumbers(x,y,size,[pos],[pattern],[num])
 
 #C
 $pdf = new Cezpdf();
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezNewPage();
 $pdf->ezStartPageNumbers(300,500,20,'','',1);
 $pdf->ezNewPage();
@@ -281,7 +290,7 @@ Here is a more complex example:
 
 #C
 
-$pdf->selectFont('./fonts/Helvetica');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezNewPage();
 $i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
 $pdf->ezNewPage();
@@ -432,7 +441,7 @@ $pdf->ezTable($data);
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
 ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
@@ -451,7 +460,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,'Some LOTR Characters');
 #x
@@ -465,7 +474,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>0,'shaded'=>0,'showLines'=>0));
@@ -480,7 +489,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
 #c
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
@@ -494,7 +503,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
 #c
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>5));
@@ -510,7 +519,7 @@ $pdf->ezTable($data,array('type'=>'','name'=>''),''
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'','name'=>'')
               ,''
               ,array('showHeadings'=>0,'shaded'=>0,'xPos'=>'right','xOrientation'=>'left','width'=>100));
@@ -531,7 +540,7 @@ $pdf->ezTable($data,$cols,'',
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $cols = array('num'=>"number a a a a a a a a a a a a a a a\nmore",'name'=>'Name','type'=>'Type');
 
 $pdf->ezTable($data,$cols,'',array('xPos'=>90,'xOrientation'=>'right','width'=>300
@@ -550,7 +559,7 @@ $pdf->ezTable($data,array('type'=>'','name'=>''),''
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'','name'=>'')
               ,''
               ,array('showHeadings'=>0,'shaded'=>0,'width'=>400
@@ -572,7 +581,7 @@ $pdf->ezTable($data,array('type'=>'','name'=>'')
 #c
 
 #X
-$pdf->selectFont('./fonts/Helvetica.afm');
+$pdf->selectFont('./src/fonts/Helvetica');
 $pdf->ezTable($data,array('type'=>'','name'=>'')
         ,''
         ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
@@ -735,7 +744,7 @@ The text stream can now (version 006) contain directives to make the text bold a
 
 <b>Note</b> that there can be no spaces within the directives, and that they must be in lower case.
 
-By default, these will work only with the supplied fonts, and when the font was selected it must have been specified with the '.afm' suffix. For more information about why this is and how you can customise this behaviour see the <b>setFontFamily</b> command.
+***OLD*** By default, these will work only with the supplied fonts, and when the font was selected it must have been specified with the '.afm' suffix. For more information about why this is and how you can customise this behaviour see the <b>setFontFamily</b> command.
 
 If you do wish to print an actual '<', most of the time it would cause no problem, except in the instance where it would form a directive, in those cases the html replacement for the '<' can be used, "&amp;lt;". In fact if any of the html entities which are supported by the PHP htmlspecialchars command are used, then they will be translated before presentation.
 
@@ -1193,16 +1202,16 @@ The command can be used in two forms - either with encoding=string, which sets t
 
 #C
 // use a Times-Roman font with MacExpertEncoding
-$pdf->selectFont('./fonts/Times-Roman.afm','MacExpertEncoding');
+$pdf->selectFont('./src/fonts/Times-Roman','MacExpertEncoding');
 // this next line should be equivalent
-$pdf->selectFont('./fonts/Times-Roman.afm',array('encoding'=>'MacExpertEncoding'));
+$pdf->selectFont('./src/fonts/Times-Roman',array('encoding'=>'MacExpertEncoding'));
 
 // setup the helvetica font for use with german characters
 $diff=array(196=>'Adieresis',228=>'adieresis',
              214=>'Odieresis',246=>'odieresis',
              220=>'Udieresis',252=>'udieresis',
              223=>'germandbls');
-$pdf->selectFont('./fonts/Helvetica.afm'
+$pdf->selectFont('./src/fonts/Helvetica'
        ,array('encoding'=>'WinAnsiEncoding'
              ,'differences'=>$diff));
 #c
@@ -1216,27 +1225,27 @@ This function defines the relationship between the various fonts that are in the
 
 It maintains a set of arrays which give the alternatives for the base fonts. The defaults that are in the system to start with are:
 
-'Helvetica.afm'
-        'b'=>'Helvetica-Bold.afm'
-        'i'=>'Helvetica-Oblique.afm'
-        'bi'=>'Helvetica-BoldOblique.afm'
-        'ib'=>'Helvetica-BoldOblique.afm'
+'Helvetica'
+        'b'=>'Helvetica-Bold'
+        'i'=>'Helvetica-Oblique'
+        'bi'=>'Helvetica-BoldOblique'
+        'ib'=>'Helvetica-BoldOblique'
 
-'Courier.afm'
-        'b'=>'Courier-Bold.afm'
-        'i'=>'Courier-Oblique.afm'
-        'bi'=>'Courier-BoldOblique.afm'
-        'ib'=>'Courier-BoldOblique.afm'
+'Courier'
+        'b'=>'Courier-Bold'
+        'i'=>'Courier-Oblique'
+        'bi'=>'Courier-BoldOblique'
+        'ib'=>'Courier-BoldOblique'
 
-'Times-Roman.afm'
-        'b'=>'Times-Bold.afm'
-        'i'=>'Times-Italic.afm'
-        'bi'=>'Times-BoldItalic.afm'
-        'ib'=>'Times-BoldItalic.afm'
+'Times-Roman'
+        'b'=>'Times-Bold'
+        'i'=>'Times-Italic'
+        'bi'=>'Times-BoldItalic'
+        'ib'=>'Times-BoldItalic'
 
 (where 'b' indicate bold, and 'i' indicates italic)
         
-Which means that (for example) if you have selected the 'Courier.afm' font, and then you use the italic markers then the system will change to the 'Courier-Oblique.afm' font.
+Which means that (for example) if you have selected the 'Courier' font, and then you use the italic markers then the system will change to the 'Courier-Oblique' font.
 
 Note that at the moment it is not possible to have any more fonts, so there is little use in calling this function (except to change these settings, discussed below), but this is paving the way for when soon we will be able to add other fonts (both .afm, and .ttf), which is also why the suffix must be specified in the font name.
 
@@ -1246,13 +1255,13 @@ If you bold a font twice, then under the current system it would look for a 'bb'
 
 #C
 $tmp = array(
-         'b'=>'Courier-Bold.afm'
-        ,'i'=>'Courier-Oblique.afm'
-        ,'bi'=>'Courier-BoldOblique.afm'
-        ,'ib'=>'Courier-BoldOblique.afm'
-        ,'bb'=>'Times-Roman.afm'
+         'b'=>'Courier-Bold'
+        ,'i'=>'Courier-Oblique'
+        ,'bi'=>'Courier-BoldOblique'
+        ,'ib'=>'Courier-BoldOblique'
+        ,'bb'=>'Times-Roman'
       );
-$pdf->setFontFamily('Courier.afm',$tmp);
+$pdf->setFontFamily('Courier',$tmp);
 #c
 
 2<setEncryption>

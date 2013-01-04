@@ -18,7 +18,7 @@
 error_reporting(E_ALL);
 set_time_limit(1800);
 
-include 'src/Cezpdf.php';
+include './src/Cezpdf.php';
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
@@ -74,7 +74,7 @@ function dots($info){
 // this code has been modified to use ezpdf.
 
 //$pdf = new Cezpdf('a4','portrait');
-$pdf = new Creport('a4','portrait');
+$pdf = new Creport('a4','portrait', 'none', null);
 
 $pdf -> ezSetMargins(50,70,50,50);
 
@@ -113,7 +113,7 @@ function ros_logo(&$pdf,$x,$y,$height,$wl=0,$wr=0){
   $pdf->saveState();
   $h=100;
   $factor = $height/$h;
-  $pdf->selectFont('./fonts/Helvetica-Bold.afm');
+  $pdf->selectFont('./src/fonts/Helvetica-Bold.afm');
   $text = 'R&OS';
   $ts=100*$factor;
   $th = $pdf->getFontHeight($ts);
