@@ -36,9 +36,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 - possibility to use unicode - thanks to Fabien Ménager (dompdf) and Nicola Asuni (tcpdf)
 - added support for *.ufm files to provide UNICODE - use ttf2ufm to generate such files
 - improved reading and caching for fonts
-- added ttf font FreeSerif.ttf
 
-more info: https://sourceforge.net/p/pdf-php/blog/2013/01/all-about-fonts---unicode-arabic-support-and-freeserif/
+Please download FreeSerif.ttf font yourself - http://www.fonts2u.com/free-serif.font
+
+more info: http://www.sf.net/p/pdf-php/blog/2013/01/all-about-fonts---unicode-arabic-support-and-freeserif/
 
 2<version 0.11.5>
 
@@ -63,7 +64,7 @@ more info: https://sourceforge.net/p/pdf-php/blog/2013/01/all-about-fonts---unic
 - $DEBUG and $DEBUGLEVEL property to control the debug output
 - RC4 128 bit encryption implemented by setting the $mode to 2 in setEncryption method
 
-more info: http://sourceforge.net/p/pdf-php/blog/2012/12/debugging-and-encryption/
+more info: http://www.sf.net/p/pdf-php/blog/2012/12/debugging-and-encryption/
 
 
 2<version 0.11.1>
