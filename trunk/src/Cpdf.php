@@ -10,8 +10,8 @@
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
- * @author   Ole Koeckemann <ole.k@web.de>
- * @copyright 2007 - 2012 The authors
+ * @author   Ole K <ole1986@users.sourceforge.net>
+ * @copyright 2007 - 2013 The authors
  * @license   GPL http://www.opensource.org/licenses/gpl-license.php
  * @version  @package-version@
  * @link     http://pdf-php.sf.net
@@ -34,7 +34,7 @@ class Cpdf
 	 * E_USER_WARNING = errors and warning
 	 * E_USER_NOTICE =  nearly everything
 	 *
-	 * @default E_USER_NOTICE
+	 * @default E_USER_WARNING
 	 */
 	var $DEBUGLEVEL = E_USER_WARNING;
 	/**
@@ -80,6 +80,54 @@ class Cpdf
       * @var integer
       */
     var $catalogId;
+
+
+	var $targetEncoding = 'iso-8859-1';
+	/**
+	 * @var boolean Whether the text passed in should be treated as Unicode or just local character set.
+	 */
+	var $isUnicode = false;
+
+	/**
+	 * @var boolean used to either embed or not embed ttf/pfb fonts
+	 */
+	var $embedFont = true;
+
+	/**
+     * store the information about the relationship between font families
+     * this used so that the code knows which font is the bold version of another font, etc.
+     * the value of this array is initialised in the constuctor function.
+     *
+     * @var array
+     */
+    var $fontFamilies = array(
+    		'Helvetica' => array(
+    				'b'=>'Helvetica-Bold',
+    				'i'=>'Helvetica-Oblique',
+    				'bi'=>'Helvetica-BoldOblique',
+    				'ib'=>'Helvetica-BoldOblique',
+    			),
+    		'Courier' => array(
+    				'b'=>'Courier-Bold',
+    				'i'=>'Courier-Oblique',
+    				'bi'=>'Courier-BoldOblique',
+    				'ib'=>'Courier-BoldOblique',
+    			),
+    		'Times-Roman' => array(
+    				'b'=>'Times-Bold',
+    				'i'=>'Times-Italic',
+    				'bi'=>'Times-BoldItalic',
+    				'ib'=>'Times-BoldItalic',
+    			)
+    );
+
+	/**
+	 * the core fonts to ignore them from unicode
+	 */
+	var $coreFonts = array('courier', 'courier-bold', 'courier-oblique', 'courier-boldoblique',
+    'helvetica', 'helvetica-bold', 'helvetica-oblique', 'helvetica-boldoblique',
+    'times-roman', 'times-bold', 'times-italic', 'times-bolditalic',
+    'symbol', 'zapfdingbats');
 
     /**
      * array carrying information about the fonts that the system currently knows about
@@ -213,15 +261,6 @@ class Cpdf
     var $wordSpaceAdjust=0;
 
     /**
-     * store the information about the relationship between font families
-     * this used so that the code knows which font is the bold version of another font, etc.
-     * the value of this array is initialised in the constuctor function.
-     *
-     * @var array
-     */
-    var $fontFamilies = array();
-
-    /**
       * track if the current font is bolded or italicised
       */
     var $currentTextState = '';
@@ -309,15 +348,19 @@ class Cpdf
      *
      * @return void
      */
-    function __construct($pageSize = array(0, 0, 612, 792))
+    function __construct($pageSize = array(0, 0, 612, 792), $isUnicode = false)
     {
+    	$this->isUnicode = $isUnicode;
     	// set the hardcoded encryption pad
     	$this->encryptionPad = chr(0x28).chr(0xBF).chr(0x4E).chr(0x5E).chr(0x4E).chr(0x75).chr(0x8A).chr(0x41).chr(0x64).chr(0x00).chr(0x4E).chr(0x56).chr(0xFF).chr(0xFA).chr(0x01).chr(0x08).chr(0x2E).chr(0x2E).chr(0x00).chr(0xB6).chr(0xD0).chr(0x68).chr(0x3E).chr(0x80).chr(0x2F).chr(0x0C).chr(0xA9).chr(0xFE).chr(0x64).chr(0x53).chr(0x69).chr(0x7A);
         
         $this->newDocument($pageSize);
 
-        // also initialize the font families that are known about already
-        $this->setFontFamily('init');
+		if ( in_array('Windows-1252', mb_list_encodings()) ) {
+      		$this->targetEncoding = 'Windows-1252';
+    	}
+    
+        // font familys are already known in $this->fontFamilies
         $this->fileIdentifier = md5('ROSPDF');
     }
 
@@ -619,7 +662,7 @@ class Cpdf
         }
         switch ($action){
             case 'new':
-                $this->objects[$id]=array('t'=>'font','info'=>array('name'=>$options['name'],'SubType'=>'Type1'));
+                $this->objects[$id]=array('t'=>'font','info'=>array('name'=>$options['name'], 'fontFileName' => $options['fontFileName'],'SubType'=>'Type1'));
                 $fontNum=$this->numFonts;
                 $this->objects[$id]['info']['fontNum']=$fontNum;
                 // deal with the encoding and the differences
@@ -645,6 +688,47 @@ class Cpdf
                 } else {
                     $this->objects[$id]['info']['encoding']='WinAnsiEncoding';
                 }
+                
+                if ($this->fonts[$options['fontFileName']]['isUnicode']) {
+			        // For Unicode fonts, we need to incorporate font data into
+			        // sub-sections that are linked from the primary font section.
+			        // Look at o_fontGIDtoCID and o_fontDescendentCID functions
+			        // for more informaiton.
+			        //
+			        // All of this code is adapted from the excellent changes made to
+			        // transform FPDF to TCPDF (http://tcpdf.sourceforge.net/)
+			        $toUnicodeId = ++$this->numObj;
+			        $this->o_contents($toUnicodeId, 'new', 'raw');
+			        $this->objects[$id]['info']['toUnicode'] = $toUnicodeId;
+
+	        		$stream = <<<EOT
+/CIDInit /ProcSet findresource begin
+12 dict begin
+begincmap
+/CIDSystemInfo <</Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def
+/CMapName /Adobe-Identity-UCS def
+/CMapType 2 def
+1 begincodespacerange
+<0000> <FFFF>
+endcodespacerange
+1 beginbfrange
+<0000> <FFFF> <0000>
+endbfrange
+endcmap
+CMapName currentdict /CMap defineresource pop
+end
+end
+EOT;
+
+			        $res = "<</Length " . mb_strlen($stream, '8bit') . " >>\n";
+			        $res .= "stream\n" . $stream . "\nendstream";
+
+			        $this->objects[$toUnicodeId]['c'] = $res;
+
+			        $cidFontId = ++$this->numObj;
+			        $this->o_fontDescendentCID($cidFontId, 'new', $options);
+			        $this->objects[$id]['info']['cidFont'] = $cidFontId;
+				}
                 // also tell the pages node about the new font
                 $this->o_pages($this->currentNode,'font',array('fontNum'=>$fontNum,'objNum'=>$id));
                 break;
@@ -664,31 +748,52 @@ class Cpdf
                             break;
                     }
                 }
+                
+                // pass values down to descendent font
+      			if (isset($o['info']['cidFont'])) {
+        			$this->o_fontDescendentCID($o['info']['cidFont'], 'add', $options);
+      			}
                 break;
             case 'out':
-                $res="\n".$id." 0 obj\n<< /Type /Font /Subtype /".$o['info']['SubType']." ";
-                $res.="/Name /F".$o['info']['fontNum']." ";
-                $res.="/BaseFont /".$o['info']['name']." ";
-                if (isset($o['info']['encodingDictionary'])){
-                    // then place a reference to the dictionary
-                    $res.="/Encoding ".$o['info']['encodingDictionary']." 0 R ";
-                } else if (isset($o['info']['encoding'])){
-                    // use the specified encoding
-                    $res.="/Encoding /".$o['info']['encoding']." ";
-                }
-                if (isset($o['info']['FirstChar'])){
-                    $res.="/FirstChar ".$o['info']['FirstChar']." ";
-                }
-                if (isset($o['info']['LastChar'])){
-                    $res.="/LastChar ".$o['info']['LastChar']." ";
-                }
-                if (isset($o['info']['Widths'])){
-                    $res.="/Widths ".$o['info']['Widths']." 0 R ";
-                }
-                if (isset($o['info']['FontDescriptor'])){
-                    $res.="/FontDescriptor ".$o['info']['FontDescriptor']." 0 R ";
-                }
-                $res.=">>\nendobj";
+            	if ($this->fonts[$this->objects[$id]['info']['fontFileName']]['isUnicode']) {
+			        // For Unicode fonts, we need to incorporate font data into
+			        // sub-sections that are linked from the primary font section.
+			        // Look at o_fontGIDtoCID and o_fontDescendentCID functions
+			        // for more informaiton.
+			        //
+			        // All of this code is adapted from the excellent changes made to
+			        // transform FPDF to TCPDF (http://tcpdf.sourceforge.net/)
+
+		        	$res = "\n$id 0 obj\n<</Type /Font /Subtype /Type0 /BaseFont /".$o['info']['name']."";
+		        	// The horizontal identity mapping for 2-byte CIDs; may be used
+		        	// with CIDFonts using any Registry, Ordering, and Supplement values.
+		       		$res.= " /Encoding /Identity-H /DescendantFonts [".$o['info']['cidFont']." 0 R] /ToUnicode ".$o['info']['toUnicode']." 0 R >>\n";
+		        	$res.= "endobj";
+				} else {
+	                $res="\n".$id." 0 obj\n<< /Type /Font /Subtype /".$o['info']['SubType']." ";
+	                $res.="/Name /F".$o['info']['fontNum']." ";
+	                $res.="/BaseFont /".$o['info']['name']." ";
+	                if (isset($o['info']['encodingDictionary'])){
+	                    // then place a reference to the dictionary
+	                    $res.="/Encoding ".$o['info']['encodingDictionary']." 0 R ";
+	                } else if (isset($o['info']['encoding'])){
+	                    // use the specified encoding
+	                    $res.="/Encoding /".$o['info']['encoding']." ";
+	                }
+	                if (isset($o['info']['FirstChar'])){
+	                    $res.="/FirstChar ".$o['info']['FirstChar']." ";
+	                }
+	                if (isset($o['info']['LastChar'])){
+	                    $res.="/LastChar ".$o['info']['LastChar']." ";
+	                }
+	                if (isset($o['info']['Widths'])){
+	                    $res.="/Widths ".$o['info']['Widths']." 0 R ";
+	                }
+	                if (isset($o['info']['FontDescriptor'])){
+	                    $res.="/FontDescriptor ".$o['info']['FontDescriptor']." 0 R ";
+	                }
+	                $res.=">>\nendobj";
+	            }
                 return $res;
                 break;
         }
@@ -783,6 +888,132 @@ class Cpdf
         }
     }
 
+	/**
+	 * a descendent cid font, needed for unicode fonts
+	 */
+	protected function o_fontDescendentCID($id, $action, $options = '') {
+		if ($action !== 'new') {
+		  $o = & $this->objects[$id];
+		}
+
+		switch ($action) {
+		case 'new':
+		  $this->objects[$id] = array('t' => 'fontDescendentCID', 'info' => $options);
+
+		  // we need a CID system info section
+		  $cidSystemInfoId = ++$this->numObj;
+		  $this->o_contents($cidSystemInfoId, 'new', 'raw');
+		  $this->objects[$id]['info']['cidSystemInfo'] = $cidSystemInfoId;
+		  $res = "<</Registry (Adobe)"; // A string identifying an issuer of character collections
+		  $res.= " /Ordering (UCS)"; // A string that uniquely names a character collection issued by a specific registry
+		  $res.= " /Supplement 0"; // The supplement number of the character collection.
+		  $res.= " >>";
+		  $this->objects[$cidSystemInfoId]['c'] = $res;
+
+		  // and a CID to GID map
+		  if($this->embedFont){
+		  	$cidToGidMapId = ++$this->numObj;
+		  	$this->o_fontGIDtoCIDMap($cidToGidMapId, 'new', $options);
+		  	$this->objects[$id]['info']['cidToGidMap'] = $cidToGidMapId;
+		  }
+		  break;
+
+		case 'add':
+		  foreach ($options as $k => $v) {
+		    switch ($k) {
+		    case 'BaseFont':
+		      $o['info']['name'] = $v;
+		      break;
+
+		    case 'FirstChar':
+		    case 'LastChar':
+		    case 'MissingWidth':
+		    case 'FontDescriptor':
+		    case 'SubType':
+		      $this->debug("o_fontDescendentCID $k : $v", E_USER_NOTICE);
+		      $o['info'][$k] = $v;
+		      break;
+		    }
+		  }
+
+		  // pass values down to cid to gid map
+		  if($this->embedFont){
+		  	$this->o_fontGIDtoCIDMap($o['info']['cidToGidMap'], 'add', $options);
+		  }
+		  break;
+
+		case 'out':
+		  $res = "\n$id 0 obj\n";
+		  $res.= "<</Type /Font /Subtype /CIDFontType2 /BaseFont /".$o['info']['name']." /CIDSystemInfo ".$o['info']['cidSystemInfo']." 0 R";
+		  if (isset($o['info']['FontDescriptor'])) {
+		    $res.= " /FontDescriptor ".$o['info']['FontDescriptor']." 0 R";
+		  }
+
+		  if (isset($o['info']['MissingWidth'])) {
+		    $res.= " /DW ".$o['info']['MissingWidth']."";
+		  }
+
+		  if (isset($o['info']['fontFileName']) && isset($this->fonts[$o['info']['fontFileName']]['CIDWidths'])) {
+		    $cid_widths = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
+		    $w = '';
+		    foreach ($cid_widths as $cid => $width) {
+		      $w .= "$cid [$width] ";
+		    }
+		    $res.= " /W [$w]";
+		  }
+		  
+		  if($this->embedFont){
+		  	$res.= " /CIDToGIDMap ".$o['info']['cidToGidMap']." 0 R";
+		  }
+		  $res.= "  >>\n";
+		  $res.= "endobj";
+
+		  return $res;
+		}
+	}
+
+	/**
+	  * a font glyph to character map, needed for unicode fonts
+	  */
+	protected function o_fontGIDtoCIDMap($id, $action, $options = '') {
+	    if ($action !== 'new') {
+	      $o = & $this->objects[$id];
+	    }
+
+	    switch ($action) {
+	    case 'new':
+	      $this->objects[$id] = array('t' => 'fontGIDtoCIDMap', 'info' => $options);
+	      break;
+
+	    case 'out':
+	      $res = "\n$id 0 obj\n";
+	      $fontFileName = $o['info']['fontFileName'];
+	      $tmp = $this->fonts[$fontFileName]['CIDtoGID'] = base64_decode($this->fonts[$fontFileName]['CIDtoGID']);
+
+	      $compressed = isset($this->fonts[$fontFileName]['CIDtoGID_Compressed']) &&
+	                    $this->fonts[$fontFileName]['CIDtoGID_Compressed'];
+
+	      if (!$compressed && isset($o['raw'])) {
+	        $res.= $tmp;
+	      } else {
+	        $res.= "<<";
+
+	        if (!$compressed &&  function_exists('gzcompress') && $this->options['compression']) {
+	          // then implement ZLIB based compression on this content stream
+	          $tmp = gzcompress($tmp, 6);
+	          $compressed = true;
+	        }
+	        if ($compressed) {
+	          $res.= " /Filter /FlateDecode";
+	        }
+	        $res.= " /Length ".mb_strlen($tmp, '8bit') .">>\nstream\n$tmp\nendstream";
+	      }
+
+	      $res.= "\nendobj";
+	      return $res;
+	    }
+	}
+
     /**
      * define the document information
      */
@@ -815,9 +1046,9 @@ class Cpdf
             foreach ($o['info']  as $k=>$v){
                 $res.='/'.$k.' (';
                 if ($this->encrypted){
-                    $res.=$this->filterText($this->ARC4($v));
+                    $res.=$this->filterText($this->ARC4($v), true, false);
                 } else {
-                    $res.=$this->filterText($v);
+                    $res.=$this->filterText($v, true, false);
                 }
                 $res.=") ";
             }
@@ -856,9 +1087,9 @@ class Cpdf
             case 'URI':
                 $res.=" /S /URI /URI (";
                 if ($this->encrypted){
-                    $res.=$this->filterText($this->ARC4($o['info']));
+                    $res.=$this->filterText($this->ARC4($o['info']), true, false);
                 } else {
-                    $res.=$this->filterText($o['info']);
+                    $res.=$this->filterText($o['info'], true, false);
                 }
                 $res.=")";
                 break;
@@ -1151,20 +1382,21 @@ class Cpdf
             break;
         case 'out':
             $res= "\n".$id." 0 obj\n<<";
-            $res.=" /Filter /Standard";
+            $res.=' /Filter /Standard';
             if($this->encryptionMode > 1){ // RC4 128bit encryption
-            	$res.=" /V 2";
-            	$res.=" /R 3";
-            	$res.=" /Length 128";
+            	$res.=' /V 2';
+            	$res.=' /R 3';
+            	$res.=' /Length 128';
             } else { // RC4 40bit encryption
-            	$res.=" /V 1";
-            	$res.=" /R 2";
+            	$res.=' /V 1';
+            	$res.=' /R 2';
             }
-            $res.=" /O (".$this->filterText($o['info']['O']).')';
-            $res.=" /U (".$this->filterText($o['info']['U']).')';
+            // use hex string instead of char code - char codes can make troubles (E.g. CR or LF)
+            $res.=' /O <'.$this->strToHex($o['info']['O']).'>';
+            $res.=' /U <'.$this->strToHex($o['info']['U']).'>';
             // and the p-value needs to be converted to account for the twos-complement approach
             //$o['info']['p'] = (($o['info']['p'] ^ 0xFFFFFFFF)+1)*-1;
-            $res.=" /P ".($o['info']['p']);
+            $res.=' /P '.($o['info']['p']);
             $res.=" >>\nendobj";
             return $res;
             break;
@@ -1568,27 +1800,46 @@ class Cpdf
             $name = substr($font, $pos + 1);
         }
 
-        if (substr($name, -4) == '.afm') {
-            $name = substr($name, 0, strlen($name) - 4);
+        //if (substr($name, -4) == '.afm' || substr($name, -4) == '.ufm') {
+            //$name = substr($name, 0, strlen($name) - 4);
+        //}
+        
+        if(!$this->isUnicode){
+        	$metrics_name = "$name.afm";
+        }else{
+        	$metrics_name = "$name.ufm";
         }
-        $this->debug('openFont executed: '.$font.' - '.$name);
-        if (file_exists($dir.'php_'.$name.'.afm')) {
-            $this->debug('openFont: php_'.$name.'.afm already exist');
-            $tmp = file($dir.'php_'.$name.'.afm');
-            $this->fonts[$font] = unserialize($tmp[0]);
-            if (!isset($this->fonts[$font]['_version_']) || $this->fonts[$font]['_version_']<1) {
+        
+        $this->debug('openFont executed: '.$font.' - '.$name.' / IsUnicode: '.$this->isUnicode);
+        
+        $cachedFile = 'cached'.$metrics_name.'.php';
+        
+        // use the temp folder to read/write cached font data
+        if (file_exists($this->tempPath.'/'.$cachedFile)) {
+            $this->debug('openFont: '.$this->tempPath.'/'.$cachedFile.' already exist');
+            //$tmp = file($this->tempPath.'/'.$cachedFile);
+            $this->fonts[$font] = require($this->tempPath.'/'.$cachedFile);
+            if (!isset($this->fonts[$font]['_version_']) || $this->fonts[$font]['_version_']<2) {
                 // if the font file is old, then clear it out and prepare for re-creation
                 $this->debug('openFont: clear out, make way for new version.');
                 unset($this->fonts[$font]);
             }
         }
-        if (!isset($this->fonts[$font]) && file_exists($dir.$name.'.afm')) {
+        if (!isset($this->fonts[$font]) && file_exists($dir.$metrics_name)) {
             // then rebuild the php_<font>.afm file from the <font>.afm file
-            $this->debug('openFont: (re)create php_'.$name.'.afm');
+            $this->debug('openFont: (re)create '.$cachedFile);
             $data = array();
-            $file = file($dir.$name.'.afm');
-            foreach ($file as $rowA) {
-                $row=trim($rowA);
+            // set unicode to true ufm file is used
+            $data['isUnicode'] = (strtolower(substr($metrics_name, -3)) !== 'afm');
+            
+            $cidtogid = '';
+      		if ($data['isUnicode']) {
+        		$cidtogid = str_pad('', 256*256*2, "\x00");
+      		}
+            
+            $file = file($dir.$metrics_name);
+            foreach ($file as $row) {
+                $row=trim($row);
                 $pos=strpos($row,' ');
                 if ($pos) {
                     // then there must be some keyword
@@ -1619,43 +1870,85 @@ class Cpdf
                         break;
                     case 'C':
                         // C 39 ; WX 222 ; N quoteright ; B 53 463 157 718 ;
-                        $bits=explode(';',trim($row));
-                        $dtmp=array();
-                        foreach($bits as $bit) {
-                            $bits2 = preg_split('/[\s]+/',trim($bit));
-                            if (strlen($bits2[0])) {
-                                if (count($bits2)>2) {
-                                    $dtmp[$bits2[0]]=array();
-                                    for ($i=1;$i<count($bits2);$i++) {
-                                        $dtmp[$bits2[0]][]=$bits2[$i];
-                                    }
-                                } else if (count($bits2)==2) {
-                                    $dtmp[$bits2[0]]=$bits2[1];
-                                }
-                            }
-                        }
-                        if ($dtmp['C']>=0) {
-                            $data['C'][$dtmp['C']]=$dtmp;
-                            $data['C'][$dtmp['N']]=$dtmp;
-                        } else {
-                            $data['C'][$dtmp['N']]=$dtmp;
+                        // use preg_match instead to improve performace
+                        // IMPORTANT: if "L i fi ; L l fl ;" is required preg_match must be amended
+                        $r = preg_match('/C (-?\d+) ; WX (-?\d+) ; N (\w+) ; B (-?\d+) (-?\d+) (-?\d+) (-?\d+) ;/', $row, $m);
+                        if($r == 1){
+                        	//$dtmp = array('C'=> $m[1],'WX'=> $m[2], 'N' => $m[3], 'B' => array($m[4], $m[5], $m[6], $m[7]));
+                        	$c = (int)$m[1];
+            				$n = $m[3];
+            				$width = floatval($m[2]);
+            
+                        	if($c >= 0){
+                        		if ($c != hexdec($n)) {
+                					$data['codeToName'][$c] = $n;
+              					}
+                        		$data['C'][$c] = $width;
+                        		$data['C'][$n] = $width;
+                        	}else{
+                        		$data['C'][$n] = $width;
+                        	}
+                        	
+                        	if (!isset($data['MissingWidth']) && $c == -1 && $n === '.notdef') {
+			              		$data['MissingWidth'] = $width;
+			            	}
                         }
                         break;
+                    // U 827 ; WX 0 ; N squaresubnosp ; G 675 ;
+			        case 'U': // Found in UFM files
+			            if (!$data['isUnicode']) break;
+			            
+			            $r = preg_match('/U (-?\d+) ; WX (-?\d+) ; N (\w+) ; G (-?\d+) ;/', $row, $m);
+			            
+			            if($r == 1){
+			            	//$dtmp = array('U'=> $m[1],'WX'=> $m[2], 'N' => $m[3], 'G' => $m[4]);
+			            	$c = (int)$m[1];
+			            	$n = $m[3];
+			            	$glyph = $m[4];
+			            	$width = floatval($m[2]);
+			            	
+			            	if($c >= 0){
+			            		if ($c >= 0 && $c < 0xFFFF && $glyph) {
+			               			$cidtogid[$c*2] = chr($glyph >> 8);
+			                		$cidtogid[$c*2 + 1] = chr($glyph & 0xFF);
+			              		}
+			              		if ($c != hexdec($n)) {
+                					$data['codeToName'][$c] = $n;
+              					}
+			            		$data['C'][$c] = $width;
+			            	} else{
+			            		$data['C'][$n] = $width;
+			            	}
+			            	
+			            	if (!isset($data['MissingWidth']) && $c == -1 && $n === '.notdef') {
+			              		$data['MissingWidth'] = $width;
+			            	}
+			            }
+			            break;
                     case 'KPX':
+                    	break;
                         // KPX Adieresis yacute -40
-                        $bits=explode(' ',trim($row));
+                        $bits=explode(' ',$row);
                         $data['KPX'][$bits[1]][$bits[2]]=$bits[3];
                         break;
                     }
                 }
             }
-            $data['_version_']=1;
+            
+            if (function_exists('gzcompress') && $this->options['compression']){
+            	$data['CIDtoGID_Compressed'] = true;
+            	$cidtogid = gzcompress($cidtogid,  6);
+            }
+            
+            $data['CIDtoGID'] = base64_encode($cidtogid);
+            $data['_version_']=2;
+            
             $this->fonts[$font]=$data;
-            $fp = fopen($dir.'php_'.$name.'.afm','w');
-            fwrite($fp,serialize($data));
+            $fp = fopen($this->tempPath.'/'.$cachedFile,'w'); // use the temp folder to write cached font data
+            fwrite($fp,'<?php /* R&OS php pdf class font cache file */ return '.var_export($data,true).'; ?>');
             fclose($fp);
         } else if (!isset($this->fonts[$font])) {
-            $this->debug('openFont: no font file found', E_USER_WARNING);
+            $this->debug(sprintf('openFont: no font file found for "'.$font.'" IsUnicode: %b', $font, $this->isUnicode), E_USER_WARNING);
         }
     }
 
@@ -1674,23 +1967,28 @@ class Cpdf
      */
     function selectFont($fontName, $encoding = '', $set = 1)
     {
+    	$ext = substr($fontName, -4);
+    	if ($ext === '.afm' || $ext === '.ufm') {
+			$fontName = substr($fontName, 0, strlen($fontName)-4);
+    	}
+    	
+    	$pos = strrpos($fontName, '/');
+        if ($pos !== false) {
+            $name = substr($fontName, $pos + 1);
+        } else {
+            $name = $fontName;
+        }
+        
         if (!isset($this->fonts[$fontName])){
             // load the file
             $this->openFont($fontName);
             if (isset($this->fonts[$fontName])){
                 $this->numObj++;
                 $this->numFonts++;
-                $pos = strrpos($fontName, '/');
-                // $dir=substr($fontName,0,$pos+1);
-                if ($pos !== false) {
-                    $name = substr($fontName, $pos + 1);
-                } else {
-                    $name = $fontName;
-                }
-                if (substr($name, -4)=='.afm'){
-                    $name = substr($name, 0, strlen($name) - 4);
-                }
-                $options = array('name' => $name);
+                
+                $font = &$this->fonts[$fontName];
+                $options = array('name' => $name, 'fontFileName' => $fontName);
+                
                 if (is_array($encoding)){
                     // then encoding and differences might be set
                     if (isset($encoding['encoding'])){
@@ -1705,37 +2003,45 @@ class Cpdf
                 }
                 $fontObj = $this->numObj;
                 $this->o_font($this->numObj, 'new', $options);
-                $this->fonts[$fontName]['fontNum'] = $this->numFonts;
+                $font['fontNum'] = $this->numFonts;
                 // if this is a '.afm' font, and there is a '.pfa' file to go with it (as there
                 // should be for all non-basic fonts), then load it into an object and put the
                 // references into the font object
-                $basefile = substr($fontName, 0, strlen($fontName) - 4);
-                if (file_exists($basefile.'.pfb')){
-                    $fbtype = 'pfb';
-                } else if (file_exists($basefile.'.ttf')){
-                    $fbtype = 'ttf';
-                } else {
-                    $fbtype='';
-                }
-                $fbfile = $basefile.'.'.$fbtype;
                 
-                $this->debug('selectFont: checking for '.$fbfile);
-                if (substr($fontName, -4) == '.afm' && strlen($fbtype) ){
-                    $adobeFontName = $this->fonts[$fontName]['FontName'];
+                $fbtype = '';
+                if (file_exists($fontName.'.pfb')){
+                    $fbtype = 'pfb';
+                } else if (file_exists($fontName.'.ttf')){
+                    $fbtype = 'ttf';
+                }
+                
+                $fbfile = $fontName.'.'.$fbtype;
+                
+                if ($fbtype){
+                    $adobeFontName = $font['FontName'];
                     // $fontObj = $this->numObj;
-                    $this->debug('selectFont: adding font file '.$fbfile.' - '.$adobeFontName);
+                    $this->debug('selectFont: adding font file "'.$fbfile.'" to pdf');
                     // find the array of fond widths, and put that into an object.
                     $firstChar = -1;
                     $lastChar = 0;
                     $widths = array();
-                    foreach ($this->fonts[$fontName]['C'] as $num => $d){
+                    $cid_widths = array();
+                    
+                    foreach ($font['C'] as $num => $d){
                         if (intval($num) > 0 || $num == '0'){
-                            if ($lastChar > 0 && $num > $lastChar + 1){
-                                for($i = $lastChar + 1; $i < $num; $i++){
-                                    $widths[] = 0;
-                                }
+                        	if(!$font['isUnicode']){
+	                            if ($lastChar > 0 && $num > $lastChar + 1){
+	                                for($i = $lastChar + 1; $i < $num; $i++){
+	                                    $widths[] = 0;
+	                                }
+	                            }
                             }
-                            $widths[] = $d['WX'];
+                            $widths[] = $d;
+                            
+                            if ($font['isUnicode']) {
+                				$cid_widths[$num] = $d;
+              				}
+                            
                             if ($firstChar == -1){
                                 $firstChar = $num;
                             }
@@ -1751,71 +2057,110 @@ class Cpdf
                                 }
                                 $lastChar = $charNum;
                             }
-                            if (isset($this->fonts[$fontName]['C'][$charName])){
-                                $widths[$charNum-$firstChar]=$this->fonts[$fontName]['C'][$charName]['WX'];
+                            if (isset($font['C'][$charName])){
+                                $widths[$charNum-$firstChar]=$font['C'][$charName];
+                                if($font['isUnicode']){
+                                	$cid_widths[$charName] = $font['C'][$charName];
+                                }
                             }
                         }
                     }
+                    
+                    if($font['isUnicode']){
+                    	$font['CIDWidths'] = $cid_widths;
+                    }
                     $this->debug('selectFont: FirstChar='.$firstChar);
                     $this->debug('selectFont: LastChar='.$lastChar);
-                    $this->numObj++;
-                    $this->o_contents($this->numObj, 'new', 'raw');
-                    $this->objects[$this->numObj]['c'].='[';
-                    foreach($widths as $width){
-                        $this->objects[$this->numObj]['c'].=' '.$width;
+                    
+                    $widthid = -1;
+                    
+                    if(!$font['isUnicode']){
+                    	$this->numObj++;
+                    	$this->o_contents($this->numObj, 'new', 'raw');
+                    	$this->objects[$this->numObj]['c'].='['.implode(' ', $widths).']';
+                    	$widthid = $this->numObj;
                     }
-                    $this->objects[$this->numObj]['c'].=' ]';
-                    $widthid = $this->numObj;
+                    
+                    $missing_width = 500;
+                    $stemV = 70;
+                    
+                    if (isset($font['MissingWidth'])) {
+            			$missing_width = $font['MissingWidth'];
+          			}
+          			if (isset($font['StdVW'])) {
+            			$stemV = $font['StdVW'];
+          			} else if (isset($font['Weight']) && preg_match('!(bold|black)!i', $font['Weight'])) {
+            			$stemV = 120;
+          			}
 
                     // load the pfb file, and put that into an object too.
                     // note that pdf supports only binary format type 1 font files, though there is a
                     // simple utility to convert them from pfa to pfb.
-                    
-                    $data = file_get_contents($fbfile);
+                    if($this->embedFont){
+	                    if(!$this->isUnicode || $fbtype !== 'ttf'){
+	                    	$data = file_get_contents($fbfile);
+	                    }else{
+	                    	$data = file_get_contents($fbfile);;
+	                    }
+                    }
 
                     // create the font descriptor
                     $this->numObj++;
                     $fontDescriptorId = $this->numObj;
+                    
                     $this->numObj++;
                     $pfbid = $this->numObj;
                     // determine flags (more than a little flakey, hopefully will not matter much)
                     $flags=0;
-                    if ($this->fonts[$fontName]['ItalicAngle']!=0){ $flags+=pow(2,6); }
-                    if ($this->fonts[$fontName]['IsFixedPitch']=='true'){ $flags+=1; }
+                    if ($font['ItalicAngle']!=0){
+                    	$flags+=pow(2,6);
+                    }
+                    if ($font['IsFixedPitch']=='true'){
+                    	$flags+=1;
+                    }
                     $flags+=pow(2,5); // assume non-sybolic
 
                     $list = array('Ascent'=>'Ascender','CapHeight'=>'CapHeight','Descent'=>'Descender','FontBBox'=>'FontBBox','ItalicAngle'=>'ItalicAngle');
                     $fdopt = array(
                         'Flags' => $flags,
                         'FontName' => $adobeFontName,
-                        'StemV' => 100  // don't know what the value for this should be!
+                        'StemV' => $stemV
                     );
                     foreach($list as $k=>$v){
-                        if (isset($this->fonts[$fontName][$v])){
-                            $fdopt[$k]=$this->fonts[$fontName][$v];
+                        if (isset($font[$v])){
+                            $fdopt[$k]=$font[$v];
                         }
                     }
 
-                    if ($fbtype=='pfb'){
-                        $fdopt['FontFile']=$pfbid;
-                    } else if ($fbtype=='ttf'){
-                        $fdopt['FontFile2']=$pfbid;
+					if($this->embedFont){
+	                    if ($fbtype=='pfb'){
+	                        $fdopt['FontFile']=$pfbid;
+	                    } else if ($fbtype=='ttf' && $this->embedFont){
+	                        $fdopt['FontFile2']=$pfbid;
+	                    }
                     }
+                    
                     $this->o_fontDescriptor($fontDescriptorId,'new',$fdopt);
 
                     // embed the font program
-                    $this->o_contents($this->numObj,'new');
-                    $this->objects[$pfbid]['c'].=$data;
-                    // determine the cruicial lengths within this file
-                    if ($fbtype=='pfb'){
-                        $l1 = strpos($data,'eexec')+6;
-                        $l2 = strpos($data,'00000000')-$l1;
-                        $l3 = strlen($data)-$l2-$l1;
-                        $this->o_contents($this->numObj,'add',array('Length1'=>$l1,'Length2'=>$l2,'Length3'=>$l3));
-                    } else if ($fbtype=='ttf'){
-                        $l1 = strlen($data);
-                        $this->o_contents($this->numObj,'add',array('Length1'=>$l1));
-                    }
+                    if($this->embedFont){
+	                    $this->o_contents($this->numObj,'new');
+	                    // determine the cruicial lengths within this file
+	                    if ($fbtype=='pfb'){
+	                    	$this->objects[$pfbid]['c'].= $data;
+	                        $l1 = strpos($data,'eexec')+6;
+	                        $l2 = strpos($data,'00000000')-$l1;
+	                        $l3 = strlen($data)-$l2-$l1;
+	                        $this->o_contents($this->numObj,'add',array('Length1'=>$l1,'Length2'=>$l2,'Length3'=>$l3));
+	                    } else if ($fbtype=='ttf'){
+	                    	if(function_exists('gzcompress') && $this->options['compression']) {
+		                    	$l1 = strlen($data);
+		                    	$data = gzcompress($data, 6);
+		                    	$this->o_contents($this->numObj,'add',array('Filter'=>'/FlateDecode', 'Length1'=>$l1));
+	                    	}
+	                    	$this->objects[$pfbid]['c'].= $data;
+	                    }
+	                }
 
                     // tell the font object about all this new stuff
                     $tmp = array('BaseFont'=>$adobeFontName,'Widths'=>$widthid
@@ -1830,18 +2175,19 @@ class Cpdf
                     }
                     $this->o_font($fontObj,'add',$tmp);
 
-                } else {
-                    $this->debug('selectFont: pfb/ttf file not found for '.$fontName.'. Is this a system font?', E_USER_WARNING);
+                } else if(!in_array(strtolower($name), $this->coreFonts)) {
+                    $this->debug('selectFont: No pfb/ttf file found for "'.$name.'"', E_USER_WARNING);
                 }
 
 
                 // also set the differences here, note that this means that these will take effect only the
                 // first time that a font is selected, else they are ignored
                 if (isset($options['differences'])){
-                    $this->fonts[$fontName]['differences']=$options['differences'];
+                    $font['differences']=$options['differences'];
                 }
             }
         }
+        
         if ($set && isset($this->fonts[$fontName])){
             // so if for some reason the font was not set in the last one then it will not be selected
             $this->currentBaseFont=$fontName;
@@ -1867,7 +2213,7 @@ class Cpdf
     protected function setCurrentFont(){
         if (strlen($this->currentBaseFont)==0){
             // then assume an initial font
-            $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica.afm');
+            $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
         $pos = strrpos($this->currentBaseFont, '/');
         if ($pos !== false) {
@@ -2200,9 +2546,11 @@ class Cpdf
         if (!$this->numFonts){
             $this->selectFont('./fonts/Helvetica');
         }
+        
+        $font = &$this->fonts[$this->currentFont];
         // for the current font, and the given size, what is the height of the font in user units
-        $h = $this->fonts[$this->currentFont]['FontBBox'][3]-$this->fonts[$this->currentFont]['FontBBox'][1];
-        return $size*$h/1000;
+        $h = $font['FontBBox'][3] - $font['FontBBox'][1];
+    	return $size*$h/1000;
     }
 
     /**
@@ -2215,7 +2563,7 @@ class Cpdf
         if (!$this->numFonts){
             $this->selectFont('./fonts/Helvetica');
         }
-        $h = $this->fonts[$this->currentFont]['FontBBox'][1];
+        $h = $this->fonts[$this->currentFont]['Descender'];
         return $size*$h/1000;
     }
 
@@ -2225,20 +2573,20 @@ class Cpdf
      *
      * @access private
      */
-    protected function filterText($text){
-        $text = str_replace('\\','\\\\',$text);
-        $text = str_replace('(','\(',$text);
-        $text = str_replace(')','\)',$text);
-        $text = str_replace(chr(8),'\\b',$text);
-    	$text = str_replace(chr(9),'\\t',$text);
-    	$text = str_replace(chr(10),'\\n',$text);
-    	$text = str_replace(chr(12),'\\f',$text);
-    	$text = str_replace(chr(13),'\\r',$text);
-        $text = str_replace('&lt;','<',$text);
-        $text = str_replace('&gt;','>',$text);
-        $text = str_replace('&#039;','\'',$text);
-        $text = str_replace('&quot;','"',$text);
-        $text = str_replace('&amp;','&',$text);
+    protected function filterText($text, $bom = true, $convert_encoding = true){
+    	
+    	if ($convert_encoding) {
+	      $cf = $this->currentFont;
+	      if (isset($this->fonts[$cf]) && $this->fonts[$cf]['isUnicode']) {
+	        //$text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
+	        $text = $this->utf8toUtf16BE($text, $bom);
+	      } else {
+	        //$text = html_entity_decode($text, ENT_QUOTES);
+	        $text = mb_convert_encoding($text, $this->targetEncoding, 'UTF-8');
+	      }
+	    }
+    	
+    	$text = strtr($text,  array(')' => '\\)', '(' => '\\(', '\\' => '\\\\', chr(8) => '\\b', chr(9) => '\\t', chr(10) => '\\n', chr(12) => '\\f' ,chr(13) => '\\r') );
 
 		if($this->rtl){
 			$text = strrev($text);
@@ -2247,13 +2595,118 @@ class Cpdf
         return $text;
     }
 
+	/**
+	   * return array containing codepoints (UTF-8 character values) for the
+	   * string passed in.
+	   *
+	   * based on the excellent TCPDF code by Nicola Asuni and the
+	   * RFC for UTF-8 at http://www.faqs.org/rfcs/rfc3629.html
+	   *
+	   * @access private
+	   * @author Orion Richardson
+	   * @since January 5, 2008
+	   * @param string $text UTF-8 string to process
+	   * @return array UTF-8 codepoints array for the string
+	   */
+	  function utf8toCodePointsArray(&$text) {
+	    $length = mb_strlen($text, '8bit'); // http://www.php.net/manual/en/function.mb-strlen.php#77040
+	    $unicode = array(); // array containing unicode values
+	    $bytes = array(); // array containing single character byte sequences
+	    $numbytes = 1; // number of octetc needed to represent the UTF-8 character
+
+	    for ($i = 0; $i < $length; $i++) {
+	      $c = ord($text[$i]); // get one string character at time
+	      if (count($bytes) === 0) { // get starting octect
+	        if ($c <= 0x7F) {
+	          $unicode[] = $c; // use the character "as is" because is ASCII
+	          $numbytes = 1;
+	        } elseif (($c >> 0x05) === 0x06) { // 2 bytes character (0x06 = 110 BIN)
+	          $bytes[] = ($c - 0xC0) << 0x06;
+	          $numbytes = 2;
+	        } elseif (($c >> 0x04) === 0x0E) { // 3 bytes character (0x0E = 1110 BIN)
+	          $bytes[] = ($c - 0xE0) << 0x0C;
+	          $numbytes = 3;
+	        } elseif (($c >> 0x03) === 0x1E) { // 4 bytes character (0x1E = 11110 BIN)
+	          $bytes[] = ($c - 0xF0) << 0x12;
+	          $numbytes = 4;
+	        } else {
+	          // use replacement character for other invalid sequences
+	          $unicode[] = 0xFFFD;
+	          $bytes = array();
+	          $numbytes = 1;
+	        }
+	      } elseif (($c >> 0x06) === 0x02) { // bytes 2, 3 and 4 must start with 0x02 = 10 BIN
+	        $bytes[] = $c - 0x80;
+	        if (count($bytes) === $numbytes) {
+	          // compose UTF-8 bytes to a single unicode value
+	          $c = $bytes[0];
+	          for ($j = 1; $j < $numbytes; $j++) {
+	            $c += ($bytes[$j] << (($numbytes - $j - 1) * 0x06));
+	          }
+	          if ((($c >= 0xD800) AND ($c <= 0xDFFF)) OR ($c >= 0x10FFFF)) {
+	            // The definition of UTF-8 prohibits encoding character numbers between
+	            // U+D800 and U+DFFF, which are reserved for use with the UTF-16
+	            // encoding form (as surrogate pairs) and do not directly represent
+	            // characters.
+	            $unicode[] = 0xFFFD; // use replacement character
+	          } else {
+	            $unicode[] = $c; // add char to array
+	          }
+	          // reset data for next char
+	          $bytes = array();
+	          $numbytes = 1;
+	        }
+	      } else {
+	        // use replacement character for other invalid sequences
+	        $unicode[] = 0xFFFD;
+	        $bytes = array();
+	        $numbytes = 1;
+	      }
+	    }
+	    return $unicode;
+	  }
+
+	  /**
+	   * convert UTF-8 to UTF-16 with an additional byte order marker
+	   * at the front if required.
+	   *
+	   * based on the excellent TCPDF code by Nicola Asuni and the
+	   * RFC for UTF-8 at http://www.faqs.org/rfcs/rfc3629.html
+	   *
+	   * @access private
+	   * @author Orion Richardson
+	   * @since January 5, 2008
+	   * @param string $text UTF-8 string to process
+	   * @param boolean $bom whether to add the byte order marker
+	   * @return string UTF-16 result string
+	   */
+	  function utf8toUtf16BE(&$text, $bom = true) {
+	    $cf = $this->currentFont;
+	    if (!$this->fonts[$cf]['isUnicode']) return $text;
+	    $out = $bom ? "\xFE\xFF" : '';
+	    $unicode = $this->utf8toCodePointsArray($text);
+	    foreach ($unicode as $c) {
+	      if ($c === 0xFFFD) {
+	        $out .= "\xFF\xFD"; // replacement character
+	      } elseif ($c < 0x10000) {
+	        $out .= chr($c >> 0x08) . chr($c & 0xFF);
+	       } else {
+	        $c -= 0x10000;
+	        $w1 = 0xD800 | ($c >> 0x10);
+	        $w2 = 0xDC00 | ($c & 0x3FF);
+	        $out .= chr($w1 >> 0x08) . chr($w1 & 0xFF) . chr($w2 >> 0x08) . chr($w2 & 0xFF);
+	      }
+	    }
+	    return $out;
+	  }
+
     /**
      * given a start position and information about how text is to be laid out, calculate where
      * on the page the text will end
      *
      * @access private
      */
-    protected function PRVTgetTextPosition($x,$y,$angle,$size,$wa,$text){
+    protected function getTextPosition($x,$y,$angle,$size,$wa,$text){
         // given this information return an array containing x and y for the end position as elements 0 and 1
         $w = $this->getTextWidth($size,$text);
         // need to adjust for the number of spaces in this text
@@ -2333,7 +2786,7 @@ class Cpdf
                             if ($final){
                                 // need to assess the text position, calculate the text width to this point
                                 // can use getTextWidth to find the text width I think
-                                $tmp = $this->PRVTgetTextPosition($x,$y,$angle,$size,$wordSpaceAdjust,substr($text,0,$i));
+                                $tmp = $this->getTextPosition($x,$y,$angle,$size,$wordSpaceAdjust,substr($text,0,$i));
                                 $info = array('x'=>$tmp[0],'y'=>$tmp[1],'angle'=>$angle,'status'=>'end','p'=>$parm,'nCallback'=>$this->nCallback);
                                 $x=$tmp[0];
                                 $y=$tmp[1];
@@ -2398,7 +2851,7 @@ class Cpdf
                         // need to assess the text position, calculate the text width to this point
                         // can use getTextWidth to find the text width I think
                         // also add the text height and decender
-                        $tmp = $this->PRVTgetTextPosition($x,$y,$angle,$size,$wordSpaceAdjust,substr($text,0,$i));
+                        $tmp = $this->getTextPosition($x,$y,$angle,$size,$wordSpaceAdjust,substr($text,0,$i));
                         $info = array('x'=>$tmp[0],'y'=>$tmp[1],'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size));
                         $x=$tmp[0];
                         $y=$tmp[1];
@@ -2446,20 +2899,19 @@ class Cpdf
                 $this->$func($info);
             }
         }
-        if ($angle==0){
-            $this->objects[$this->currentContents]['c'].="\n".'BT '.sprintf('%.3F',$x).' '.sprintf('%.3F',$y).' Td';
-        } else {
-            $a = deg2rad((float)$angle);
-            $tmp = "\n".'BT ';
-            $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
-            $tmp .= sprintf('%.3F',$x).' '.sprintf('%.3F',$y).' Tm';
-            $this->objects[$this->currentContents]['c'] .= $tmp;
-        }
-        if ($wordSpaceAdjust!=0 || $wordSpaceAdjust != $this->wordSpaceAdjust){
-            $this->wordSpaceAdjust=$wordSpaceAdjust;
-            $this->objects[$this->currentContents]['c'].=' '.sprintf('%.3F',$wordSpaceAdjust).' Tw';
-        }
-        $len = strlen($text);
+        if ($angle == 0) {
+	      $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
+	    } else {
+	      $a = deg2rad((float)$angle);
+	      $this->addContent(sprintf("\nBT %.3F %.3F %.3F %.3F %.3F %.3F Tm", cos($a), -sin($a), sin($a), cos($a), $x, $y));
+	    }
+
+	    if ($wordSpaceAdjust != 0 || $wordSpaceAdjust != $this->wordSpaceAdjust) {
+	      $this->wordSpaceAdjust = $wordSpaceAdjust;
+	      $this->addContent(sprintf(" %.3F Tw", $wordSpaceAdjust));
+	    }
+
+	    $len = strlen($text);
         $start=0;
         for ($i=0;$i<$len;$i++){
             $f=1;
@@ -2468,14 +2920,14 @@ class Cpdf
                 // then we should write what we need to
                 if ($i>$start){
                     $part = substr($text,$start,$i-$start);
-                    $this->objects[$this->currentContents]['c'].=' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ';
-                    $this->objects[$this->currentContents]['c'].=' ('.$this->filterText($part).') Tj';
+                    $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ');
+                    $this->addContent(' ('.$this->filterText($part, false).') Tj');
                 }
                 if ($f){
                     // then there was nothing drastic done here, restore the contents
                     $this->setCurrentFont();
                 } else {
-                    $this->objects[$this->currentContents]['c'] .= ' ET';
+                    $this->addContent(' ET');
                     $f=1;
                     $xp=$x;
                     $yp=$y;
@@ -2483,17 +2935,17 @@ class Cpdf
 
                     // restart the text object
                     if ($angle==0){
-                        $this->objects[$this->currentContents]['c'].="\n".'BT '.sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Td';
+                        $this->addContent("\n".'BT '.sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Td');
                     } else {
                         $a = deg2rad((float)$angle);
                         $tmp = "\n".'BT ';
                         $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
                         $tmp .= sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Tm';
-                        $this->objects[$this->currentContents]['c'] .= $tmp;
+                        $this->addContent($tmp);
                     }
                     if ($wordSpaceAdjust!=0 || $wordSpaceAdjust != $this->wordSpaceAdjust){
                         $this->wordSpaceAdjust=$wordSpaceAdjust;
-                        $this->objects[$this->currentContents]['c'].=' '.sprintf('%.3F',$wordSpaceAdjust).' Tw';
+                        $this->addContent(' '.sprintf('%.3F',$wordSpaceAdjust).' Tw');
                     }
                 }
                 // and move the writing point to the next piece of text
@@ -2501,22 +2953,41 @@ class Cpdf
                 $start=$i+1;
             }
         }
-        if ($start < $len){
-            $part = substr($text,$start);
-            $this->objects[$this->currentContents]['c'].=' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ';
-            $this->objects[$this->currentContents]['c'].=' ('.$this->filterText($part).') Tj';
-        }
-        $this->objects[$this->currentContents]['c'].=' ET';
-        // if there are any open callbacks, then they should be called, to show the end of the line
-        if ($this->nCallback > 0){
-            for ($i=$this->nCallback;$i>0;$i--){
-                // call each function
-                $tmp = $this->PRVTgetTextPosition($x,$y,$angle,$size,$wordSpaceAdjust,$text);
-                $info = array('x'=>$tmp[0],'y'=>$tmp[1],'angle'=>$angle,'status'=>'eol','p'=>$this->callback[$i]['p'],'nCallback'=>$this->callback[$i]['nCallback'],'height'=>$this->callback[$i]['height'],'decender'=>$this->callback[$i]['decender']);
-                $func = $this->callback[$i]['f'];
-                $this->$func($info);
-            }
-        }
+
+	    if ($start < $len) {
+	      $part = substr($text,$start);
+	      $place_text = $this->filterText($part, false);
+	      // modify unicode text so that extra word spacing is manually implemented (bug #)
+	      $cf = $this->currentFont;
+	      if ($this->fonts[$cf]['isUnicode'] && $wordSpaceAdjust != 0) {
+	        $space_scale = 1000 / $size;
+	        $place_text = str_replace(' ', ' ) '.(-round($space_scale*$wordSpaceAdjust)).' (', $place_text);
+	      }
+	      $this->addContent(" /F$this->currentFontNum ".sprintf('%.1F Tf ', $size));
+	      $this->addContent(" [($place_text)] TJ");
+	    }
+
+	    $this->addContent(' ET');
+
+	    // if there are any open callbacks, then they should be called, to show the end of the line
+	    if ($this->nCallback > 0) {
+	      for ($i = $this->nCallback; $i > 0; $i--) {
+	        // call each function
+	        $tmp = $this->getTextPosition($x, $y, $angle, $size, $wordSpaceAdjust, $text);
+	        $info = array(
+	          'x' => $tmp[0],
+	          'y' => $tmp[1],
+	          'angle' => $angle,
+	          'status' => 'eol',
+	          'p'         => $this->callback[$i]['p'],
+	          'nCallback' => $this->callback[$i]['nCallback'],
+	          'height'    => $this->callback[$i]['height'],
+	          'descender' => $this->callback[$i]['descender']
+	        );
+	        $func = $this->callback[$i]['f'];
+	        $this->$func($info);
+	      }
+	    }
     }
 
     /**
@@ -2555,11 +3026,11 @@ class Cpdf
                 if (isset($this->fonts[$cf]['differences'][$char])){
                     // then this character is being replaced by another
                     $name = $this->fonts[$cf]['differences'][$char];
-                    if (isset($this->fonts[$cf]['C'][$name]['WX'])){
-                        $w+=$this->fonts[$cf]['C'][$name]['WX'];
+                    if (isset($this->fonts[$cf]['C'][$name])){
+                        $w+=$this->fonts[$cf]['C'][$name];
                     }
-                } else if (isset($this->fonts[$cf]['C'][$char]['WX'])){
-                    $w+=$this->fonts[$cf]['C'][$char]['WX'];
+                } else if (isset($this->fonts[$cf]['C'][$char])){
+                    $w+=$this->fonts[$cf]['C'][$char];
                 }
             }
         }
@@ -2647,8 +3118,8 @@ class Cpdf
                     $cOrd2 = $cOrd;
                 }
 
-                if (isset($this->fonts[$cf]['C'][$cOrd2]['WX'])){
-                    $w+=$this->fonts[$cf]['C'][$cOrd2]['WX'];
+                if (isset($this->fonts[$cf]['C'][$cOrd2])){
+                    $w+=$this->fonts[$cf]['C'][$cOrd2];
                 }
                 if ($w>$tw){
                     // then we need to truncate this line
@@ -2677,7 +3148,7 @@ class Cpdf
                         if (isset($this->fonts[$cf]['differences'][$ctmp])){
                             $ctmp=$this->fonts[$cf]['differences'][$ctmp];
                         }
-                        $tmpw=($w-$this->fonts[$cf]['C'][$ctmp]['WX'])*$size/1000;
+                        $tmpw=($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
                         $this->PRVTadjustWrapText($tmp,$tmpw,$width,$x,$adjust,$justification);
                         // reset the text state
                         $this->currentTextState = $store_currentTextState;
@@ -2698,7 +3169,7 @@ class Cpdf
                     if (isset($this->fonts[$cf]['differences'][$ctmp])){
                         $ctmp=$this->fonts[$cf]['differences'][$ctmp];
                     }
-                    $breakWidth = ($w-$this->fonts[$cf]['C'][$ctmp]['WX'])*$size/1000;
+                    $breakWidth = ($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
                 }
             }
         }
@@ -3331,31 +3802,7 @@ function reopenObject($id){
      * that be desired.
      */
     function setFontFamily($family, $options = ''){
-        if (!is_array($options)) {
-            if ($family == 'init') {
-                // set the known family groups
-                // these font families will be used to enable bold and italic markers to be included
-                // within text streams. html forms will be used... <b></b> <i></i>
-                $this->fontFamilies['Helvetica.afm'] = array(
-                    'b'  => 'Helvetica-Bold.afm',
-                    'i'  => 'Helvetica-Oblique.afm',
-                    'bi' => 'Helvetica-BoldOblique.afm',
-                    'ib' => 'Helvetica-BoldOblique.afm'
-                );
-                $this->fontFamilies['Courier.afm']=array(
-                    'b'  => 'Courier-Bold.afm',
-                    'i'  => 'Courier-Oblique.afm',
-                    'bi' => 'Courier-BoldOblique.afm',
-                    'ib' => 'Courier-BoldOblique.afm'
-                );
-                $this->fontFamilies['Times-Roman.afm']=array(
-                    'b'  => 'Times-Bold.afm',
-                    'i'  => 'Times-Italic.afm',
-                    'bi' => 'Times-BoldItalic.afm',
-                    'ib' => 'Times-BoldItalic.afm'
-                );
-            }
-        } else {
+        if (is_array($options)) {
             // the user is trying to set a font family
             // note that this can also be used to set the base ones to something else
             if (strlen($family)){
