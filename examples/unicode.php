@@ -48,8 +48,6 @@ if (isset($_GET['d']) && $_GET['d']){
   echo trim($pdfcode);
   echo '</body></html>';
 } else {
-  $pdf->ezStream(array('compress'=>0));
+  $pdf->ezStream();
 }
-
-//error_log($pdf->messages);
 ?>
