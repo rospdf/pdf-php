@@ -247,7 +247,7 @@ class Cpdf
       * an array containing options about the document
       * it defaults to turning on the compression of the objects
       */
-    var $options=array('compression'=>1);
+    var $options=array('compression'=>7);
 
     /**
       * the objectId of the first page of the document
@@ -989,23 +989,17 @@ EOT;
 	      $res = "\n$id 0 obj\n";
 	      $fontFileName = $o['info']['fontFileName'];
 	      $tmp = $this->fonts[$fontFileName]['CIDtoGID'] = base64_decode($this->fonts[$fontFileName]['CIDtoGID']);
-
-	      $compressed = isset($this->fonts[$fontFileName]['CIDtoGID_Compressed']) &&
-	                    $this->fonts[$fontFileName]['CIDtoGID_Compressed'];
-
-	      if (!$compressed && isset($o['raw'])) {
+	      
+	      if (isset($o['raw'])) {
 	        $res.= $tmp;
 	      } else {
 	        $res.= "<<";
-
-	        if (!$compressed &&  function_exists('gzcompress') && $this->options['compression']) {
+	        if (function_exists('gzcompress') && $this->options['compression']) {
 	          // then implement ZLIB based compression on this content stream
-	          $tmp = gzcompress($tmp, 6);
-	          $compressed = true;
-	        }
-	        if ($compressed) {
+	          $tmp = gzcompress($tmp, $this->options['compression']);
 	          $res.= " /Filter /FlateDecode";
 	        }
+	        
 	        $res.= " /Length ".mb_strlen($tmp, '8bit') .">>\nstream\n$tmp\nendstream";
 	      }
 
@@ -1255,7 +1249,7 @@ EOT;
                 if (function_exists('gzcompress') && $this->options['compression']){
                     // then implement ZLIB based compression on this content stream
                     $res.=" /Filter /FlateDecode";
-                    $tmp = gzcompress($tmp);
+                    $tmp = gzcompress($tmp, $this->options['compression']);
                 }
                 if ($this->encrypted){
                     $this->encryptInit($id);
@@ -1935,11 +1929,6 @@ EOT;
                 }
             }
             
-            if (function_exists('gzcompress') && $this->options['compression']){
-            	$data['CIDtoGID_Compressed'] = true;
-            	$cidtogid = gzcompress($cidtogid,  6);
-            }
-            
             $data['CIDtoGID'] = base64_encode($cidtogid);
             $data['_version_']=2;
             
@@ -2145,20 +2134,16 @@ EOT;
                     // embed the font program
                     if($this->embedFont){
 	                    $this->o_contents($this->numObj,'new');
+	                    $this->objects[$pfbid]['c'].= $data;
 	                    // determine the cruicial lengths within this file
 	                    if ($fbtype=='pfb'){
-	                    	$this->objects[$pfbid]['c'].= $data;
 	                        $l1 = strpos($data,'eexec')+6;
 	                        $l2 = strpos($data,'00000000')-$l1;
 	                        $l3 = strlen($data)-$l2-$l1;
 	                        $this->o_contents($this->numObj,'add',array('Length1'=>$l1,'Length2'=>$l2,'Length3'=>$l3));
 	                    } else if ($fbtype=='ttf'){
-	                    	if(function_exists('gzcompress') && $this->options['compression']) {
-		                    	$l1 = strlen($data);
-		                    	$data = gzcompress($data, 6);
-		                    	$this->o_contents($this->numObj,'add',array('Filter'=>'/FlateDecode', 'Length1'=>$l1));
-	                    	}
-	                    	$this->objects[$pfbid]['c'].= $data;
+	                    	$l1 = strlen($data);
+	                    	$this->o_contents($this->numObj,'add',array('Length1'=>$l1));
 	                    }
 	                }
 
