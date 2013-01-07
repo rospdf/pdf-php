@@ -36,6 +36,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 - possibility to use unicode - thanks to Fabien Ménager (dompdf) and Nicola Asuni (tcpdf)
 - added support for *.ufm files to provide UNICODE - use ttf2ufm to generate such files
 - improved reading and caching for fonts
+- allow options['compression'] to set compression level
 
 Please download FreeSerif.ttf font yourself - http://www.fonts2u.com/free-serif.font
 
