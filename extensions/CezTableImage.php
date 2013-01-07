@@ -101,7 +101,7 @@ class CezTableImage extends Cezpdf {
         // find the maximum cell widths based on the data
         foreach ($data as $row){
             foreach ($cols as $colName=>$colHeading){
-                $w = $this->ezPrvtGetTextWidth($options['fontSize'],(string)$row[$colName])*1.01;
+                $w = $this->ezGetTextWidth($options['fontSize'],(string)$row[$colName])*1.01;
                 if ($w > $maxWidth[$colName]){
                     $maxWidth[$colName]=$w;
                 }
@@ -109,7 +109,7 @@ class CezTableImage extends Cezpdf {
         }
         // and the maximum widths to fit in the headings
         foreach ($cols as $colName=>$colTitle){
-            $w = $this->ezPrvtGetTextWidth($options['fontSize'],(string)$colTitle)*1.01;
+            $w = $this->ezGetTextWidth($options['fontSize'],(string)$colTitle)*1.01;
             if ($w > $maxWidth[$colName]){
                 $maxWidth[$colName]=$w;
             }
@@ -329,7 +329,7 @@ class CezTableImage extends Cezpdf {
             $dy=0;
             if ($options['showHeadings']){
                 // this function will move the start of the table to a new page if it does not fit on this one
-                $headingHeight = $this->ezPrvtTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
+                $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
                 $y0 = $y+$headingHeight;
                 $y1 = $y;
 
@@ -395,7 +395,7 @@ class CezTableImage extends Cezpdf {
                                     $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
                                     $this->line($x0,$y1,$x1,$y1);
                                 }else if ($options['showLines'] < 3){
-                                    $this->ezPrvtTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
+                                    $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
                                 }
                             }
                             if ($options['shaded'] || $options['showBgCol']){
@@ -425,7 +425,7 @@ class CezTableImage extends Cezpdf {
                             $y0=$y+$decender;
                             $mx=0;
                             if ($options['showHeadings']){
-                                $this->ezPrvtTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
+                                $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
                                 $y1=$y;
                             } else {
                                 $y1=$y0;
@@ -613,7 +613,7 @@ class CezTableImage extends Cezpdf {
                 $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
                 $this->line($x0,$y1,$x1,$y1);
             } else if ($options['showLines'] < 3){
-                $this->ezPrvtTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
+                $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
             }
         }
         // close the object for drawing the text on top
