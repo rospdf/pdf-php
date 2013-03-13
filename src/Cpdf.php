@@ -1315,9 +1315,9 @@ EOT;
             } else if ($options['type']=='png'){
                 if (strlen($options['pdata'])){
                     $this->numObj++;
-                    $this->o_contents($this->numObj,'new');
-                    $this->o_contents($this->numObj,'add', array('Type'=>'/XObject', 'Subtype'=>'/Image', 'Width'=> $options['iw'], 'Height'=> $options['ih'], 'Filter'=>'/FlateDecode', 'ColorSpace'=>'/DeviceGray', 'BitsPerComponent'=>'8', 'DecodeParms'=>'<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>'));
-                    $this->objects[$this->numObj]['c']=$options['pdata'];
+                    $this->objects[$this->numObj]=array('t'=>'image','c'=>'','info'=>array());
+                    $this->objects[$this->numObj]['info'] = array('Type'=>'/XObject', 'Subtype'=>'/Image', 'Width'=> $options['iw'], 'Height'=> $options['ih'], 'Filter'=>'/FlateDecode', 'ColorSpace'=>'/DeviceGray', 'BitsPerComponent'=>'8', 'DecodeParms'=>'<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>');
+                    $this->objects[$this->numObj]['data']=$options['pdata'];
                     if (isset($options['transparency'])){
                         switch($options['transparency']['type']){
                         case 'indexed':
