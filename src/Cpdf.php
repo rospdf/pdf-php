@@ -13,7 +13,7 @@
  * @author   Ole K <ole1986@users.sourceforge.net>
  * @copyright 2007 - 2013 The authors
  * @license   GPL http://www.opensource.org/licenses/gpl-license.php
- * @version  0.11.6
+ * @version  0.11.7
  * @link     http://pdf-php.sf.net
  */
 class Cpdf
