@@ -16,6 +16,10 @@
  * @version  0.11.7
  * @link     http://pdf-php.sf.net
  */
+ 
+// include TTF and TTFsubset classes
+@include_once('include/TTFsubset.php');
+ 
 class Cpdf
 {
     /**
@@ -244,10 +248,11 @@ class Cpdf
     private $numImages=0;
 
     /**
-      * an array containing options about the document
-      * it defaults to turning on the compression of the objects
+      * some additional options while generation
+      * currently used for compression only
+      * Default: 'compression' => -1 which will set gzcompress to the default level of 6
       */
-    public $options=array('compression'=>7);
+    public $options=array('compression'=>-1);
 
     /**
       * the objectId of the first page of the document
@@ -708,24 +713,7 @@ class Cpdf
                     $this->o_contents($toUnicodeId, 'new', 'raw');
                     $this->objects[$id]['info']['toUnicode'] = $toUnicodeId;
 
-                    $stream = <<<EOT
-/CIDInit /ProcSet findresource begin
-12 dict begin
-begincmap
-/CIDSystemInfo <</Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def
-/CMapName /Adobe-Identity-UCS def
-/CMapType 2 def
-1 begincodespacerange
-<0000> <FFFF>
-endcodespacerange
-1 beginbfrange
-<0000> <FFFF> <0000>
-endbfrange
-endcmap
-CMapName currentdict /CMap defineresource pop
-end
-end
-EOT;
+                    $stream = "/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n/CIDSystemInfo <</Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n/CMapName /Adobe-Identity-UCS def\n/CMapType 2 def\n1 begincodespacerange\n<0000> <FFFF>\nendcodespacerange\n1 beginbfrange\n<0000> <FFFF> <0000>\nendbfrange\nendcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n";
 
                     $res = "<</Length " . mb_strlen($stream, '8bit') . " >>\n";
                     $res .= "stream\n" . $stream . "\nendstream";
@@ -762,7 +750,58 @@ EOT;
                   }
                 break;
             case 'out':
-                if ($this->fonts[$this->objects[$id]['info']['fontFileName']]['isUnicode']) {
+                // when font program is embedded, attach the font either as subset or completely
+                if($this->embedFont){
+                    // find FontFile2 id - used for TTF fonts
+                    $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
+                    // when TrueType font is used and font subsets are available
+                    if($o['info']['SubType'] == 'TrueType' && $this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset']) ){
+                        $this->debug('subset font for ' . $o['info']['fontFileName'], E_USER_NOTICE);
+                        $subsetFontName = "AAAAAD+" . $o['info']['name'];
+                        $o['info']['name'] = $subsetFontName;
+                        // find descendant font
+                        $this->objects[$o['info']['cidFont']]['info']['name'] = $subsetFontName;
+                        // find font descriptor
+                        $this->objects[$o['info']['FontDescriptor']]['info']['FontName'] = $subsetFontName;
+                        
+                        // include TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
+                        
+                        $t = new TTFsubset();
+                        // combine all used characters as string
+                        $s = implode('',array_keys($this->fonts[$o['info']['fontFileName']]['subset']));
+                        // submit the string to TTFsubset class to return the subset (as binary)
+                        $data = $t->doSubset($o['info']['fontFileName'] . '.ttf', $s, null);
+                        // $data is the new (subset) of the font font
+                        //file_put_contents($o['info']['name'] . '.ttf', $data);
+                        
+                        $newcidwidth = array();
+                        $cidwidth = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
+                        foreach($t->TTFchars as $TTFchar){
+                            if(!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])){
+                                $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
+                            }
+                        }
+                        $cidwidth = $newcidwidth;
+                        // TODO: cache the subset
+                        
+                        $this->objects[$pfbid]['c'].= $data;
+                        $l1 = strlen($data);
+                        $this->o_contents($pfbid,'add',array('Length1'=>$l1));
+                    } else if($o['info']['SubType'] == 'TrueType') {
+                        $data = file_get_contents($o['info']['fontFileName']. '.ttf');
+                        $l1 = strlen($data);
+                        $this->objects[$pfbid]['c'].= $data;
+                        $this->o_contents($pfbid,'add',array('Length1'=>$l1));
+                    } else {
+                        $data = file_get_contents($o['info']['fontFileName']. '.pfb');
+                        $l1 = strpos($data,'eexec')+6;
+                        $l2 = strpos($data,'00000000')-$l1;
+                        $l3 = strlen($data)-$l2-$l1;
+                        $this->o_contents($pfbid,'add',array('Length1'=>$l1,'Length2'=>$l2,'Length3'=>$l3));
+                    }
+                }
+                
+                if ($this->fonts[$o['info']['fontFileName']]['isUnicode']) {
                     // For Unicode fonts, we need to incorporate font data into
                     // sub-sections that are linked from the primary font section.
                     // Look at o_fontGIDtoCID and o_fontDescendentCID functions
@@ -909,17 +948,6 @@ EOT;
         switch ($action) {
         case 'new':
           $this->objects[$id] = array('t' => 'fontDescendentCID', 'info' => $options);
-
-          // we need a CID system info section
-          $cidSystemInfoId = ++$this->numObj;
-          $this->o_contents($cidSystemInfoId, 'new', 'raw');
-          $this->objects[$id]['info']['cidSystemInfo'] = $cidSystemInfoId;
-          $res = "<</Registry (Adobe)"; // A string identifying an issuer of character collections
-          $res.= " /Ordering (UCS)"; // A string that uniquely names a character collection issued by a specific registry
-          $res.= " /Supplement 0"; // The supplement number of the character collection.
-          $res.= " >>";
-          $this->objects[$cidSystemInfoId]['c'] = $res;
-
           // and a CID to GID map
           if($this->embedFont){
               $cidToGidMapId = ++$this->numObj;
@@ -954,7 +982,7 @@ EOT;
 
         case 'out':
           $res = "\n$id 0 obj\n";
-          $res.= "<</Type /Font /Subtype /CIDFontType2 /BaseFont /".$o['info']['name']." /CIDSystemInfo ".$o['info']['cidSystemInfo']." 0 R";
+          $res.= "<</Type /Font /Subtype /CIDFontType2 /BaseFont /".$o['info']['name']." /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>";
           if (isset($o['info']['FontDescriptor'])) {
             $res.= " /FontDescriptor ".$o['info']['FontDescriptor']." 0 R";
           }
@@ -1788,11 +1816,7 @@ EOT;
             $dir  = substr($font, 0, $pos + 1);
             $name = substr($font, $pos + 1);
         }
-
-        //if (substr($name, -4) == '.afm' || substr($name, -4) == '.ufm') {
-            //$name = substr($name, 0, strlen($name) - 4);
-        //}
-        
+       
         if(!$this->isUnicode){
             $metrics_name = "$name.afm";
         }else{
@@ -1800,7 +1824,6 @@ EOT;
         }
         
         $this->debug('openFont executed: '.$font.' - '.$name.' / IsUnicode: '.$this->isUnicode);
-        
         $cachedFile = 'cached'.$metrics_name.'.php';
         
         // use the temp folder to read/write cached font data
@@ -1929,7 +1952,6 @@ EOT;
                     }
                 }
             }
-            
             $data['CIDtoGID'] = base64_encode($cidtogid);
             $data['_version_']=2;
             
@@ -1956,8 +1978,13 @@ EOT;
      * @return void
      * @access public
      */
-    public function selectFont($fontName, $encoding = '', $set = 1)
+    public function selectFont($fontName, $encoding = '', $subsetFont = false,$set = 1)
     {
+        if($subsetFont && !class_exists('TTFsubset')){
+            $this->debug("TTFsubset class not found. Falling back to complete font program", E_USER_WARNING);
+            $subsetFont = false;
+        }
+    
         $ext = substr($fontName, -4);
         if ($ext === '.afm' || $ext === '.ufm') {
             $fontName = substr($fontName, 0, strlen($fontName)-4);
@@ -1993,7 +2020,7 @@ EOT;
                     $options['encoding'] = $encoding;
                 }
                 $fontObj = $this->numObj;
-                $this->o_font($this->numObj, 'new', $options);
+                $this->o_font($fontObj, 'new', $options);
                 $font['fontNum'] = $this->numFonts;
                 // if this is a '.afm' font, and there is a '.pfa' file to go with it (as there
                 // should be for all non-basic fonts), then load it into an object and put the
@@ -2010,7 +2037,6 @@ EOT;
                 
                 if ($fbtype){
                     $adobeFontName = $font['FontName'];
-                    // $fontObj = $this->numObj;
                     $this->debug('selectFont: adding font file "'.$fbfile.'" to pdf');
                     // find the array of fond widths, and put that into an object.
                     $firstChar = -1;
@@ -2084,23 +2110,9 @@ EOT;
                         $stemV = 120;
                       }
 
-                    // load the pfb file, and put that into an object too.
-                    // note that pdf supports only binary format type 1 font files, though there is a
-                    // simple utility to convert them from pfa to pfb.
-                    if($this->embedFont){
-                        if(!$this->isUnicode || $fbtype !== 'ttf'){
-                            $data = file_get_contents($fbfile);
-                        }else{
-                            $data = file_get_contents($fbfile);;
-                        }
-                    }
-
                     // create the font descriptor
-                    $this->numObj++;
-                    $fontDescriptorId = $this->numObj;
+                    $fontDescriptorId = ++$this->numObj;
                     
-                    $this->numObj++;
-                    $pfbid = $this->numObj;
                     // determine flags (more than a little flakey, hopefully will not matter much)
                     $flags=0;
                     if ($font['ItalicAngle']!=0){
@@ -2122,33 +2134,23 @@ EOT;
                             $fdopt[$k]=$font[$v];
                         }
                     }
+                    
+                    
 
+                    // binary content of pfb or ttf file
+                    $pfbid = ++$this->numObj;
+                    // embed the font program
+                    // to allow font subsets embedding fonts is proceed in o_font 'output'
                     if($this->embedFont){
                         if ($fbtype=='pfb'){
                             $fdopt['FontFile']=$pfbid;
-                        } else if ($fbtype=='ttf' && $this->embedFont){
+                        } else if ($fbtype=='ttf'){
                             $fdopt['FontFile2']=$pfbid;
                         }
+                        $this->o_fontDescriptor($fontDescriptorId,'new',$fdopt);
+                        $this->o_contents($pfbid,'new');
                     }
                     
-                    $this->o_fontDescriptor($fontDescriptorId,'new',$fdopt);
-
-                    // embed the font program
-                    if($this->embedFont){
-                        $this->o_contents($this->numObj,'new');
-                        $this->objects[$pfbid]['c'].= $data;
-                        // determine the cruicial lengths within this file
-                        if ($fbtype=='pfb'){
-                            $l1 = strpos($data,'eexec')+6;
-                            $l2 = strpos($data,'00000000')-$l1;
-                            $l3 = strlen($data)-$l2-$l1;
-                            $this->o_contents($this->numObj,'add',array('Length1'=>$l1,'Length2'=>$l2,'Length3'=>$l3));
-                        } else if ($fbtype=='ttf'){
-                            $l1 = strlen($data);
-                            $this->o_contents($this->numObj,'add',array('Length1'=>$l1));
-                        }
-                    }
-
                     // tell the font object about all this new stuff
                     $tmp = array('BaseFont'=>$adobeFontName,'Widths'=>$widthid
                                       ,'FirstChar'=>$firstChar,'LastChar'=>$lastChar
@@ -2173,6 +2175,11 @@ EOT;
                     $font['differences']=$options['differences'];
                 }
             }
+        }
+        
+        $this->fonts[$fontName]['isSubset'] = $subsetFont;
+        if(!isset($this->fonts[$fontName]['subset'])) {
+            $this->fonts[$fontName]['subset'] = array();
         }
         
         if ($set && isset($this->fonts[$fontName])){
@@ -2526,7 +2533,7 @@ EOT;
         } else {
             $tmp = $this->output();
         }
-        header("Content-type: application/pdf");
+        header("Content-Type: application/pdf");
         header("Content-Length: ".strlen(ltrim($tmp)));
         $fileName = (isset($options['Content-Disposition'])?$options['Content-Disposition']:'file.pdf');
         if(isset($options['download']) && $options['download'] == 1)
@@ -2569,7 +2576,7 @@ EOT;
         $h = $this->fonts[$this->currentFont]['Descender'];
         return $size*$h/1000;
     }
-
+   
     /**
      * filter the text, this is applied to all text just before being inserted into the pdf document
      * it escapes the various things that need to be escaped, and so on
@@ -2580,15 +2587,23 @@ EOT;
         
         if ($convert_encoding) {
           $cf = $this->currentFont;
-          if (isset($this->fonts[$cf]) && $this->fonts[$cf]['isUnicode']) {
-            //$text = html_entity_decode($text, ENT_QUOTES, 'UTF-8');
-            $text = $this->utf8toUtf16BE($text, $bom);
+          if (isset($this->fonts[$cf]) && $this->fonts[$cf]['isUnicode']) { 
+            $text = $this->utf8toUtf16BE($text, $bom); // convert utf8 chars into utf16
+            // store all used characters if subset font is set to true
+            if($this->fonts[$cf]['isSubset']){
+                for($i = 0; $i < mb_strlen($text,'UTF-16BE'); $i++)
+                    $this->fonts[$cf]['subset'][mb_substr($text,$i, 1, 'UTF-16BE')] = true;
+            }
           } else {
-            //$text = html_entity_decode($text, ENT_QUOTES);
-            $text = mb_convert_encoding($text, $this->targetEncoding, 'UTF-8');
+            $text = mb_convert_encoding($text, $this->targetEncoding);
+            $hexStr = $this->strToHex($text);
+            // store all used characters if subset font is set to true
+            if($this->fonts[$cf]['isSubset']){
+                for($i = 0; $i < (strlen($hexStr) / 2); $i++)
+                    array_push($this->fonts[$cf]['subset'],substr($hexStr,($i * 2), 2));
+            }
           }
         }
-        
         $text = strtr($text,  array(')' => '\\)', '(' => '\\(', '\\' => '\\\\', chr(8) => '\\b', chr(9) => '\\t', chr(10) => '\\n', chr(12) => '\\f' ,chr(13) => '\\r') );
 
         if($this->rtl){
@@ -2914,7 +2929,7 @@ EOT;
           $this->wordSpaceAdjust = $wordSpaceAdjust;
           $this->addContent(sprintf(" %.3F Tw", $wordSpaceAdjust));
         }
-
+        
         $len = strlen($text);
         $start=0;
         for ($i=0;$i<$len;$i++){

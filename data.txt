@@ -31,9 +31,17 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.11.8>
+
+
+- added font subsetting for TTF by using selectFont(fontname [, encoding] [, subsetFont])
+- slightly changes and code optimization
+
 2<version 0.11.7>
 
+
 - fixed issue with compressed pdf and png image (known as bug #62)
+
 - added pdf to email example
 
 2<version 0.11.6>
@@ -1191,7 +1199,7 @@ The style option will define how it will look when open, valid values are:
 
 2<selectFont>
 
-selectFont(fontName [,encoding])
+selectFont(fontName [,encoding] [,subsetFont])
 
 This selects a font to be used from this point in the document. Errors can occur if some of the other functions are used if a font has not been selected, so it is wise to do this early on.
 
@@ -1206,6 +1214,9 @@ The encoding directive is a little experimental, it allows the user to re-map ch
 Note that the encoding directive will be effective <b>only the first time</b> that a font is selected, and it should not be used on symbolic fonts (such as Symbol or ZapfDingbats).
 
 The command can be used in two forms - either with encoding=string, which sets this as the encoding type, or as an array which allows the setting of the encoding type, and the differences array. Examples of both are shown below, the example that sets the differences array includes the differences to make the common german characters work correctly.
+
+In version 0.11.8 or higher font subset is supported for TTF
+
 
 #C
 // use a Times-Roman font with MacExpertEncoding
