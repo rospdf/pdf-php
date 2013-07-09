@@ -21,7 +21,7 @@ $pdf->ezSetMargins(20,20,20,20);
 $f = (isset($_GET['font']))?$_GET['font']:'FreeSerif';
 
 $mainFont = '../src/fonts/'.$f;
-// select a font
+// select a font and use font subsetting
 $pdf->selectFont($mainFont, '', true);
 
 $pdf->ezText("Cyrillic:");
@@ -35,7 +35,8 @@ $pdf->isUnicode = false;
 $pdf->selectFont('../src/fonts/Courier');
 $pdf->ezText("\nThis text is using Courier and written in ANSI");
 
-// No need to set "isUnicode" to true, because the following font was already in use
+// reuse the mainFont and make sure font subsetting is enabled.
+// There is no need to set "isUnicode" to true, because the font was already in use
 $pdf->selectFont($mainFont, '', true);
 $pdf->ezText("\nHere again is unicode, same font");
 $pdf->ezText("لبسبيلتتاف لالبالفقث بببب");
