@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 error_reporting(E_ALL);
 set_time_limit(1800);
 set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
@@ -22,24 +22,12 @@ $f = (isset($_GET['font']))?$_GET['font']:'FreeSerif';
 
 $mainFont = '../src/fonts/'.$f;
 // select a font
-$pdf->selectFont($mainFont);
-$pdf->openHere('Fit');
+$pdf->selectFont($mainFont, '', true);
 
-$pdf->ezText("Cyrillic:");
-$pdf->ezText("К к Л л М м Н н О о П п Р р С с Т т У у Ф ф");
-$pdf->ezText("Arabic:");
-$pdf->ezText("لبسبيلتتاف لالبالفقث بببب");
-$pdf->ezText("Hebrew:");
-$pdf->ezText("אבגדהוזחטיכלמנסעפצקרשת");
-
-$pdf->isUnicode = false;
-$pdf->selectFont('../src/fonts/Courier');
-$pdf->ezText("\nThis text is using Courier and written in ANSI");
-
-// No need to set "isUnicode" to true, because the following font was already in use
-$pdf->selectFont($mainFont);
-$pdf->ezText("\nHere again is unicode, same font");
-$pdf->ezText("لبسبيلتتاف لالبالفقث بببب");
+$pdf->ezText("ABC DE FGH IJK LMN OP:+,-");
+$pdf->ezText("К к Л:");
+$pdf->ezText("لتتب:");
+$pdf->ezText("אבת:");
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
