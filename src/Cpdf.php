@@ -752,47 +752,50 @@ class Cpdf
             case 'out':
                 // when font program is embedded and its not a coreFont, attach the font either as subset or completely
                 if($this->embedFont && !in_array(strtolower($o['info']['name']), $this->coreFonts)){
-                    // find FontFile2 id - used for TTF fonts
-                    $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
                     // when TrueType font is used and font subsets are available
-                    if($o['info']['SubType'] == 'TrueType' && $this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset']) ){
-                        $this->debug('subset font for ' . $o['info']['fontFileName'], E_USER_NOTICE);
-                        $subsetFontName = "AAAAAD+" . $o['info']['name'];
-                        $o['info']['name'] = $subsetFontName;
-                        // find descendant font
-                        $this->objects[$o['info']['cidFont']]['info']['name'] = $subsetFontName;
-                        // find font descriptor
-                        $this->objects[$o['info']['FontDescriptor']]['info']['FontName'] = $subsetFontName;
-                        
-                        // include TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
-                        
-                        $t = new TTFsubset();
-                        // combine all used characters as string
-                        $s = implode('',array_keys($this->fonts[$o['info']['fontFileName']]['subset']));
-                        // submit the string to TTFsubset class to return the subset (as binary)
-                        $data = $t->doSubset($o['info']['fontFileName'] . '.ttf', $s, null);
-                        // $data is the new (subset) of the font font
-                        //file_put_contents($o['info']['name'] . '.ttf', $data);
-                        
-                        $newcidwidth = array();
-                        $cidwidth = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
-                        foreach($t->TTFchars as $TTFchar){
-                            if(!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])){
-                                $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
+                    if($o['info']['SubType'] == 'TrueType'){
+                        // find FontFile2 id - used for TTF fonts
+                        $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
+                        // if subsetting is set
+                        if($this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset'])){
+                            $this->debug('subset font for ' . $o['info']['fontFileName'], E_USER_NOTICE);
+                            $subsetFontName = "AAAAAD+" . $o['info']['name'];
+                            $o['info']['name'] = $subsetFontName;
+                            // find descendant font
+                            $this->objects[$o['info']['cidFont']]['info']['name'] = $subsetFontName;
+                            // find font descriptor
+                            $this->objects[$o['info']['FontDescriptor']]['info']['FontName'] = $subsetFontName;
+                            
+                            // use TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
+                            $t = new TTFsubset();
+                            // combine all used characters as string
+                            $s = implode('',array_keys($this->fonts[$o['info']['fontFileName']]['subset']));
+                            // submit the string to TTFsubset class to return the subset (as binary)
+                            $data = $t->doSubset($o['info']['fontFileName'] . '.ttf', $s, null);
+                            // $data is the new (subset) of the font font
+                            //file_put_contents($o['info']['name'] . '.ttf', $data);
+                            
+                            $newcidwidth = array();
+                            $cidwidth = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
+                            foreach($t->TTFchars as $TTFchar){
+                                if(!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])){
+                                    $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
+                                }
                             }
+                            $cidwidth = $newcidwidth;
+                        } else {
+                            $data = file_get_contents($o['info']['fontFileName']. '.ttf');
+                            
                         }
-                        $cidwidth = $newcidwidth;
+                    
                         // TODO: cache the subset
                         
-                        $this->objects[$pfbid]['c'].= $data;
-                        $l1 = strlen($data);
-                        $this->o_contents($pfbid,'add',array('Length1'=>$l1));
-                    } else if($o['info']['SubType'] == 'TrueType') {
-                        $data = file_get_contents($o['info']['fontFileName']. '.ttf');
                         $l1 = strlen($data);
                         $this->objects[$pfbid]['c'].= $data;
                         $this->o_contents($pfbid,'add',array('Length1'=>$l1));
                     } else {
+                        // find FontFile2 id - used for TTF fonts
+                        $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
                         $data = file_get_contents($o['info']['fontFileName']. '.pfb');
                         $l1 = strpos($data,'eexec')+6;
                         $l2 = strpos($data,'00000000')-$l1;
