@@ -750,8 +750,8 @@ class Cpdf
                   }
                 break;
             case 'out':
-                // when font program is embedded, attach the font either as subset or completely
-                if($this->embedFont){
+                // when font program is embedded and its not a coreFont, attach the font either as subset or completely
+                if($this->embedFont && !in_array(strtolower($o['info']['name']), $this->coreFonts)){
                     // find FontFile2 id - used for TTF fonts
                     $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
                     // when TrueType font is used and font subsets are available
@@ -1978,7 +1978,7 @@ class Cpdf
      * @return void
      * @access public
      */
-    public function selectFont($fontName, $encoding = '', $subsetFont = false,$set = 1)
+    public function selectFont($fontName, $encoding = '', $set = 1, $subsetFont = false)
     {
         if($subsetFont && !class_exists('TTFsubset')){
             $this->debug("TTFsubset class not found. Falling back to complete font program", E_USER_WARNING);
@@ -2135,8 +2135,6 @@ class Cpdf
                         }
                     }
                     
-                    
-
                     // binary content of pfb or ttf file
                     $pfbid = ++$this->numObj;
                     // embed the font program
@@ -2167,7 +2165,6 @@ class Cpdf
                 } else if(!in_array(strtolower($name), $this->coreFonts)) {
                     $this->debug('selectFont: No pfb/ttf file found for "'.$name.'"', E_USER_WARNING);
                 }
-
 
                 // also set the differences here, note that this means that these will take effect only the
                 // first time that a font is selected, else they are ignored
@@ -2908,7 +2905,6 @@ class Cpdf
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
-
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0){
             for ($i = $this->nCallback; $i > 0; $i--){
