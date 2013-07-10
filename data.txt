@@ -34,7 +34,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 2<version 0.11.8>
 
 
-- added font subsetting for TTF by using selectFont(fontname [, encoding] [, subsetFont])
+- added font subsetting for TTF by using selectFont(fontname [, encoding = ''] [, set = 1] [, subsetFont = false])
 - slightly changes and code optimization
 
 2<version 0.11.7>
@@ -1199,7 +1199,7 @@ The style option will define how it will look when open, valid values are:
 
 2<selectFont>
 
-selectFont(fontName [,encoding] [,subsetFont])
+selectFont(fontName [,encoding = ''] [, set = 1] [,subsetFont = false])
 
 This selects a font to be used from this point in the document. Errors can occur if some of the other functions are used if a font has not been selected, so it is wise to do this early on.
 

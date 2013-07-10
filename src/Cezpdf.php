@@ -10,7 +10,7 @@
  * there is no warranty, implied or otherwise with this software.
  *
  * @package Cpdf
- * @version 0.11.7
+ * @version 0.11.8
  * @license released under a public domain licence.
  * @link http://www.sourceforge.net/p/pdf-php/
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
