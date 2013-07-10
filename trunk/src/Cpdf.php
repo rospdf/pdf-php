@@ -794,7 +794,7 @@ class Cpdf
                         $this->objects[$pfbid]['c'].= $data;
                         $this->o_contents($pfbid,'add',array('Length1'=>$l1));
                     } else if(isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile'])) {
-                        // find FontFile2 id - used for TTF fonts
+                        // find FontFile id - used for PFB fonts
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
                         $data = file_get_contents($o['info']['fontFileName']. '.pfb');
                         $l1 = strpos($data,'eexec')+6;
@@ -2161,10 +2161,6 @@ class Cpdf
                         $this->o_contents($pfbid,'new');
                     }
                     
-                    
-                    if ($fbtype=='ttf'){
-                        
-                    }
                     $this->debug('selectFont: adding extra info to font.('.$fontObj.')');
                     foreach($tmp as $fk=>$fv){
                         $this->debug($fk." : ".$fv);
