@@ -752,9 +752,9 @@ class Cpdf
             case 'out':
                 // when font program is embedded and its not a coreFont, attach the font either as subset or completely
                 if($this->embedFont && !in_array(strtolower($o['info']['name']), $this->coreFonts)){
-                    // when TrueType font is used and font subsets are available
-                    if($o['info']['SubType'] == 'TrueType'){
-                        // find FontFile2 id - used for TTF fonts
+                    // when TrueType font is used
+                    if(isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'])){
+                        // find font program id for TTF fonts (FontFile2)
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
                         // if subsetting is set
                         if($this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset'])){
@@ -793,7 +793,7 @@ class Cpdf
                         $l1 = strlen($data);
                         $this->objects[$pfbid]['c'].= $data;
                         $this->o_contents($pfbid,'add',array('Length1'=>$l1));
-                    } else {
+                    } else if(isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile'])) {
                         // find FontFile2 id - used for TTF fonts
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
                         $data = file_get_contents($o['info']['fontFileName']. '.pfb');
@@ -801,6 +801,8 @@ class Cpdf
                         $l2 = strpos($data,'00000000')-$l1;
                         $l3 = strlen($data)-$l2-$l1;
                         $this->o_contents($pfbid,'add',array('Length1'=>$l1,'Length2'=>$l2,'Length3'=>$l3));
+                    } else {
+                        $this->debug("Failed to select the correct font program", E_USER_WARNING);
                     }
                 }
                 
@@ -2138,8 +2140,14 @@ class Cpdf
                         }
                     }
                     
+                    // setup the basic properties for o_font output
+                    $tmp = array('BaseFont'=>$adobeFontName,'Widths'=>$widthid
+                                      ,'FirstChar'=>$firstChar,'LastChar'=>$lastChar
+                                      ,'FontDescriptor'=>$fontDescriptorId);
+                    
                     // binary content of pfb or ttf file
                     $pfbid = ++$this->numObj;
+                    
                     // embed the font program
                     // to allow font subsets embedding fonts is proceed in o_font 'output'
                     if($this->embedFont){
@@ -2147,17 +2155,15 @@ class Cpdf
                             $fdopt['FontFile']=$pfbid;
                         } else if ($fbtype=='ttf'){
                             $fdopt['FontFile2']=$pfbid;
+                            $tmp['SubType']='TrueType'; // Declare basic font as TrueType
                         }
                         $this->o_fontDescriptor($fontDescriptorId,'new',$fdopt);
                         $this->o_contents($pfbid,'new');
                     }
                     
-                    // tell the font object about all this new stuff
-                    $tmp = array('BaseFont'=>$adobeFontName,'Widths'=>$widthid
-                                      ,'FirstChar'=>$firstChar,'LastChar'=>$lastChar
-                                      ,'FontDescriptor'=>$fontDescriptorId);
+                    
                     if ($fbtype=='ttf'){
-                        $tmp['SubType']='TrueType';
+                        
                     }
                     $this->debug('selectFont: adding extra info to font.('.$fontObj.')');
                     foreach($tmp as $fk=>$fv){
