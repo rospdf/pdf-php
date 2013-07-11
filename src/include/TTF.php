@@ -122,6 +122,32 @@ class TTF {
 	self::setShort($b, $off, $head['glyphDataFormat']);
 	return $b;
     }
+    
+    function unmarshalName()
+    {
+        $name = array();
+        $b = $this->getTableRaw('name');
+        $off = 0;
+        $name['format'] = self::getUshort($b, $off);
+        $name['count'] = self::getUshort($b, $off);
+        $name['offset'] = self::getUshort($b, $off);
+        $name['nameRecords'] = array();
+        
+        $tmp = $name['offset'];
+        for($i = 0; $i < $name['count']; $i++)
+        {
+            $name['nameRecords'][$i] = array();
+            $name['nameRecords'][$i]['platformID'] = self::getUshort($b, $off);
+            $name['nameRecords'][$i]['platformSpecificID'] = self::getUshort($b, $off);
+            $name['nameRecords'][$i]['languageID'] = self::getUshort($b, $off);
+            $name['nameRecords'][$i]['nameID'] = self::getUshort($b, $off);
+            $name['nameRecords'][$i]['length'] = self::getUshort($b, $off);
+            $name['nameRecords'][$i]['offset'] = self::getUshort($b, $off);
+            $name['nameRecords'][$i]['value'] = self::getRaw($b, $tmp, $name['nameRecords'][$i]['length'] * 2);
+            $tmp += $name['nameRecords'][$i]['length'] + 3;
+        }
+        return $name;
+    }
 
     function unmarshalHhea() {
 	$hhea = array(); // To return
@@ -539,7 +565,7 @@ class TTF {
 	return $b;
     }
 
-    function unmarshalPost() {
+    function unmarshalPost($headOnly = false) {
 	$post = array(); // To return
 	$b = $this->getTableRaw('post'); // Get raw bytes for 'post' table
 	$off = 0;
@@ -553,42 +579,44 @@ class TTF {
 	$post['maxMemType42'] = self::getUlong($b, $off);
 	$post['minMemType1'] = self::getUlong($b, $off);
 	$post['maxMemType1'] = self::getUlong($b, $off);
+    
+    if(!$headOnly){
+        if ($post['formatType'] == '1.0') {
+            ; // Nothing more
+        } else if ($post['formatType'] == '2.0') {
+            // Collect numGlyphs, glyphNameIndex array and glyphNames (Pascal strings)
+            $numGlyphs = self::getUshort($b, $off);
+            $glyphNameIndex = array();
+            for ($i = 0; $i < $numGlyphs; $i++) {
+            $glyphNameIndex[] = self::getUshort($b, $off);
+            }
+            $glyphNames = array();
+            while ($off < strlen($b)) {
+            $len = self::getByte($b, $off);
+            $name = self::getRaw($b, $off, $len);
+            $glyphNames[] = $name;
+            }
 
-	if ($post['formatType'] == '1.0') {
-	    ; // Nothing more
-	} else if ($post['formatType'] == '2.0') {
-	    // Collect numGlyphs, glyphNameIndex array and glyphNames (Pascal strings)
-	    $numGlyphs = self::getUshort($b, $off);
-	    $glyphNameIndex = array();
-	    for ($i = 0; $i < $numGlyphs; $i++) {
-		$glyphNameIndex[] = self::getUshort($b, $off);
-	    }
-	    $glyphNames = array();
-	    while ($off < strlen($b)) {
-		$len = self::getByte($b, $off);
-		$name = self::getRaw($b, $off, $len);
-		$glyphNames[] = $name;
-	    }
-
-	    // 'gn' will contain either a number (for Macintosh standard order glyph name)
-	    // or a string (otherwise)
-	    $gn = array();
-	    for ($i = 0; $i < count($glyphNameIndex); $i++) {
-		$index = $glyphNameIndex[$i];
-		if ($index >= 0 && $index <= 257) {
-		    $gn[] = $index;
-		} else if ($index >= 258 && $index <= 32767) {
-		    $gn[] = $glyphNames[$index - 258];
-		} else {
-		    throw new Exception(sprintf('Internal error - glyphNameIndex is %d', $index));
-		}
-	    }
-	    $post['glyphNames'] = $gn;
-	} else if ($post['formatType'] == '3.0') {
-	    ; // Nothing more
-	} else {
-	    throw new Exception(sprintf('Internal error - formatType is %s', $post['formatType']));
-	}
+            // 'gn' will contain either a number (for Macintosh standard order glyph name)
+            // or a string (otherwise)
+            $gn = array();
+            for ($i = 0; $i < count($glyphNameIndex); $i++) {
+            $index = $glyphNameIndex[$i];
+            if ($index >= 0 && $index <= 257) {
+                $gn[] = $index;
+            } else if ($index >= 258 && $index <= 32767) {
+                $gn[] = $glyphNames[$index - 258];
+            } else {
+                throw new Exception(sprintf('Internal error - glyphNameIndex is %d', $index));
+            }
+            }
+            $post['glyphNames'] = $gn;
+        } else if ($post['formatType'] == '3.0') {
+            ; // Nothing more
+        } else {
+            throw new Exception(sprintf('Internal error - formatType is %s', $post['formatType']));
+        }
+    }
 	return $post;
     }
 
