@@ -374,6 +374,17 @@ class TTFsubset {
 		 'minMemType1' => $this->post['minMemType1'],
 		 'maxMemType1' => $this->post['maxMemType1'],
 		 'glyphNames' => $gn2);
+    } else if($this->post['formatType'] == '3.0') {
+        $this->newPost = array
+		('formatType' => $this->post['formatType'],
+		 'italicAngle' => $this->post['italicAngle'],
+		 'underlinePosition' => $this->post['underlinePosition'],
+		 'underlineThickness' => $this->post['underlineThickness'],
+		 'isFixedPitch' => $this->post['isFixedPitch'],
+		 'minMemType42' => $this->post['minMemType42'],
+		 'maxMemType42' => $this->post['maxMemType42'],
+		 'minMemType1' => $this->post['minMemType1'],
+		 'maxMemType1' => $this->post['maxMemType1']);
 	} else {
 	    throw new Exception(sprintf('Internal error - formatType is %s', $this->post['formatType']));
 	}
