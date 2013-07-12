@@ -3031,9 +3031,16 @@ class Cpdf
         // hmm, this is where it all starts to get tricky - use the font information to
         // calculate the width of each character, add them up and convert to user units
         $w=0;
-        $len=strlen($text);
+        $len = strlen($text);
         $cf = $this->currentFont;
-        for ($i=0;$i<$len;$i++){
+        // font is set to unicode mode
+        $unicode = $this->fonts[$cf]['isUnicode'];
+        
+        if($unicode){
+            $out = $this->utf8toUtf16BE($text);
+        }
+        
+        for ($i=0;$i< strlen($text) ;$i++){
             $f=1;
             $directive = $this->checkTextDirective($text,$i,$f);
             if ($directive){
@@ -3043,7 +3050,13 @@ class Cpdf
                 }
                 $i=$i+$directive-1;
             } else {
-                $char=ord($text[$i]);
+                if($unicode){
+                    // use the previous converted text (utf8toUtf16BE) and get the correct character index by using below workaround
+                    $char = hexdec(bin2hex(mb_substr($out, $i + 1, 1, 'UTF-16BE')));
+                } else {
+                    // normal ANSI text characters
+                    $char = ord($text[$i]);
+                }
                 if (isset($this->fonts[$cf]['differences'][$char])){
                     // then this character is being replaced by another
                     $name = $this->fonts[$cf]['differences'][$char];
@@ -3055,10 +3068,8 @@ class Cpdf
                 }
             }
         }
-
         $this->currentTextState = $store_currentTextState;
         $this->setCurrentFont();
-
         return $w*$size/1000;
     }
 
