@@ -39,8 +39,9 @@ class CezTableImage extends Cezpdf {
 	/**
 	 * @param Cezpdf $ezpdf current cezpdf object
 	 */
-	function CezShowimage($p,$o = 'portrait',$t = 'none', $op = array()){
+	function CezTableImage($p,$o = 'portrait',$t = 'none', $op = array()){
 		parent::__construct($p, $o,$t,$op);
+        $this->allowedTags .= '|showimage:.*?';
 	}
 	
 	/**

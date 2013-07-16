@@ -61,21 +61,10 @@ class Creport extends Cezpdf{
 }
 
 $pdf = new Creport('a4','portrait');
+// IMPORTANT: In version >= 0.12.0 it is required to allow custom tags (by using $pdf->allowedTags) before using it
+$pdf->allowedTags .= "|rect:.*?";
 
 $pdf -> ezSetMargins(50,70,50,50);
-
-// put a line top and bottom on all the pages
-$all = $pdf->openObject();
-$pdf->saveState();
-$pdf->setStrokeColor(0,0,0,1);
-$pdf->line(20,40,578,40);
-$pdf->line(20,822,578,822);
-$pdf->addText(50,34,6,'http://ros.co.nz/pdf - http://www.sourceforge.net/projects/pdf-php');
-$pdf->restoreState();
-$pdf->closeObject();
-// note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'
-// or 'even'.
-$pdf->addObject($all,'all');
 
 //$mainFont = './fonts/Helvetica.afm';
 $mainFont = '../src/fonts/Times-Roman.afm';
@@ -103,7 +92,8 @@ for($i=0;$i<7;$i++){
 	$mydata[$i]['value'] = $r;
 	$mydata[$i]['barcode'] = $const;
 }
-$pdf->ezText("This example shows you how to implement code39 barcodes in ROS PDF class. It uses the Callback function 'rect' which is defined in the custom class Creport (inhierted from Cezpdf)");
+$pdf->ezText("This example shows you how to implement code39 barcodes in ROS PDF class. It uses the Callback function 'rect' which is defined in the custom class Creport (inhierted from Cezpdf)\n");
+$pdf->ezText("<b>IMPORTANT: In version >= 0.12.0 it is required to allow custom tags (by using \$pdf->allowedTags) before using it</b>");
 $pdf->ezTable($mydata,array('value'=>'Value','barcode'=>'Barcode'),'',array('showLines'=>3,'shaded'=>0,'rowGap'=>6,'showHeadings'=>1,'cols'=>array('barcode'=>array('width'=>$MAXcodeWidth + 10))));
 
 if (isset($_GET['d']) && $_GET['d']){

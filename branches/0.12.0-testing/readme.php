@@ -75,6 +75,11 @@ function dots($info){
 
 //$pdf = new Cezpdf('a4','portrait');
 $pdf = new Creport('a4','portrait', 'none', null);
+$start = microtime(true);
+
+// IMPORTANT: To allow custom callbacks being executed
+$pdf->allowedTags = 'b|strong|i|alink:?.*?|rf:?.*?|ilink:?.*?|dots:[0-9]+';
+
 
 $pdf -> ezSetMargins(50,70,50,50);
 
@@ -255,4 +260,8 @@ if (isset($_GET['d']) && $_GET['d']){
 } else {
   $pdf->ezStream();
 }
+
+$end = microtime(true) - $start;
+error_log($end . ' execution in seconds');
+
 ?>

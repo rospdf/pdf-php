@@ -6,9 +6,11 @@ if(!file_exists($ext)){
 
 include $ext;
 $pdf = new CezDummy("a4");
+
 $pdf->selectFont('../src/fonts/Helvetica.afm');
 
 $pdf->ezText("Check the CezDummy.php extension to find the data being displayed\n");
+$pdf->ezText("<b>IMPORTANT:\nIn version >= 0.12.0 it is required to allow custom tags (by using \$pdf->allowedTags) before using it</b>\n");
 $pdf->ezText("<C:dummy:0>");
 $pdf->ezText("<C:dummy:1>");
 
