@@ -35,7 +35,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - fixed bug: wrong width is used when document is set to unicodee
 - optimized and simplified the methods for custom callbacks (checkTextDirective is no more)
-- improved performance (readme.php is being generated 30% faster)
+- improved performance (readme.php is 30% faster)
 - new property allowedTags, which is important when using custom callbacks (see barcode.php, CezTableImage.php or CezDummy.php)
 - font subsetting completed
 - No ttf2afm or ttf2ufm is required - Thank goes to Thanos Efraimidis (4real.gr) for TTF.php and TTFsubset.php
