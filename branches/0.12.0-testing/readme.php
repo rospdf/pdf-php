@@ -107,7 +107,7 @@ $pdf->selectFont($mainFont);
 $pdf->ezText("PHP Pdf Creation\n",30,array('justification'=>'centre'));
 $pdf->ezText("Module-free creation of Pdf documents\nfrom within PHP\n",20,array('justification'=>'centre'));
 $pdf->ezText("developed by R&OS Ltd",18,array('justification'=>'centre'));
-$pdf->ezText("\n<c:alink:http://www.sourceforge.net/p/pdf-php>http://www.sourceforge.net/p/pdf-php</c:alink>\n\nversion 0.11",18,array('justification'=>'centre'));
+$pdf->ezText("\n<c:alink:http://www.sourceforge.net/p/pdf-php>http://www.sourceforge.net/p/pdf-php</c:alink>\n\nversion 0.12",18,array('justification'=>'centre'));
 
 $pdf->ezSetDy(-100);
 // modified to use the local file if it can
