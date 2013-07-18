@@ -11,6 +11,8 @@ class Creport extends Cezpdf{
   		$this->isUnicode = true;
   		// always embed the font for the time being
   		//$this->embedFont = false;
+  		// since version 0.11.8 it is required to allow custom callbacks
+  		$this->allowedTags .= "|uline"; 
 	}
 }
 $pdf = new Creport('a4','portrait');
@@ -27,7 +29,7 @@ $pdf->openHere('Fit');
 
 $content = file_get_contents('utf8.txt');
 
-$pdf->ezText($content);
+$pdf->ezText($content, 10, array('justification'=>'left'));
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);

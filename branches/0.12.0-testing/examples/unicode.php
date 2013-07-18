@@ -30,7 +30,7 @@ $pdf->selectFont($mainFont, '', 1, true);
 $pdf->ezText("Some European special chars:");
 $pdf->ezText("ABC ÄäÀàÁáÂâÃãÅåǍǎĄą<u> ÇçĐď </u>ÈèÉéÊêËëĚěĘę");
 $pdf->ezText("Cyrillic:");
-$pdf->ezText("<u>КкЛлМмНнОоПпРрСсТтУу</u>");
+$pdf->ezText("<u>КкЛлМмНнО</u> <u>оПпРр</u> <u>СсТтУу</u>");
 $pdf->ezText("Arabic:");
 $pdf->ezText("لبسبيلتتاف لالبالفقث بببب");
 $pdf->ezText("Hebrew:");
