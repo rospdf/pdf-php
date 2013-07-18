@@ -2947,7 +2947,10 @@ class Cpdf
         // need to store the initial text state, as this will change during the width calculation
         // but will need to be re-set before printing, so that the chars work out right
         $store_currentTextState = $this->currentTextState;
-
+        
+        // Used to identify any space char for line breaks (either in Unicode or ANSI)
+        $spaces = array(32,5760,6158,8192,8193,8194,8195,8196,8197,8198,8200,8201,8202,8203,8204,8205,8287,8288,12288);
+            
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
@@ -3018,17 +3021,15 @@ class Cpdf
             //echo "Char: $c ($cOrd) Index: $i w: $w tw: $tw\r\n";
             
             if($w > $tw){
+                //echo "Char: $c ($cOrd) Index: $i w: $w tw: $tw Value: (not set) Break: $break\r\n";
                 
                 // then we need to truncate this line
                 if ($break>0){
-                    // then we have somewhere that we can split :)
-                    if ($c==' '){
-                        $offset = 0;
-                    } else {
-                        $offset = 1;
-                    }
-                    
-                    $tmp = mb_substr($textUtf16, 0, $break);
+                	//if($cOrd == 45){
+                	$offset = 1;
+                	
+                    $tmp = mb_substr($textUtf16, 0, $break + $offset,'UTF-16BE');
+                    $asciiIndex = $this->singlebyte_unit($tmp, 'UTF-16BE');
                     
                     $adjust=0;
                     
@@ -3042,7 +3043,7 @@ class Cpdf
                     }
                     //$sb_offset = $this->multibyte_unit($text, $len);
                     
-                    return substr($text,$i + $offset);
+                    return substr($text,$asciiIndex);
                 } else {
                     // just split before the current character
                     
@@ -3050,9 +3051,6 @@ class Cpdf
                     
                     $tmp = mb_substr($textUtf16,0,$i, 'UTF-16BE');
                     $asciiIndex = $this->singlebyte_unit($tmp, 'UTF-16BE');
-                    
-                    
-                    //echo "Char: $c ($cOrd) Index: $i w: $w tw: $tw Value: (not set) Length: ".strlen($tmp)." ".$asciiIndex."\r\n";
                     
                     $adjust=0;
                     
@@ -3073,16 +3071,15 @@ class Cpdf
             }
             
             // find space or minus for a clean line break
-            if ($c=='-'){
-                $break=$mb_index;
-                $breakWidth = $w*$size/1000;
-            }
-            if ($c==' '){
-                $break=$mb_index;
+            if(in_array($cOrd, $spaces)){
+            	$break=$i;
                 if (isset($this->fonts[$cf]['differences'][$cOrd])){
                     $ctmp=$this->fonts[$cf]['differences'][$cOrd];
                 }
                 $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd])*$size/1000;
+            } else if($cOrd == 45){
+            	$break=$i;
+                $breakWidth = $w*$size/1000;
             }
         }   
         
