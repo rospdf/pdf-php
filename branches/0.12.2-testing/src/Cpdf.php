@@ -3020,7 +3020,7 @@ class Cpdf
                 	//if($cOrd == 45){
                 	$offset = 1;
                 	
-                    $tmp = mb_substr($text, 0, $break + $offset, 'UTF-8');
+                    $tmp = mb_substr($text, 0, $break, 'UTF-8');
                     
                     $adjust=0;
                     
