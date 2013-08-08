@@ -2706,7 +2706,7 @@ class Cpdf
         return array(cos($a)*$w+$x,-sin($a)*$w+$y);
     }
 
-    private function getDirectives(&$text, &$x, &$y, $size = 0, $angle = 0, $wordSpaceAdjust = 0){
+    private function getDirectives(&$text, &$x, &$y, $size = 0, $angle = 0, $wordSpaceAdjust = 0, $noCB = false){
         // backup current font style
         $store_currentTextState = $this->currentTextState;
         
@@ -2727,6 +2727,7 @@ class Cpdf
                 $tmp = $this->getTextPosition(0,0,$angle,$size,$wordSpaceAdjust, substr($text, $start, $tag[1] - $start));
                 $nx += $tmp[0];
                 $ny += $tmp[1];
+                //echo "NX: $nx / NY: $ny\n";
                 $start = $tag[1] + strlen($tag[0]);
                 
                 
@@ -2742,43 +2743,43 @@ class Cpdf
                     }
                     // end tag for custom callbacks
                     if(substr($tag[0], 0, 2) == "</"){
-                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
-                        $this->nCallback--;
-                        if ($this->nCallback<0){
-                            $this->nCallBack=0;
+                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny,'angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        if(!$noCB){
+                            $this->nCallback--;
+                            if ($this->nCallback<0){
+                                $this->nCallback=0;
+                            }
                         }
                     } else {
                         $noClose = ($regs[1][$k][0] == 'C:')? true: false;
-                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
+                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
                                             'startTag' => $startTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
-                        if(!$noClose){
-                            $this->nCallback++;
-                            $cb[$startTagIndex]['nCallback']=$this->nCallback;
-                            $this->callback[$this->nCallback]=$cb[$startTagIndex];
+                        if(!$noCB){
+                            if(!$noClose){
+                                $this->nCallback++;
+                                $cb[$startTagIndex]['nCallback']=$this->nCallback;
+                                $this->callback[$this->nCallback]=$cb[$startTagIndex];
+                            }
                         }
                     }
                 } else {
                     $parm = $regs[2][$k][0];
                     if(substr($tag[0] ,0 , 2) == "</"){
-                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'end',  'p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'end',  'p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
                     } else {
-                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
                     }
                     
                     // do a dry formatting to fetch the correct text width
                     $this->defaultFormatting($cb[$startTagIndex]);
                     $this->setCurrentFont();
                 }
-                
-                $cb[$startTagIndex]['x'] = $nx;
-                $cb[$startTagIndex]['y'] = $ny;
             }
         }
         
         // restore previous stored font style 
         $this->currentTextState = $store_currentTextState;
         $this->setCurrentFont();
-        //print_r($cb);
         return $cb;
     }
     
@@ -2810,7 +2811,6 @@ class Cpdf
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
-        
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0){ 
             for ($i = $this->nCallback; $i > 0; $i--){
@@ -2848,7 +2848,6 @@ class Cpdf
         // DEBUG - add UTF-8 byte order mask to see a proper result while debugging
         //echo "\xEF\xBB\xBF";
         //print_r($directives);
-        
         $start=0;
         for ($i=0;$i<$len;$i++){
             if(isset($directives[$i])){
@@ -2982,24 +2981,13 @@ class Cpdf
         $cf = $this->currentFont;
         $tw = $width/$size*1000;
         
-        $directives = $this->getDirectives($text, $x, $y, $size, $angle);
-        
+        $directives = $this->getDirectives($text, $x, $y, $size, $angle, 0, true);
         // DEBUG INFO:
         //echo $text."\n\n";
         //print_r($directives);
         
         for($i = 0; $i < $len;  $i++){
             if(isset($directives[$i])){
-                $func = $directives[$i]['f'];
-                if($func != 'defaultFormatting'){
-                    // custom callbacks
-                } else{
-                    // default formatting
-                    $this->defaultFormatting($directives[$i]);
-                    $this->setCurrentFont();
-                }
-                $cf = $this->currentFont;
-                
                 $i = $directives[$i]['endTag'] - 1;
                 continue;
             }
