@@ -3030,7 +3030,7 @@ class Cpdf
                     if (!$test){
                         $this->addText($x,$y,$size, $tmp,$angle,$adjust);
                     }
-                    return mb_substr($text,$i, $len - $i, 'UTF-8');
+                    return mb_substr($text,$break + $offset, $len, 'UTF-8');
                 } else {
                     // just split before the current character
                     
@@ -3052,7 +3052,7 @@ class Cpdf
                         $this->addText($x,$y,$size, $tmp,$angle,$adjust);
                     }
                     
-                    return mb_substr($text,$i, $len - $i, 'UTF-8');
+                    return mb_substr($text,$i, $len, 'UTF-8');
                 }
             }
             
