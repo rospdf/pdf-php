@@ -22,6 +22,11 @@ $pdf->ezSetMargins(20,20,20,20);
 
 $f = (isset($_GET['font']))?$_GET['font']:'FreeSerif';
 
+$tmp = array(
+    'b'=>'FreeSerifBold'
+);
+$pdf->setFontFamily('FreeSerif', $tmp);
+
 $mainFont = '../src/fonts/'.$f;
 // select a font
 $pdf->selectFont($mainFont);
