@@ -13,7 +13,7 @@
  * @author   Ole K <ole1986@users.sourceforge.net>
  * @copyright 2007 - 2013 The authors
  * @license   GPL http://www.opensource.org/licenses/gpl-license.php
- * @version  0.12.1 (>=php4.0.6)
+ * @version  0.12.2 (>=php4.0.6)
  * @link     http://pdf-php.sf.net
  */
  
@@ -2707,24 +2707,31 @@ class Cpdf
     }
 
     private function getDirectives(&$text, &$x, &$y, $size = 0, $angle = 0, $wordSpaceAdjust = 0){
+        // backup current font style
+        $store_currentTextState = $this->currentTextState;
+        
+    
         $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/u";
         $cb = array();
         $r = preg_match_all($regex, $text, $regs, PREG_OFFSET_CAPTURE);
         if($r){
-            $s = 0;
+            $nx = $x;
+            $ny = $y;
+            
+            $start = 0;
             foreach($regs[0] as $k=>$tag){
-                $textNoTags = preg_replace($regex , '',  substr($text,0,$tag[1]));
-                
-                $tmp = $this->getTextPosition($x,$y,$angle,$size,$wordSpaceAdjust, $textNoTags);
-                
                 // correct the unicode positions captured by preg_match_all, if necessary
                 $startTagIndex = mb_strlen(substr($text, 0, $tag[1]), 'UTF-8');
                 $endTagIndex = $startTagIndex + strlen($tag[0]);
                 
+                $tmp = $this->getTextPosition(0,0,$angle,$size,$wordSpaceAdjust, substr($text, $start, $tag[1] - $start));
+                $nx += $tmp[0];
+                $ny += $tmp[1];
+                $start = $tag[1] + strlen($tag[0]);
+                
                 
                 if(!empty($regs[1][$k][0])){
                     // these are custom callbacks (with parameters)
-                    
                     $pos = strpos($regs[2][$k][0], ':');
                     if($pos){
                         $func = substr($regs[2][$k][0], 0, $pos);
@@ -2735,15 +2742,14 @@ class Cpdf
                     }
                     // end tag for custom callbacks
                     if(substr($tag[0], 0, 2) == "</"){
-                        $cb[$startTagIndex] = array('x' => $tmp[0], 'y' => $tmp[1],'angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 
-                                            'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
                         $this->nCallback--;
                         if ($this->nCallback<0){
                             $this->nCallBack=0;
                         }
                     } else {
                         $noClose = ($regs[1][$k][0] == 'C:')? true: false;
-                        $cb[$startTagIndex] = array('x' => $tmp[0], 'y' => $tmp[1],'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
+                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
                                             'startTag' => $startTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
                         if(!$noClose){
                             $this->nCallback++;
@@ -2752,18 +2758,26 @@ class Cpdf
                         }
                     }
                 } else {
-                    
                     $parm = $regs[2][$k][0];
                     if(substr($tag[0] ,0 , 2) == "</"){
-                        $cb[$startTagIndex] = array('x' => $tmp[0], 'y' => $tmp[1],'angle'=>$angle,'status'=>'end','p'=>$parm,'f'=>'defaultFormatting',
-                                            'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'end',  'p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
                     } else {
-                        $cb[$startTagIndex] = array('x' => $tmp[0], 'y' => $tmp[1],'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting',
-                                            'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$startTagIndex] = array('angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
                     }
+                    
+                    // do a dry formatting to fetch the correct text width
+                    $this->defaultFormatting($cb[$startTagIndex]);
+                    $this->setCurrentFont();
                 }
+                
+                $cb[$startTagIndex]['x'] = $nx;
+                $cb[$startTagIndex]['y'] = $ny;
             }
         }
+        
+        // restore previous stored font style 
+        $this->currentTextState = $store_currentTextState;
+        $this->setCurrentFont();
         //print_r($cb);
         return $cb;
     }
@@ -2976,7 +2990,7 @@ class Cpdf
         
         for($i = 0; $i < $len;  $i++){
             if(isset($directives[$i])){
-                /*$func = $directives[$i]['f'];
+                $func = $directives[$i]['f'];
                 if($func != 'defaultFormatting'){
                     // custom callbacks
                 } else{
@@ -2984,7 +2998,7 @@ class Cpdf
                     $this->defaultFormatting($directives[$i]);
                     $this->setCurrentFont();
                 }
-                $cf = $this->currentFont;*/
+                $cf = $this->currentFont;
                 
                 $i = $directives[$i]['endTag'] - 1;
                 continue;
@@ -3095,7 +3109,7 @@ class Cpdf
         // this function should not change any of the settings, though it will need to
         // track any directives which change during calculation, so copy them at the start
         // and put them back at the end.
-        $store_currentTextState = $this->currentTextState;
+        //$store_currentTextState = $this->currentTextState;
         if (!$this->numFonts){
             $this->selectFont('./fonts/Helvetica');
         }
@@ -3126,8 +3140,8 @@ class Cpdf
                 $w+=$this->fonts[$cf]['C'][$char];
             }
         }
-        $this->currentTextState = $store_currentTextState;
-        $this->setCurrentFont();
+        //$this->currentTextState = $store_currentTextState;
+        //$this->setCurrentFont();
         return $w*$size/1000;
     }
 
