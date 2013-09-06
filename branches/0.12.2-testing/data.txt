@@ -29,6 +29,12 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12.2>
+
+- additional bug fixes for directive (especially for UTF-8 text)
+- slightly performance improvements
+- addTextWrap function is no more, use addText instead
+
 2<version 0.12.1>
 
 - use UTF-8 text input in addText and addTextWrap by default
@@ -748,7 +754,7 @@ Note that the code for the example and the actual one shown are not identical fo
 
 2<addText>
 
-addText(x,y,size,text,[angle=0],[adjust=0])
+addText(x,y,size,text[,width=0][,justification='left'][,angle=0][,wordSpaceAdjust=0][,test=0])
 
 Add the text at a particular location on the page, noting that the origin on the axes in a pdf document is in the lower left corner by default.
 An angle can be supplied as this will do the obvious (in degrees).

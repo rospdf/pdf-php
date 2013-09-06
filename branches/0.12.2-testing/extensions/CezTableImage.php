@@ -500,7 +500,7 @@ class CezTableImage extends Cezpdf {
                                             $just='left';
                                         }
 
-                                        $line=$this->addTextWrap($pos[$colName],$this->y,$maxWidth[$colName],$options['fontSize'],$line,$just);
+                                        $line=$this->addText($pos[$colName],$this->y,$options['fontSize'], $line, $maxWidth[$colName], $just);
                                     }
                                 }
                             }

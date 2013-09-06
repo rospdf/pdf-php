@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Create pdf documents without additional modules
  *
@@ -2671,7 +2671,7 @@ class Cpdf
                 for($i = 0; $i < mb_strlen($text,'UTF-16BE'); $i++)
                     $this->fonts[$cf]['subset'][mb_substr($text,$i, 1, 'UTF-16BE')] = true;
             }
-        } else {
+        } else if(!$this->fonts[$cf]['isUnicode']) {
             //$text = mb_convert_encoding($text, $this->targetEncoding);
             // store all used characters if subset font is set to true
             if($this->fonts[$cf]['isSubset']){
@@ -2689,47 +2689,76 @@ class Cpdf
         return $text;
     }
 
-    /**
-     * given a start position and information about how text is to be laid out, calculate where
-     * on the page the text will end
-     *
-     * @access protected
-     */
-    protected function getTextPosition($x,$y,$angle,$size,$wa,$text){
-        // given this information return an array containing x and y for the end position as elements 0 and 1
-        $w = $this->getTextWidth($size,$text);
-        // need to adjust for the number of spaces in this text
-        $words = explode(' ',$text);
-        $nspaces=count($words)-1;
-        $w += $wa*$nspaces;
-        $a = deg2rad((float)$angle);
-        return array(cos($a)*$w+$x,-sin($a)*$w+$y);
-    }
-
-    private function getDirectives(&$text, &$x, &$y, $size = 0, $angle = 0, $wordSpaceAdjust = 0, $noCB = false){
+    private function getDirectives(&$text, &$x, &$y, $width = 0, $size = 0, $justification = 'left',$angle = 0, &$wordSpaceAdjust = 0, $noCB = false){
         // backup current font style
         $store_currentTextState = $this->currentTextState;
-        
-    
-        $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/u";
+        $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/";
         $cb = array();
         $r = preg_match_all($regex, $text, $regs, PREG_OFFSET_CAPTURE);
         if($r){
             $nx = $x;
             $ny = $y;
+            if($this->nCallback > 0){
+                //echo "nCallback: ".$this->nCallback." - $text\n";
+                $cb[0] = $this->callback[1];
+                $cb[0]['x'] = $x;
+                $cb[0]['y'] = $y;
+                $cb[0]['startTag'] = 0;
+                $cb[0]['endTag'] = 0;
+            }
             
-            $start = 0;
-            foreach($regs[0] as $k=>$tag){
-                // correct the unicode positions captured by preg_match_all, if necessary
-                $startTagIndex = mb_strlen(substr($text, 0, $tag[1]), 'UTF-8');
-                $endTagIndex = $startTagIndex + strlen($tag[0]);
+            $restWidth = $width;
+            reset($regs[0]);
+            
+            $prevEndTagIndex = 0;
+            while(list($k,$curTag) = each($regs[0])){
+                $curTagIndex = mb_strlen(substr($text, 0, $curTag[1]), 'UTF-8');
+                $endTagIndex = $curTagIndex + strlen($curTag[0]);
                 
-                $tmp = $this->getTextPosition(0,0,$angle,$size,$wordSpaceAdjust, substr($text, $start, $tag[1] - $start));
+                $tmpstr = mb_substr($text, $prevEndTagIndex, $curTagIndex - $prevEndTagIndex, 'UTF-8');
+                $tmpstr = $this->filterText($tmpstr, false, false);
+                
+                $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
+                if(isset($_GET['d'])){
+                    //echo "Size: ".$tmp[0]." nx: $nx restWidth: $restWidth width: $width - '".$tmpstr."' \n";
+                    //print_r($tmp);
+                }
+                
+                // if the text does not fit to $width, $tmp[2] contains the length to break the line
+                if($tmp[2] > 0){
+                    // position where the line break occurs
+                    $lbpos = $prevEndTagIndex + $tmp[2];
+                    
+                    // adjust to position if justification is set
+                    if($nx > $x){
+                        $tmpw = ($width - $restWidth) + $tmp[0];
+                        // force word wrap when something already written
+                        $lbpos -= $tmp[2];
+                        if($prevEndTagIndex == $lbpos){
+                            $lastCallback = array_pop($cb);
+                            
+                            if(isset($lastCallback)){
+                                $lbpos -= $lastCallback['endTag'] - $lastCallback['startTag'];
+                                $tmp[0] = 0;
+                                if(isset($lastCallback['nCallback']))
+                                    $this->nCallback--;
+                            }
+                        }
+                    } else{
+                        $tmpw = $tmp[0];
+                    }
+                    
+                    $this->adjustWrapText($tmpstr, $tmpw, $width, $x, $wordSpaceAdjust, $justification);
+                    // set position array by using the current break position minus offset
+                    $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                    return $cb;
+                }
+                
+                $prevEndTagIndex = $endTagIndex;
+                $restWidth -= $tmp[0];
+                
                 $nx += $tmp[0];
                 $ny += $tmp[1];
-                //echo "NX: $nx / NY: $ny\n";
-                $start = $tag[1] + strlen($tag[0]);
-                
                 
                 if(!empty($regs[1][$k][0])){
                     // these are custom callbacks (with parameters)
@@ -2741,9 +2770,11 @@ class Cpdf
                         $func = $regs[2][$k][0];
                         $parm = '';
                     }
+                    // adjust the coordinates if justification is set
+                    
                     // end tag for custom callbacks
-                    if(substr($tag[0], 0, 2) == "</"){
-                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny,'angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                    if(substr($curTag[0], 0, 2) == "</"){
+                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny,'angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $curTagIndex, 'endTag' => $endTagIndex );
                         if(!$noCB){
                             $this->nCallback--;
                             if ($this->nCallback<0){
@@ -2752,28 +2783,83 @@ class Cpdf
                         }
                     } else {
                         $noClose = ($regs[1][$k][0] == 'C:')? true: false;
-                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
-                                            'startTag' => $startTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
+                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
+                                            'startTag' => $curTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
                         if(!$noCB){
                             if(!$noClose){
                                 $this->nCallback++;
-                                $cb[$startTagIndex]['nCallback']=$this->nCallback;
-                                $this->callback[$this->nCallback]=$cb[$startTagIndex];
+                                $cb[$curTagIndex]['nCallback']=$this->nCallback;
+                                $this->callback[$this->nCallback]=$cb[$curTagIndex];
                             }
                         }
                     }
                 } else {
                     $parm = $regs[2][$k][0];
-                    if(substr($tag[0] ,0 , 2) == "</"){
-                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'end',  'p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                    if(substr($curTag[0] ,0 , 2) == "</"){
+                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'end',  'p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $curTagIndex, 'endTag' => $endTagIndex );
                     } else {
-                        $cb[$startTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $startTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $curTagIndex, 'endTag' => $endTagIndex );
                     }
                     
                     // do a dry formatting to fetch the correct text width
-                    $this->defaultFormatting($cb[$startTagIndex]);
+                    $this->defaultFormatting($cb[$curTagIndex]);
                     $this->setCurrentFont();
                 }
+            }
+            
+            $l = mb_strlen($text, 'UTF-8');
+            
+            if($prevEndTagIndex < $l){
+                $tmpstr = mb_substr($text, $prevEndTagIndex, $l - $prevEndTagIndex, 'UTF-8');
+                //echo "justify: $justification - '$tmpstr'\n";
+                $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
+                // if the text does not fit to $width, $tmp[2] contains the length
+                if($tmp[2] > 0){
+                    $tmpstr = mb_substr($text, 0, $prevEndTagIndex + $tmp[2], 'UTF-8');
+                    
+                    //$justification = 'left';
+                    // adjust to position if justification is set
+                    $this->adjustWrapText($tmpstr, $width - ($restWidth - $tmp[0]), $width, $x, $wordSpaceAdjust, $justification);
+                    // set position array by using the current break position minus offset
+                    
+                    $lbpos = $prevEndTagIndex + $tmp[2];
+                    $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                    return $cb;
+                } else {
+                    $cb[$prevEndTagIndex] = array('x'=> $nx, 'y'=> $ny, 'f'=>'break', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                    return $cb;
+                }
+            }
+            
+            // adjust to position if justification is set
+            $tmpx = $x;
+            if($justification != 'full') {
+                
+                $this->adjustWrapText($tmpstr, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
+            }
+            
+            foreach($cb as &$v){
+                if($v['status'] == 'start'){
+                    $v['x'] += $x - $tmpx;
+                } else {
+                    $v['x'] += $x - $tmpx;
+                }
+            }
+            
+        } else {
+            $tmp = $this->getTextLength($size, $text, $width, $angle, $wordSpaceAdjust);
+            // if the text does not fit to $width, $tmp[2] contains the length
+            if($tmp[2] > 0){
+                //echo "justify: $justification - '$text'\n";
+                $tmpstr = mb_substr($text, 0, $tmp[2], 'UTF-8');
+                // adjust to position if justification is set
+                $this->adjustWrapText($tmpstr, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
+                // set position array by using the current break position minus offset
+                $lbpos = $tmp[2];
+                $cb[$lbpos] = array('x'=> ($x + $tmp[0]), 'y'=> $y + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                return $cb;
+            } else if($justification != 'full') {
+                $this->adjustWrapText($text, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
             }
         }
         
@@ -2807,10 +2893,11 @@ class Cpdf
      * add text to the document, at a specified location, size and angle on the page
      * @access public
      */
-    public function addText($x, $y, $size, $text, $angle = 0, $wordSpaceAdjust = 0) {
+    public function addText($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test=0) {
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
+        
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0){ 
             for ($i = $this->nCallback; $i > 0; $i--){
@@ -2821,20 +2908,7 @@ class Cpdf
             }
         }
         
-        if ($angle == 0) {
-          $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
-        } else {
-          $a = deg2rad((float)$angle);
-          $this->addContent(sprintf("\nBT %.3F %.3F %.3F %.3F %.3F %.3F Tm", cos($a), -sin($a), sin($a), cos($a), $x, $y));
-        }
-        
         $cf = $this->currentFont;
-        // only single-byte character will work with word spacing according to PDF 1.3 reference (Chapter 5.2.2)
-        if (!$this->fonts[$cf]['isUnicode'] && ($wordSpaceAdjust != 0 || $wordSpaceAdjust != $this->wordSpaceAdjust)) {
-            
-          $this->wordSpaceAdjust = $wordSpaceAdjust;
-          $this->addContent(sprintf(" %.3F Tw", $wordSpaceAdjust));
-        }
         
         // convert ISO-8859-1 into utf8 if necessary
         if(mb_detect_encoding($text) != 'UTF-8'){
@@ -2843,52 +2917,85 @@ class Cpdf
         // get length of its unicode string
         $len=mb_strlen($text,'UTF-8');
         
+        $directives = $this->getDirectives($text, $x, $y, $width, $size, $justification, $angle, $wordSpaceAdjust);
         
-        $directives = $this->getDirectives($text, $x, $y, $size, $angle, $wordSpaceAdjust);
         // DEBUG - add UTF-8 byte order mask to see a proper result while debugging
         //echo "\xEF\xBB\xBF";
-        //print_r($directives);
+        if(isset($_GET['d'])){
+            //print_r($directives);
+        }
+        
+        if ($angle == 0) {
+          $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
+        } else {
+          $a = deg2rad((float)$angle);
+          $this->addContent(sprintf("\nBT %.3F %.3F %.3F %.3F %.3F %.3F Tm", cos($a), -sin($a), sin($a), cos($a), $x, $y));
+        }
+        
+        // only single-byte character will work with word spacing according to PDF 1.3 reference (Chapter 5.2.2)
+        if (!$this->fonts[$cf]['isUnicode'] && ($wordSpaceAdjust != 0 || $wordSpaceAdjust != $this->wordSpaceAdjust)) {
+          $this->wordSpaceAdjust = $wordSpaceAdjust;
+          $this->addContent(sprintf(" %.3F Tw", $wordSpaceAdjust));
+        }
+        
         $start=0;
-        for ($i=0;$i<$len;$i++){
-            if(isset($directives[$i])){
-                // print the text first
-                if ($i>$start){
-                    $part = mb_substr($text,$start,$i-$start, 'UTF-8');
-                    $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ');
-                    $this->addContent(' ('.$this->filterText($part, false).') Tj');
-                }
-                
-                $func = $directives[$i]['f'];
-                if($func != 'defaultFormatting'){
-                    $this->$func($directives[$i]);
-                    $this->addContent(' ET');
-                
-                    $xp = $directives[$i]['x'];
-                    $yp = $directives[$i]['y'];
-                
-                    // restart the text object
-                    if ($angle==0){
-                        $this->addContent("\n".'BT '.sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Td');
-                    } else {
-                        $a = deg2rad((float)$angle);
-                        $tmp = "\n".'BT ';
-                        $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
-                        $tmp .= sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Tm';
-                        $this->addContent($tmp);
-                    }
-                    // only single-byte character will work with word spacing according to PDF 1.3 reference (Chapter 5.2.2)
-                    if (!$this->fonts[$cf]['isUnicode'] && ($wordSpaceAdjust!=0 || $wordSpaceAdjust != $this->wordSpaceAdjust)){
-                        $this->wordSpaceAdjust=$wordSpaceAdjust;
-                        $this->addContent(' '.sprintf('%.3F',$wordSpaceAdjust).' Tw');
-                    }
-                } else { // only default formatting
-                    $this->defaultFormatting($directives[$i]);
-                    $this->setCurrentFont();
-                }
-                
-                $i = $directives[$i]['endTag'] - 1;
-                $start = $i + 1;
+        foreach($directives as  $pos => $directive){
+            if($pos > $start){
+                $part = mb_substr($text,$start,$pos-$start, 'UTF-8');
+                $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ');
+                $this->addContent(' ('.$this->filterText($part, false).') Tj');
             }
+            
+            $func = $directive['f'];
+            if($func == 'defaultFormatting'){ // default font style, bold, italic, ...
+                $this->defaultFormatting($directive);
+                $this->setCurrentFont();
+            } else if($func == 'linebreak') { // line break
+                if ($this->nCallback > 0) { 
+                    for ($j = $this->nCallback; $j > 0; $j--) {
+                        $info = array(
+                          'x' => $directive['x'],
+                          'y' => $directive['y'],
+                          'angle' => $angle,
+                          'status' => 'eol',
+                          'p'         => $this->callback[$j]['p'],
+                          'nCallback' => $this->callback[$j]['nCallback'],
+                          'height'    => $this->callback[$j]['height'],
+                          'descender' => isset($this->callback[$j]['descender'])?$this->callback[$j]['descender']:null
+                        );
+                        $func = $this->callback[$j]['f'];
+                        $this->$func($info);
+                    }
+                }
+                return mb_substr($text,$pos + $directive['p'], $len, 'UTF-8');
+            } else if($func == 'break') {
+                $this->addContent("\n".'BT '.sprintf('%.3F',$directive['x']).' '.sprintf('%.3F',$directive['y']).' Td');
+                break;
+            } else { // custom callbacks
+                //echo "$func called $i";
+                $this->$func($directive);
+                $this->addContent(' ET');
+                
+                $xp = $directive['x'];
+                $yp = $directive['y'];
+                
+                // restart the text object
+                if ($angle==0){
+                    $this->addContent("\n".'BT '.sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Td');
+                } else {
+                    $a = deg2rad((float)$angle);
+                    $tmp = "\n".'BT ';
+                    $tmp .= sprintf('%.3F',cos($a)).' '.sprintf('%.3F',(-1.0*sin($a))).' '.sprintf('%.3F',sin($a)).' '.sprintf('%.3F',cos($a)).' ';
+                    $tmp .= sprintf('%.3F',$xp).' '.sprintf('%.3F',$yp).' Tm';
+                    $this->addContent($tmp);
+                }
+                // only single-byte character will work with word spacing according to PDF 1.3 reference (Chapter 5.2.2)
+                if (!$this->fonts[$cf]['isUnicode'] && ($wordSpaceAdjust!=0 || $wordSpaceAdjust != $this->wordSpaceAdjust)){
+                    $this->wordSpaceAdjust=$wordSpaceAdjust;
+                    $this->addContent(' '.sprintf('%.3F',$wordSpaceAdjust).' Tw');
+                }
+            }
+            $start = $directive['endTag'];
         }
         
         if ($start < $len) {
@@ -2911,10 +3018,11 @@ class Cpdf
         if ($this->nCallback > 0) { 
           for ($i = $this->nCallback; $i > 0; $i--) {
             // call each function
-            $tmp = $this->getTextPosition($x, $y, $angle, $size, $wordSpaceAdjust, $text);
+            $tmp = $this->getTextLength($size, $text, $width, $angle, $wordSpaceAdjust);
+            //$tmp = $this->getTextPosition($x, $y, $angle, $size, $wordSpaceAdjust, $text);
             $info = array(
-              'x' => $tmp[0],
-              'y' => $tmp[1],
+              'x' => $tmp[0] + $x,
+              'y' => $tmp[1] + $y,
               'angle' => $angle,
               'status' => 'eol',
               'p'         => $this->callback[$i]['p'],
@@ -2926,6 +3034,8 @@ class Cpdf
             $this->$func($info);
           }
         }
+        // return text position of the last line break or 0 (if error -1)
+        return '';
     }
     
     /*
@@ -2942,56 +3052,38 @@ class Cpdf
     }
     
     /**
-     * add text to the page, but ensure that it fits within a certain width
-     * if it does not fit then put in as much as possible, splitting at word boundaries
-     * and return the remainder.
-     * justification and angle can also be specified for the text
+     * calculate how wide a given text string will be on a page, at a given size.
+     * this can be called externally, but is alse used by the other class functions
      * @access public
      */
-    public function addTextWrap($x, $y, $width, $size, $text, $justification = 'left', $angle = 0, $test = 0){
-        // this will display the text, and if it goes beyond the width $width, will backtrack to the
-        // previous space or hyphen, and return the remainder of the text.
-        
-        // $justification can be set to 'left','right','center','centre','full'
-
-        // need to store the initial text state, as this will change during the width calculation
-        // but will need to be re-set before printing, so that the chars work out right
-        $store_currentTextState = $this->currentTextState;
-        
+    public function getTextWidth($size,$text){
+        $tmp = $this->getTextLength($size, $text);
+        return $tmp[0];
+    }
+    
+    private function getTextLength($size, $text, $maxWidth = 0, $angle = 0, $wa = 0){
         // Used to identify any space char for line breaks (either in Unicode or ANSI)
         $spaces = array(32,5760,6158,8192,8193,8194,8195,8196,8197,8198,8200,8201,8202,8203,8204,8205,8287,8288,12288);
-            
-        if (!$this->numFonts) {
-            $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
+        
+        if (!$this->numFonts){
+            $this->selectFont('./fonts/Helvetica');
         }
-        if ($width<=0){
-            // error, pretend it printed ok, otherwise risking a loop
-            return '';
-        }
-        $w=0;
-        $break=0;
-        $breakWidth=0;
+        
         // convert ISO-8859-1 into utf8 if necessary
         if(mb_detect_encoding($text) != 'UTF-8'){
             $text=utf8_encode($text);
         }
+        
+        
+        $a = deg2rad((float)$angle);
         // get length of its unicode string
-        $len=mb_strlen($text,'UTF-8');
-        
+        $len=mb_strlen($text);
         $cf = $this->currentFont;
-        $tw = $width/$size*1000;
+        $tw = $maxWidth/$size*1000;
+        $break=0;
+        $w=0;
         
-        $directives = $this->getDirectives($text, $x, $y, $size, $angle, 0, true);
-        // DEBUG INFO:
-        //echo $text."\n\n";
-        //print_r($directives);
-        
-        for($i = 0; $i < $len;  $i++){
-            if(isset($directives[$i])){
-                $i = $directives[$i]['endTag'] - 1;
-                continue;
-            }
-            
+        for ($i=0;$i< $len ;$i++){
             $c = mb_substr($text, $i, 1, 'UTF-8');
             $cOrd = $this->uniord($c);
             
@@ -3009,128 +3101,38 @@ class Cpdf
             if (isset($this->fonts[$cf]['C'][$cOrd2])){
                 $w+=$this->fonts[$cf]['C'][$cOrd2];
             }
-        
-            //echo "Char: $c ($cOrd) Index: $i w: $w tw: $tw\r\n";
+            // word space adjust
+            if($wa > 0 && in_array($cOrd2, $spaces)){
+                $w += $wa;
+            }
             
-            if($w > $tw){
-                //echo "Char: $c ($cOrd) Index: $i w: $w tw: $tw Value: (not set) Break: $break\r\n";
-                
-                // then we need to truncate this line
+            if($maxWidth > 0 && (cos($a)*$w) > $tw){
                 if ($break>0){
-                	//if($cOrd == 45){
-                	$offset = 1;
-                	
-                    $tmp = mb_substr($text, 0, $break, 'UTF-8');
-                    
-                    $adjust=0;
-                    
-                    $this->adjustWrapText($tmp,$breakWidth ,$width,$x,$adjust,$justification);
-
-                    // reset the text state
-                    $this->currentTextState = $store_currentTextState;
-                    $this->setCurrentFont();
-                    if (!$test){
-                        $this->addText($x,$y,$size, $tmp,$angle,$adjust);
-                    }
-                    return mb_substr($text,$break + $offset, $len, 'UTF-8');
+                    //echo mb_substr($text, 0, $break, 'UTF-8');
+                    return array(cos($a)*$breakWidth, -sin($a)*$breakWidth, $break, 1);
                 } else {
-                    // just split before the current character
-                    
                     $ctmp = $cOrd;
-                    
-                    $tmp = mb_substr($text,0,$i, 'UTF-8');
-                    
-                    $adjust=0;
-                    
                     if (isset($this->fonts[$cf]['differences'][$ctmp])){
                         $ctmp=$this->fonts[$cf]['differences'][$ctmp];
                     }
                     $tmpw=($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
-                    $this->adjustWrapText($tmp,$tmpw,$width,$x,$adjust,$justification);
-                    // reset the text state
-                    $this->currentTextState = $store_currentTextState;
-                    $this->setCurrentFont();
-                    if (!$test){
-                        $this->addText($x,$y,$size, $tmp,$angle,$adjust);
-                    }
-                    
-                    return mb_substr($text,$i, $len, 'UTF-8');
+                    // just split before the current character
+                    return array(cos($a)*$tmpw, -sin($a)*$tmpw, $i, 0);
                 }
             }
             
             // find space or minus for a clean line break
-            if(in_array($cOrd, $spaces)){
+            if(in_array($cOrd2, $spaces) && $maxWidth > 0){
             	$break=$i;
-                if (isset($this->fonts[$cf]['differences'][$cOrd])){
-                    $ctmp=$this->fonts[$cf]['differences'][$cOrd];
-                }
-                $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd])*$size/1000;
-            } else if($cOrd == 45){
+                $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd2])*$size/1000;
+            } else if($cOrd2 == 45  && $maxWidth > 0){
             	$break=$i;
                 $breakWidth = $w*$size/1000;
             }
-        }   
-        
-      
-        // then there was no need to break this line
-        if ($justification=='full'){
-            $justification='left';
         }
-        $adjust=0;
+        
         $tmpw=$w*$size/1000;
-        $this->adjustWrapText($text,$tmpw,$width,$x,$adjust,$justification);
-        // reset the text state
-        $this->currentTextState = $store_currentTextState;
-        $this->setCurrentFont();
-        if (!$test){
-            $this->addText($x,$y,$size, $text,$angle,$adjust,$angle);
-        }
-        return '';
-    }
-
-    /**
-     * calculate how wide a given text string will be on a page, at a given size.
-     * this can be called externally, but is alse used by the other class functions
-     * @access public
-     */
-    public function getTextWidth($size,$text){
-        // this function should not change any of the settings, though it will need to
-        // track any directives which change during calculation, so copy them at the start
-        // and put them back at the end.
-        //$store_currentTextState = $this->currentTextState;
-        if (!$this->numFonts){
-            $this->selectFont('./fonts/Helvetica');
-        }
-
-        // converts a number or a float to a string so it can get the width
-        //$text = "$text";
-        
-        // convert ISO-8859-1 into utf8 if necessary
-        if(mb_detect_encoding($text) != 'UTF-8'){
-            $text=utf8_encode($text);
-        }
-        // get length of its unicode string
-        $len=mb_strlen($text);
-        $cf = $this->currentFont;
-        $w=0;
-        
-        for ($i=0;$i< $len ;$i++){
-            $c = mb_substr($text, $i, 1, 'UTF-8');
-            $char = $this->uniord($c);
-            
-            if (isset($this->fonts[$cf]['differences'][$char])){
-                // then this character is being replaced by another
-                $name = $this->fonts[$cf]['differences'][$char];
-                if (isset($this->fonts[$cf]['C'][$name])){
-                    $w+=$this->fonts[$cf]['C'][$name];
-                }
-            } else if (isset($this->fonts[$cf]['C'][$char])){
-                $w+=$this->fonts[$cf]['C'][$char];
-            }
-        }
-        //$this->currentTextState = $store_currentTextState;
-        //$this->setCurrentFont();
-        return $w*$size/1000;
+        return array(cos($a)*$tmpw, -sin($a)*$tmpw, 0, 0);
     }
 
     /**

@@ -1300,7 +1300,6 @@ class Cezpdf extends Cpdf {
                             foreach ($lines as $line){
                                 $line = $this->ezProcessText($line);
                                 $start=1;
-
                                 while (strlen($line) || $start){
                                     $start=0;
                                     if (!$colNewPage){
@@ -1325,7 +1324,7 @@ class Cezpdf extends Cpdf {
                                             $just='left';
                                         }
 
-                                        $line=$this->addTextWrap($pos[$colName],$this->y,$maxWidth[$colName],$options['fontSize'],$line,$just);
+                                        $line=$this->addText($pos[$colName],$this->y,$options['fontSize'], $line, $maxWidth[$colName], $just);
                                     }
                                 }
                             }
@@ -1557,7 +1556,7 @@ class Cezpdf extends Cpdf {
                 } else {
                     $right = $this->ez['pageWidth'] - $this->ez['rightMargin'] - ((is_array($options) && isset($options['right']))?$options['right']:0);
                 }
-                $line=$this->addTextWrap($left,$this->y,$right-$left,$size,$line,$just,0,$test);
+                $line=$this->addText($left,$this->y,$size,$line,$right-$left,$just,0,0, $test);
             }
         }
 
