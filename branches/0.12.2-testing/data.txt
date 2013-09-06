@@ -34,6 +34,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 - additional bug fixes for directive (especially for UTF-8 text)
 - slightly performance improvements
 - addTextWrap function is no more, use addText instead
+- added FreeSerif font from http://ftp.gnu.org/gnu/freefont/ 
 
 2<version 0.12.1>
 
