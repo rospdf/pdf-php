@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Create pdf documents without additional modules
  *
