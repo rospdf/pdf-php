@@ -29,7 +29,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<version 0.12.2-RC2>
+2<version 0.12-rc2>
 
 - bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)
 - fixed bug with wrong calculation of the char "0" (zero) in $pdf->uniord($c)
@@ -782,11 +782,11 @@ Especially <b>bold</b> and <i>italic</i> requires the style of the font being us
 If you wish to print an actual '<', most of the time it would cause no problem, except in the instance where it would form a directive. Use HTML special char &amp;lt; and &amp;gt;
 
 #C
-$pdf->addText(150,$y,10,"the quick brown fox &lt;b>jumps&lt;/b> &lt;i>over&lt;/i> the lazy dog!",-10);
+$pdf->addText(150,$y,10,"the quick brown fox &lt;b>jumps&lt;/b> &lt;i>over&lt;/i> the lazy dog!",0, 'left',-10);
 #c
 #X
 $pdf->ezSetDy(-40,'makeSpace');
-$pdf->addText(150,$pdf->y,10,"the quick brown fox <b>jumps</b> <i>over</i> the lazy dog!",-10);
+$pdf->addText(150,$pdf->y,10,"the quick brown fox <b>jumps</b> <i>over</i> the lazy dog!",0, 'left',-10);
 $pdf->ezSetDy(-5);
 #x
 
@@ -1040,13 +1040,30 @@ $pdf->polygon($pdata,4,1);
 
 <b>filledRectangle(x1,y1,width,height)</b>
 
-Obvious.
+Build a rectangle with filled color.
+
+#C
+$pdf->filledRectangle(400, $pdf->y, 120, 50);
+#c
+
+#X
+$pdf->filledRectangle(400, $pdf->y, 120,50);
+#x
+
 
 2<rectangle>
 
 <b>rectangle(x1,y1,width,height)</b>
 
-Obvious.
+Build a rectangle with no background, only borders
+
+#C
+$pdf->rectangle(400, $pdf->y, 120,50);
+#c
+
+#X
+$pdf->rectangle(400, $pdf->y, 120,50);
+#x
 
 2<newPage>
 
@@ -1091,14 +1108,6 @@ Returns a number which is the distance that the descender goes beneath the Basel
 <b>x=getTextWidth(size,text)</b>
 
 Returns the width of the given text string at the given size.
-
-2<addTextWrap>
-
-<b>a=addTextWrap(x,y,width,size,text,[justification='left'][,angle=0])</b>
-
-Will print the text string to the page at the position (x,y), if the string is longer than width, then it will print only the part which will fit within that width (attempting to truncate at a space if possible) and will return the remainder of the string. 
-
-'justification' is optional and can be set to 'left','right','center','centre','full'. It provides for the justification of the text and though quite usable here, was implemented for the ezpdf class.
 
 2<saveState>
 
