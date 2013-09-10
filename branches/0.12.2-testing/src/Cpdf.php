@@ -2934,7 +2934,7 @@ class Cpdf
         foreach($directives as  $pos => $directive){
             if($pos > $start){
                 $part = mb_substr($text,$start,$pos-$start, 'UTF-8');
-                $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1f',$size).' Tf ');
+                $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1F',$size).' Tf ');
                 $this->addContent(' ('.$this->filterText($part, false).') Tj');
             }
             
