@@ -1,21 +1,34 @@
 <?php
 /**
  * Helper class to create pdf documents
- *
- * this class will take the basic interaction facilities of the Cpdf class
+   This class will take the basic interaction facilities of the Cpdf class
  * and make more useful functions so that the user does not have to
  * know all the ins and outs of pdf presentation to produce something pretty.
  *
- * IMPORTANT NOTE
- * there is no warranty, implied or otherwise with this software.
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/
+ *
+ * @category Documents
  * @package Cpdf
- * @version 0.11.8
- * @license released under a public domain licence.
- * @link http://www.sourceforge.net/p/pdf-php/
+ * @version 0.12.2-RC1 (>=php4.0.6)
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
+ * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
- * @author Ole K <ole1986@users.sourceforge.net>
+ *
+ * @copyright 2007 - 2013 The authors
+ * @license GNU General Public License v3
+ * @link http://www.sourceforge.net/p/pdf-php/
+
  */
 include_once 'Cpdf.php';
 

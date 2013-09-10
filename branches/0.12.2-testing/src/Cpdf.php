@@ -1,19 +1,32 @@
 <?php
 /**
  * Create pdf documents without additional modules
- *
  * Note that the companion class Document_CezPdf can be used to extend this class and
  * simplify the creation of documents.
  *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/
+ *
  * @category Documents
- * @package	 Document_Cpdf
+ * @package	 Cpdf
+ * @version  0.12.2-RC1 (>=php4.0.6)
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
- * @author   Ole K <ole1986@users.sourceforge.net>
+ * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
+ *
  * @copyright 2007 - 2013 The authors
- * @license   GPL http://www.opensource.org/licenses/gpl-license.php
- * @version  0.12.2 (>=php4.0.6)
+ * @license  GNU General Public License v3
  * @link     http://pdf-php.sf.net
  */
  
@@ -52,7 +65,7 @@ class Cpdf
     protected $valid = false;
     
     /**
-     * global defined temporary path used on several places
+     * global defined temporary path used on several places, especially for font caching
      */
     public $tempPath = '/tmp';
     /**
@@ -74,7 +87,7 @@ class Cpdf
      */
     public $hashed = true;
     /**
-     * Object hash used to free pdf from redundacies (primary images)
+     * Object hash used to free pdf from redundancies
      */
     private $objectHashes = array();
     
@@ -86,7 +99,7 @@ class Cpdf
     private $catalogId;
 
 
-    public $targetEncoding = 'iso-8859-1';
+    public $targetEncoding = 'ISO-8859-1';
     /**
      * @var boolean Whether the text passed in should be treated as Unicode or just local character set.
      */
@@ -274,7 +287,7 @@ class Cpdf
     private $wordSpaceAdjust=0;
 
     /**
-      * track if the current font is bolded or italicised
+      * tracks the status of the current font style, like bold or italic
       */
     private $currentTextState = '';
 
@@ -284,7 +297,7 @@ class Cpdf
     public $messages='';
 
     /**
-     * the ancryption array for the document encryption is stored here
+     * the encryption array for the document encryption is stored here
      */
     private $arc4='';
 
@@ -299,18 +312,12 @@ class Cpdf
     public $fileIdentifier='';
 
     /**
-     * a flag to say if a document is to be encrypted or not
-     *
-     * @var boolean
-     */
-    private $encrypted=0;
-
-    /**
-     * Set the encryption mode 
+     * Set the encryption mode
+     * 0 = no encryption
      * 1 = RC40bit
      * 2 = RC128bit (since PDF Version 1.4)
      */
-     private $encryptionMode = 1;
+     private $encryptionMode = 0;
     /**
      * the encryption key for the encryption of all the document content (structure is not encrypted)
      *
@@ -372,8 +379,7 @@ class Cpdf
         if ( in_array('Windows-1252', mb_list_encodings()) ) {
               $this->targetEncoding = 'Windows-1252';
         }
-    
-        // font familys are already known in $this->fontFamilies
+        // use the md5 to have a unique identifier for all documents created with R&OS pdf class
         $this->fileIdentifier = md5('ROSPDF');
     }
 
@@ -450,7 +456,7 @@ class Cpdf
                         case 'HideWindowUI':
                         case 'FitWindow':
                         case 'CenterWindow':
-                        case 'DisplayDocTitle':
+                        case 'DisplayDocTitle': // since PDF 1.4
                         case 'NonFullScreenPageMode':
                         case 'Direction':
                             $o['info'][$k]=$v;
@@ -1086,13 +1092,13 @@ class Cpdf
             $o['info'][$action]=$options;
             break;
         case 'out':
-            if ($this->encrypted){
+            if ($this->encryptionMode > 0){
                 $this->encryptInit($id);
             }
             $res="\n".$id." 0 obj\n<< ";
             foreach ($o['info']  as $k=>$v){
                 $res.='/'.$k.' (';
-                if ($this->encrypted){
+                if ($this->encryptionMode > 0){
                     $res.=$this->filterText($this->ARC4($v), true, false);
                 } else {
                     $res.=$this->filterText($v, true, false);
@@ -1123,7 +1129,7 @@ class Cpdf
             }
             break;
         case 'out':
-            if ($this->encrypted){
+            if ($this->encryptionMode > 0){
                 $this->encryptInit($id);
             }
             $res="\n".$id." 0 obj\n<< /Type /Action";
@@ -1134,7 +1140,7 @@ class Cpdf
                 break;
             case 'URI':
                 $res.=" /S /URI /URI (";
-                if ($this->encrypted){
+                if ($this->encryptionMode > 0){
                     $res.=$this->filterText($this->ARC4($o['info']), true, false);
                 } else {
                     $res.=$this->filterText($o['info'], true, false);
@@ -1181,7 +1187,7 @@ class Cpdf
             }
             break;
         case 'out':
-            $res="\n".$id." 0 obj << /Type /Annot";
+            $res="\n".$id." 0 obj\n<< /Type /Annot";
             switch($o['info']['type']){
                 case 'link':
                 case 'ilink':
@@ -1308,7 +1314,7 @@ class Cpdf
                     $res.=" /Filter /FlateDecode";
                     $tmp = gzcompress($tmp, $this->options['compression']);
                 }
-                if ($this->encrypted){
+                if ($this->encryptionMode > 0){
                     $this->encryptInit($id);
                    $tmp = $this->ARC4($tmp);
                 }
@@ -1390,7 +1396,7 @@ class Cpdf
             foreach($o['info'] as $k=>$v){
                 $res.=" /".$k.' '.$v;
             }
-            if ($this->encrypted){
+            if ($this->encryptionMode > 0){
                 $this->encryptInit($id);
                 $tmp = $this->ARC4($tmp);
             }
@@ -1429,9 +1435,6 @@ class Cpdf
             // Algo 3.5 User Password - START
             $this->objects[$id]['info']['U'] = $this->encryptUser($user, $this->objects[$id]['info']['O'], $permissions);
             // encryption key is set in encryptUser function
-            //$this->encryptionKey = $encryptionKey;
-            
-            $this->encrypted=1;
             break;
         case 'out':
             $res= "\n".$id." 0 obj\n<<";
@@ -1536,12 +1539,8 @@ class Cpdf
                 $uvalue = $this->ARC4($uvalue);
             }
             $uvalue .= substr($this->encryptionPad,0,16);
-            
-            //$this->encryptionKey = $encryptionKey;
         }else{ // if it is the RC4 40bit encryption
             $this->ARC4_init($this->encryptionKey);
-            //$this->encryptionKey = $encryptionKey;
-            //$this->encrypted=1;
             $uvalue=$this->ARC4($this->encryptionPad);
         }
         return $uvalue;
@@ -1676,6 +1675,7 @@ class Cpdf
         if($mode > 1){
             $p=bindec('01111111111111111111000011000000'); // revision 3 is using bit 3 - 6 AND 9 - 12
         }else{
+            $mode = 1; // make sure at least the 40bit encryption is set
             $p=bindec('01111111111111111111111111000000'); // while revision 2 is using bit 3 - 6 only
         }
         
@@ -2053,7 +2053,7 @@ class Cpdf
      * note that encoding='none' will need to be used for symbolic fonts
      * and 'differences' => an array of mappings between numbers 0->255 and character names.
      *
-     * @param string  $fontName Name of the font
+     * @param string  $fontName Name of the font incl. path
      * @param string  $encoding Which encoding to use
      * @param integer $set      What is this
      *
@@ -2672,7 +2672,7 @@ class Cpdf
                     $this->fonts[$cf]['subset'][mb_substr($text,$i, 1, 'UTF-16BE')] = true;
             }
         } else if(!$this->fonts[$cf]['isUnicode']) {
-            //$text = mb_convert_encoding($text, $this->targetEncoding);
+            $text = mb_convert_encoding($text, $this->targetEncoding);
             // store all used characters if subset font is set to true
             if($this->fonts[$cf]['isSubset']){
                 for($i = 0; $i < strlen($text); $i++)
@@ -2699,14 +2699,13 @@ class Cpdf
             $nx = $x;
             $ny = $y;
             if($this->nCallback > 0){
-                //echo "nCallback: ".$this->nCallback." - $text\n";
                 $cb[0] = $this->callback[1];
                 $cb[0]['x'] = $x;
                 $cb[0]['y'] = $y;
                 $cb[0]['startTag'] = 0;
                 $cb[0]['endTag'] = 0;
             }
-            
+
             $restWidth = $width;
             reset($regs[0]);
             
@@ -2717,12 +2716,7 @@ class Cpdf
                 
                 $tmpstr = mb_substr($text, $prevEndTagIndex, $curTagIndex - $prevEndTagIndex, 'UTF-8');
                 $tmpstr = $this->filterText($tmpstr, false, false);
-                
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
-                if(isset($_GET['d'])){
-                    //echo "Size: ".$tmp[0]." nx: $nx restWidth: $restWidth width: $width - '".$tmpstr."' \n";
-                    //print_r($tmp);
-                }
                 
                 // if the text does not fit to $width, $tmp[2] contains the length to break the line
                 if($tmp[2] > 0){
@@ -2811,13 +2805,10 @@ class Cpdf
             
             if($prevEndTagIndex < $l){
                 $tmpstr = mb_substr($text, $prevEndTagIndex, $l - $prevEndTagIndex, 'UTF-8');
-                //echo "justify: $justification - '$tmpstr'\n";
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
                 // if the text does not fit to $width, $tmp[2] contains the length
                 if($tmp[2] > 0){
                     $tmpstr = mb_substr($text, 0, $prevEndTagIndex + $tmp[2], 'UTF-8');
-                    
-                    //$justification = 'left';
                     // adjust to position if justification is set
                     $this->adjustWrapText($tmpstr, $width - ($restWidth - $tmp[0]), $width, $x, $wordSpaceAdjust, $justification);
                     // set position array by using the current break position minus offset
@@ -2850,7 +2841,6 @@ class Cpdf
             $tmp = $this->getTextLength($size, $text, $width, $angle, $wordSpaceAdjust);
             // if the text does not fit to $width, $tmp[2] contains the length
             if($tmp[2] > 0){
-                //echo "justify: $justification - '$text'\n";
                 $tmpstr = mb_substr($text, 0, $tmp[2], 'UTF-8');
                 // adjust to position if justification is set
                 $this->adjustWrapText($tmpstr, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
@@ -2918,13 +2908,9 @@ class Cpdf
         $len=mb_strlen($text,'UTF-8');
         
         $directives = $this->getDirectives($text, $x, $y, $width, $size, $justification, $angle, $wordSpaceAdjust);
-        
-        // DEBUG - add UTF-8 byte order mask to see a proper result while debugging
-        //echo "\xEF\xBB\xBF";
         if(isset($_GET['d'])){
             //print_r($directives);
         }
-        
         if ($angle == 0) {
           $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
         } else {
@@ -2951,6 +2937,7 @@ class Cpdf
                 $this->defaultFormatting($directive);
                 $this->setCurrentFont();
             } else if($func == 'linebreak') { // line break
+                $this->addContent(' ET');
                 if ($this->nCallback > 0) { 
                     for ($j = $this->nCallback; $j > 0; $j--) {
                         $info = array(
@@ -2969,12 +2956,10 @@ class Cpdf
                 }
                 return mb_substr($text,$pos + $directive['p'], $len, 'UTF-8');
             } else if($func == 'break') {
-                $this->addContent("\n".'BT '.sprintf('%.3F',$directive['x']).' '.sprintf('%.3F',$directive['y']).' Td');
                 break;
             } else { // custom callbacks
-                //echo "$func called $i";
-                $this->$func($directive);
                 $this->addContent(' ET');
+                $this->$func($directive);
                 
                 $xp = $directive['x'];
                 $yp = $directive['y'];
@@ -3008,8 +2993,8 @@ class Cpdf
             $place_text = str_replace(' ', ' ) '.(-round($space_scale*$wordSpaceAdjust)).' (', $place_text);
           }
           
-          $this->addContent(" /F$this->currentFontNum ".sprintf('%.1F Tf ', $size));
-          $this->addContent(" [(".$place_text.")] TJ");
+          $this->addContent(" /F$this->currentFontNum ".sprintf('%.1F Tf', $size));
+          $this->addContent(" (".$place_text.") Tj");
         }
 
         $this->addContent(' ET');
@@ -3039,11 +3024,12 @@ class Cpdf
     }
     
     /*
-     * The unicode ord to get the decimal of utf-8 characters
+     * unicode version of php ord to get the decimal of an utf-8 character
      */
     private function uniord($c)
     {
-        if(!$c) return false;
+        // important condition to allow char "0" (zero) being converted to decimal
+        if(strlen($c) <= 0) return false;
         $ord0 = ord($c{0}); if ($ord0>=0   && $ord0<=127) return $ord0;
         $ord1 = ord($c{1}); if ($ord0>=192 && $ord0<=223) return ($ord0-192)*64 + ($ord1-128);
         $ord2 = ord($c{2}); if ($ord0>=224 && $ord0<=239) return ($ord0-224)*4096 + ($ord1-128)*64 + ($ord2-128);
@@ -3086,7 +3072,6 @@ class Cpdf
         for ($i=0;$i< $len ;$i++){
             $c = mb_substr($text, $i, 1, 'UTF-8');
             $cOrd = $this->uniord($c);
-            
             if($cOrd == 0){
                 continue;
             }
@@ -3108,7 +3093,6 @@ class Cpdf
             
             if($maxWidth > 0 && (cos($a)*$w) > $tw){
                 if ($break>0){
-                    //echo mb_substr($text, 0, $break, 'UTF-8');
                     return array(cos($a)*$breakWidth, -sin($a)*$breakWidth, $break, 1);
                 } else {
                     $ctmp = $cOrd;

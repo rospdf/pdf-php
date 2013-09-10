@@ -37,7 +37,7 @@ function rf($info){
   $lbl = rawurldecode(substr($tmp,1));
   $num=$this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
   $this->reportContents[] = array($lbl,$num,$lvl );
-  $this->addDestination('toc'.(count($this->reportContents)-1),'FitH',$info['y']+$info['height']);
+  $this->addDestination('toc'.(count($this->reportContents)-1),'Fit',$info['y']+$info['height']);
 }
 
 function dots($info){
@@ -74,7 +74,7 @@ function dots($info){
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12";
+$project_version = "0.12.2-RC1";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 $start = microtime(true);
@@ -91,7 +91,7 @@ $pdf->setStrokeColor(0,0,0,1);
 $pdf->line(20,40,578,40);
 $pdf->line(20,822,578,822);
 $pdf->addText(20,30,8,$project_url);
-$pdf->addText(533,30,8,'Version ' . $project_version);
+$pdf->addText(508,30,8,'Version ' . $project_version);
 $pdf->restoreState();
 $pdf->closeObject();
 // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'
@@ -109,7 +109,7 @@ $pdf->selectFont($mainFont);
 $pdf->ezText("PHP Pdf Creation\n",30,array('justification'=>'centre'));
 $pdf->ezText("Module-free creation of Pdf documents\nfrom within PHP\n",20,array('justification'=>'centre'));
 $pdf->ezText("developed by R&OS Ltd",18,array('justification'=>'centre'));
-$pdf->ezText("\n<c:alink:$project_url>$project_url</c:alink>\n\nversion $project_version",18,array('justification'=>'centre'));
+$pdf->ezText("\n<c:alink:$project_url>$project_url</c:alink>\n\nVersion $project_version",18,array('justification'=>'centre'));
 
 $pdf->ezSetDy(-100);
 // modified to use the local file if it can

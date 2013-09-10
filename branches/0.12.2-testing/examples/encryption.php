@@ -12,6 +12,7 @@ class Creport extends Cezpdf{
 }
 
 $pdf = new Creport('a4','portrait');
+
 if(!isset($_GET['nocrypt'])){
 	// define the encryption mode (either RC4 40bit or RC4 128bit)
 	$user = ( isset($_GET['user']) )?$_GET['user']:'';
@@ -46,10 +47,12 @@ if (isset($_GET['d']) && $_GET['d']){
   echo trim($pdfcode);
   echo '</body></html>';
 } else {
-	if($mode == 2)
+	if($mode > 1)
 		$encMode = "128BIT";
-	else
+	else if($mode > 0)
 		$encMode = "40BIT";
+    else
+        $encMode = "NONE";
   $pdf->ezStream(array('Content-Disposition'=>"encrypted_".$encMode.(isset($_GET['user'])?"_withUserPW":"").(isset($_GET['owner'])?"_withOwnerPW":""),'attached'=>0));
 }
 ?>
