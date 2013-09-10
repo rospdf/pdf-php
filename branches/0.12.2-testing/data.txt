@@ -29,7 +29,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<version 0.12.2-RC1>
+2<version 0.12.2-RC2>
 
 - bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)
 - fixed bug with wrong calculation of the char "0" (zero) in $pdf->uniord($c)
