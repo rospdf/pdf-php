@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc3>
+
+- bug fixed: font style now ends up properly after line break has forced
+
 2<version 0.12-rc2>
 
 - bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)

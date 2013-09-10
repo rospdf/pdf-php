@@ -2690,12 +2690,14 @@ class Cpdf
     }
 
     private function getDirectives(&$text, &$x, &$y, $width = 0, $size = 0, $justification = 'left',$angle = 0, &$wordSpaceAdjust = 0, $noCB = false){
-        // backup current font style
-        $store_currentTextState = $this->currentTextState;
+        
         $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/";
         $cb = array();
         $r = preg_match_all($regex, $text, $regs, PREG_OFFSET_CAPTURE);
         if($r){
+            // backup current font style
+            $store_currentTextState = $this->currentTextState;
+        
             $nx = $x;
             $ny = $y;
             if($this->nCallback > 0){
@@ -2745,6 +2747,10 @@ class Cpdf
                     $this->adjustWrapText($tmpstr, $tmpw, $width, $x, $wordSpaceAdjust, $justification);
                     // set position array by using the current break position minus offset
                     $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                    // restore previous stored font style 
+                    $this->currentTextState = $store_currentTextState;
+                    $this->setCurrentFont();
+                    
                     return $cb;
                 }
                 
@@ -2801,6 +2807,10 @@ class Cpdf
                 }
             }
             
+            // restore previous stored font style 
+            $this->currentTextState = $store_currentTextState;
+            $this->setCurrentFont();
+            
             $l = mb_strlen($text, 'UTF-8');
             
             if($prevEndTagIndex < $l){
@@ -2852,10 +2862,6 @@ class Cpdf
                 $this->adjustWrapText($text, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
             }
         }
-        
-        // restore previous stored font style 
-        $this->currentTextState = $store_currentTextState;
-        $this->setCurrentFont();
         return $cb;
     }
     
@@ -2908,8 +2914,8 @@ class Cpdf
         $len=mb_strlen($text,'UTF-8');
         
         $directives = $this->getDirectives($text, $x, $y, $width, $size, $justification, $angle, $wordSpaceAdjust);
-        if(isset($_GET['d'])){
-            //print_r($directives);
+        if(isset($_GET['d'])){ echo $text."\n\n";
+            print_r($directives);
         }
         if ($angle == 0) {
           $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
