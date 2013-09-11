@@ -31,6 +31,8 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 2<version 0.12-rc3>
 
+- removed unused Begin Text - objects (BT ... ET) by checking empty text in addText method
+- fixed bug #66 Bug in specifying font size
 - bug fixed: font style now ends up properly after line break has forced
 
 2<version 0.12-rc2>
@@ -38,7 +40,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 - bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)
 - fixed bug with wrong calculation of the char "0" (zero) in $pdf->uniord($c)
 - code optimization
-
 
 2<version 0.12.2>
 
@@ -1201,7 +1202,7 @@ x,y are the position of the lower left corner of the image, and w,h are the widt
 
 <b>addPngFromFile(imgFileName,x,y,w,[h])</b>
 
-Similar to <i>addJepgFromFile</i>, but should work for PNG images.
+Similar to <i>addJepgFromFile</i>, but for PNG images.
 
 2<output>
 

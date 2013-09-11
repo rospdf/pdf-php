@@ -2890,6 +2890,8 @@ class Cpdf
      * @access public
      */
     public function addText($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test=0) {
+        if($text == "") return '';
+        
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
@@ -2914,9 +2916,7 @@ class Cpdf
         $len=mb_strlen($text,'UTF-8');
         
         $directives = $this->getDirectives($text, $x, $y, $width, $size, $justification, $angle, $wordSpaceAdjust);
-        if(isset($_GET['d'])){ echo $text."\n\n";
-            print_r($directives);
-        }
+        
         if ($angle == 0) {
           $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
         } else {
