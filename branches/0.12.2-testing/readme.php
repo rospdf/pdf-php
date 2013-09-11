@@ -80,7 +80,7 @@ $pdf = new Creport('a4','portrait', 'none', null);
 $start = microtime(true);
 
 // IMPORTANT: To allow custom callbacks being executed
-$pdf->allowedTags = 'b|strong|i|uline|alink:?.*?|rf:?.*?|ilink:?.*?|dots:[0-9]+';
+$pdf->allowedTags .= '|uline|rf:?.*?|dots:[0-9]+';
 
 $pdf -> ezSetMargins(50,70,50,50);
 

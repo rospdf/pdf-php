@@ -1894,4 +1894,27 @@ class Cezpdf extends Cpdf {
                 break;
         }
     }
+    
+    /**
+     * a callback function to support comment annotation
+     * @param $info
+     * @access public
+     * @return unknown_type
+     */
+    public function comment(&$info){
+        if(isset($info)){
+            $offsetY = $info['y'] + $info['height'];
+            
+            // split title and text content use '|' char
+            $commentPart = preg_split("/\|/",$info['p']);
+            print_r($commentPart);
+            if(is_array($commentPart) && count($commentPart) > 1){
+                $this->addComment($commentPart[0], $commentPart[1], $info['x'], $offsetY);
+            } else {
+                $this->addComment('Comment', $info['p'], $info['x'], $offsetY);
+            }
+            
+            $info['x'] += 15;
+        }
+    }
 }

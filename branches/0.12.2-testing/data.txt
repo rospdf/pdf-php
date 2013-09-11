@@ -34,6 +34,8 @@ Note that this document was generated using the demo script 'readme.php' which c
 - removed unused Begin Text - objects (BT ... ET) by checking empty text in addText method
 - fixed bug #66 Bug in specifying font size
 - bug fixed: font style now ends up properly after line break has forced
+- optimized pdf output for link annotation (actions are now set inline)
+- NEW FEATURE: new annotation called comments - demo in examples/annotations.php
 
 2<version 0.12-rc2>
 

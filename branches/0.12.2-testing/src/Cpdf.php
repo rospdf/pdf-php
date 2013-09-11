@@ -89,7 +89,7 @@ class Cpdf
     /**
      * Object hash used to free pdf from redundancies
      */
-    private $objectHashes = array();
+    private $objectHash = array();
     
     /**
       * the objectId (number within the objects array) of the document catalog
@@ -111,7 +111,7 @@ class Cpdf
      * Example for the internal links ONLY would be: 
      * $allowedTags = 'ilink:?.*?';
      */
-     public $allowedTags = 'b|strong|i|alink:?.*?';
+     public $allowedTags = 'b|strong|i|alink:?.*?|ilink:?.*?';
      
     /**
      * @var boolean used to either embed or not embed ttf/pfb fonts.
@@ -625,27 +625,7 @@ class Cpdf
                 break;
          }
     }
-
-    /**
-     * Beta Redirection function
-     * @access private
-     */
-    private function o_redirect($id,$action,$options=''){
-        switch ($action){
-            case 'new':
-                $this->objects[$id]=array('t'=>'redirect','data'=>$options['data'],'info'=>array());
-                $this->o_pages($this->currentNode,'xObject',array('label'=>$options['label'],'objNum'=>$id));
-                break;
-            case 'out':
-                $o =& $this->objects[$id];
-                $tmp=$o['data'];
-                $res= "\n".$id." 0 obj\n<<";
-                $res.="/R".$o['data']." ".$o['data']." 0 R>>\nendobj";
-                return $res;
-                break;
-        }
-    }
-
+    
     /**
      * defines the outlines in the doc, empty for now
      * @access private
@@ -1078,7 +1058,7 @@ class Cpdf
         case 'new':
             $this->infoObject=$id;
             $date='D:'.date('Ymd');
-            $this->objects[$id]=array('t'=>'info','info'=>array('Creator'=>'R and OS php pdf writer, http://www.ros.co.nz','CreationDate'=>$date));
+            $this->objects[$id]=array('t'=>'info','info'=>array('Creator'=>'R&OS php pdf class, http://pdf-php.sf.net/','CreationDate'=>$date));
             break;
         case 'Title':
         case 'Author':
@@ -1113,6 +1093,10 @@ class Cpdf
 
     /**
      * an action object, used to link to URLS initially
+     * In version >= 0.12.2 internal and external links are handled in o_annotation directly
+     * Additional actions, like SubmitForm, ResetForm, ImportData, Javascript will be part of
+     * o_actions. Unless we also do not handle them similar to Links.
+     *
      * @access private
      */
     private function o_action($id,$action,$options=''){
@@ -1172,17 +1156,20 @@ class Cpdf
             switch($options['type']){
             case 'link':
                 $this->objects[$id]=array('t'=>'annotation','info'=>$options);
-                $this->numObj++;
-                $this->o_action($this->numObj,'new',$options['url']);
-                $this->objects[$id]['info']['actionId']=$this->numObj;
+                //$this->numObj++;
+                //$this->o_action($this->numObj,'new',$options['url']);
+                //$this->objects[$id]['info']['actionId']=$this->numObj;
                 break;
             case 'ilink':
                 // this is to a named internal link
                 $label = $options['label'];
                 $this->objects[$id]=array('t'=>'annotation','info'=>$options);
-                $this->numObj++;
-                $this->o_action($this->numObj,'new',array('type'=>'ilink','label'=>$label));
-                $this->objects[$id]['info']['actionId']=$this->numObj;
+                //$this->numObj++;
+                //$this->o_action($this->numObj,'new',array('type'=>'ilink','label'=>$label));
+                //$this->objects[$id]['info']['actionId']=$this->numObj;
+                break;
+            case 'text':
+                $this->objects[$id]=array('t'=>'annotation','info'=>$options);
                 break;
             }
             break;
@@ -1190,13 +1177,25 @@ class Cpdf
             $res="\n".$id." 0 obj\n<< /Type /Annot";
             switch($o['info']['type']){
                 case 'link':
+                    $res.= " /Subtype /Link";
+                    $res.=" /A << /S /URI /URI (".$o['info']['url'].") >>";
+                    $res.=" /Border [0 0 0]";
+                    $res.=" /H /I";
+                    break;
                 case 'ilink':
                     $res.= " /Subtype /Link";
+                    if(isset($this->destinations[(string)$o['info']['label']])){
+                        $res.=" /A << /S /GoTo /D ".$this->destinations[(string)$o['info']['label']]." 0 R >>";
+                    }
+                    $res.=" /Border [0 0 0]";
+                    $res.=" /H /I";
                     break;
+                case 'text':
+                    $res.= " /Subtype /Text";
+                    $res.= " /T (".$this->filterText($o['info']['title'], false, false).") /Contents (".$o['info']['content'].")";
+                break;
             }
-            $res.=" /A ".$o['info']['actionId']." 0 R";
-            $res.=" /Border [0 0 0]";
-            $res.=" /H /I";
+            
             $res.=" /Rect [ ";
             foreach($o['info']['rect'] as $v){
                 $res.= sprintf("%.4f ",$v);
@@ -1644,7 +1643,13 @@ class Cpdf
         }
         return $out;
     }
-
+    
+    public function addComment($title, $text, $x, $y){
+        $this->numObj++;
+        $info = array('type'=>'text','title'=>$title, 'content'=>$text,'rect'=>array($x,$y,$x,$y));
+        $this->o_annotation($this->numObj,'new',$info);
+    }
+    
     /**
      * add a link in the document to an external URL
      * @access public
@@ -1727,7 +1732,6 @@ class Cpdf
      * @access protected
      */
     function output($debug=0){
-
         if ($debug){
             // turn compression off
             $this->options['compression']=0;
