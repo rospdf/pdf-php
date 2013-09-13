@@ -36,6 +36,14 @@
 class Cpdf
 {
     /**
+     * PDF version 
+     * This value may vary dependent on which methods and/or features are used.
+     * For instance setEncryption may cause the pdf version to increase to $this->pdfversion = 1.4
+     * 
+     * Minimum 1.3
+     */
+    protected $pdfversion = 1.3;
+    /**
      * allow the programmer to output debug messages on serveral places
      * 'none' = no debug output at all
      * 'error_log' = use error_log
@@ -1198,7 +1206,7 @@ class Cpdf
             
             $res.=" /Rect [ ";
             foreach($o['info']['rect'] as $v){
-                $res.= sprintf("%.4f ",$v);
+                $res.= sprintf("%.4F ",$v);
             }
             $res.="]";
             $res.=" >>\nendobj";
@@ -1678,6 +1686,8 @@ class Cpdf
      */
     public function setEncryption($userPass = '',$ownerPass = '',$pc = array(), $mode = 1){
         if($mode > 1){
+            // increase the pdf version to support 128bit encryption
+            if($this->pdfversion < 1.4) $this->pdfversion = 1.4;
             $p=bindec('01111111111111111111000011000000'); // revision 3 is using bit 3 - 6 AND 9 - 12
         }else{
             $mode = 1; // make sure at least the 40bit encryption is set
@@ -1748,8 +1758,8 @@ class Cpdf
         $this->checkAllHere();
 
         $xref=array();
-        $content="%PDF-1.4\n%âãÏÓ";
-        //  $content="%PDF-1.3\n";
+        // set the pdf version dynamically, depended on the objects being used
+        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%????";
         $pos=strlen($content);
         foreach($this->objects as $k=>$v){
             $tmp='o_'.$v['t'];
