@@ -1759,7 +1759,7 @@ class Cpdf
 
         $xref=array();
         // set the pdf version dynamically, depended on the objects being used
-        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%Ã¢Ã£ÃÃ“";
+        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%âãÏÓ";
         $pos=strlen($content);
         foreach($this->objects as $k=>$v){
             $tmp='o_'.$v['t'];
