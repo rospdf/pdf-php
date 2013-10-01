@@ -775,7 +775,7 @@ class Cpdf
                             // submit the string to TTFsubset class to return the subset (as binary)
                             $data = $t->doSubset($o['info']['fontFileName'] . '.ttf', $s, null);
                             // $data is the new (subset) of the font font
-                            //file_put_contents($o['info']['name'] . '.ttf', $data);
+                            //file_put_contents('/tmp/'.$o['info']['name'] . '.ttf', $data);
                             
                             $newcidwidth = array();
                             $cidwidth = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
@@ -1759,7 +1759,7 @@ class Cpdf
 
         $xref=array();
         // set the pdf version dynamically, depended on the objects being used
-        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%âãÏÓ";
+        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%\xe2\xe3\xcf\xd3";
         $pos=strlen($content);
         foreach($this->objects as $k=>$v){
             $tmp='o_'.$v['t'];
