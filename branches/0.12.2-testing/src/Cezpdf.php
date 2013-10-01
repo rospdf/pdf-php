@@ -1907,7 +1907,6 @@ class Cezpdf extends Cpdf {
             
             // split title and text content use '|' char
             $commentPart = preg_split("/\|/",$info['p']);
-            print_r($commentPart);
             if(is_array($commentPart) && count($commentPart) > 1){
                 $this->addComment($commentPart[0], $commentPart[1], $info['x'], $offsetY);
             } else {
