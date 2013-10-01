@@ -16,6 +16,8 @@ class Creport extends Cezpdf{
 	}
 }
 $pdf = new Creport('a4','portrait');
+$start = microtime(true);
+
 $pdf->ezSetMargins(20,20,20,20);
 //$pdf->rtl = true; // all text output to "right to left"
 //$pdf->setPreferences('Direction','R2L'); // optional: set the preferences to "Right To Left"
@@ -34,7 +36,7 @@ $pdf->openHere('Fit');
 
 $content = file_get_contents('utf8.txt');
 
-$pdf->ezText($content, 10, array('justification'=>'left'));
+$pdf->ezText($content, 10, array('justification'=>'full'));
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
@@ -45,4 +47,8 @@ if (isset($_GET['d']) && $_GET['d']){
 } else {
   $pdf->ezStream();
 }
+
+$end = microtime(true) - $start;
+error_log($end . ' execution in seconds (v0.12.2)');
+
 ?>
