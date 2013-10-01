@@ -7,6 +7,8 @@ if(!file_exists($ext)){
 include $ext;
 $pdf = new CezTableImage("a4");
 
+$pdf->selectFont('../src/fonts/Helvetica');
+
 $image = '../ros.jpg';
 // test gif file
 //$image = 'images/test_alpha.gif';
@@ -26,5 +28,14 @@ $data = array(
 $pdf->ezTable($data,'','',array('width'=>400,'showLines'=>2));
 $pdf->ezText("\nWithout table width:");
 $pdf->ezTable($data,'','',array('showLines'=>2));
-$pdf->ezStream();
+
+if (isset($_GET['d']) && $_GET['d']){
+  $pdfcode = $pdf->ezOutput(1);
+  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
+  echo '<html><body>';
+  echo trim($pdfcode);
+  echo '</body></html>';
+} else {
+  $pdf->ezStream();
+}
 ?>
