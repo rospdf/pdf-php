@@ -1688,6 +1688,7 @@ class Cpdf extends Cpdf_Common {
 		$res = '';
 		if(is_array($this->contentObjects) && count($this->contentObjects) > 0){
 			foreach ($this->contentObjects as $k => $value) {
+				
 				// content with Paging eq to 'none' or NULL it will be ignored
 				if(!isset($value->Paging)) continue;
 				if($value->Paging == Cpdf_Content::PMODE_NONE)
@@ -1698,18 +1699,17 @@ class Cpdf extends Cpdf_Common {
 				
 				// does the content contain a page?
 				if(isset($value->page)){
-					
 					$class_name = get_class($value);
 					
 					if($value->Paging == Cpdf_Content::PMODE_REPEAT){
 						$this->objectNum--;
-						$this->contentRefs['nopage'][$value->ObjectId] = array('repeat', (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId, $k);
+						$this->contentRefs['nopage'][$value->ObjectId] = array(Cpdf_Content::PMODE_REPEAT, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId, $k);
 						continue;
 					} else if($value->Paging == Cpdf_Content::PMODE_ALL) {
 						if($class_name == 'Cpdf_Annotation'){
-							$this->contentRefs['nopageA'][$value->ObjectId] = array('all', (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
+							$this->contentRefs['nopageA'][$value->ObjectId] = array($value->Paging, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
 						} else {
-							$this->contentRefs['nopage'][$value->ObjectId] = array('all', (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
+							$this->contentRefs['nopage'][$value->ObjectId] = array($value->Paging, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
 						}
 					} else if($class_name == 'Cpdf_Image'){
 						$this->contentRefs['pages'][$value->ObjectId] = array($value->ImageNum);
@@ -1725,7 +1725,7 @@ class Cpdf extends Cpdf_Common {
 							case Cpdf_Content::PMODE_ALL_FROM_HERE:
 								for ($i=$value->page->PageNum; $i <= $this->PageNum; $i++) {
 									$page = &$this->GetPageByNo($i);
-									$this->contentRefs['content'][$page->ObjectId][$value->ObjectId] = array('add', (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
+									$this->contentRefs['content'][$page->ObjectId][$value->ObjectId] = array(Cpdf_Content::PMODE_ADD, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
 								}
 								break;
 						}
@@ -1793,8 +1793,9 @@ class Cpdf extends Cpdf_Common {
 			foreach ($this->pageObjects as $value) {
 				// output the page header here
 				foreach ($this->contentRefs['nopage'] as $objectId => $mode) {
-					if($mode[0] == 'repeat'){
+					if($mode[0] == Cpdf_Content::PMODE_REPEAT){
 						$o = $this->contentObjects[$mode[2]];
+						
 						$o->ObjectId = ++$this->objectNum;
 						$o->page = $value;
 						$repeatContent.= $o->OutputAsObject();
@@ -1807,16 +1808,14 @@ class Cpdf extends Cpdf_Common {
 							$contentObjectLastIndex++;
 							
 							if($class_name == 'Cpdf_Annotation'){
-								$this->contentRefs['annot'][$value->ObjectId] [$co->ObjectId] = array('add', $o->ObjectId);
+								$this->contentRefs['annot'][$value->ObjectId] [$co->ObjectId] = array(Cpdf_Content::PMODE_ADD, $o->ObjectId);
 							} else {
-								$this->contentRefs['content'][$value->ObjectId] [$co->ObjectId] = array('add', $o->ObjectId);
+								$this->contentRefs['content'][$value->ObjectId] [$co->ObjectId] = array(Cpdf_Content::PMODE_ADD, $o->ObjectId);
 							}
 							
 							
 						}
-						
-						
-						$this->contentRefs['content'][$value->ObjectId][$o->ObjectId] = array('add', $o->ObjectId); 
+						$this->contentRefs['content'][$value->ObjectId][$o->ObjectId] = array(Cpdf_Content::PMODE_ADD, $o->ObjectId); 
 					}
 				}
 				$pages.= $value->OutputAsObject();
@@ -2268,7 +2267,7 @@ class Cpdf_Page {
 				$res.= $this->Background->ObjectId.' 0 R ';
 			}
 			foreach ($merged as $objId => $mode) {
-				if($mode[0] != 'none' && $mode[0] != 'repeat'){
+				if($mode[0] != Cpdf_Content::PMODE_NOPAGE && $mode[0] != Cpdf_Content::PMODE_REPEAT){
 					$res.= $objId.' 0 R ';
 				}
 			}
@@ -2353,7 +2352,7 @@ class Cpdf_Content extends Cpdf_Common {
 		$this->BreakPage = self::PB_BLEEDBOX;
 		$this->BreakColumn = false;
 		
-		$this->Paging = self::PMODE_ADD;
+		$this->SetPageMode(self::PMODE_ADD, self::PMODE_ADD);
 	}
 
 	
@@ -2617,7 +2616,7 @@ class Cpdf_Writing extends Cpdf_Content {
 	 * TODO: Either registering callbacks or continue with extending $this->allowedTags property 
 	 */
 	public function AddText($text, $width = 0, $justify ='left', $wordSpaceAdjust = 0){
-		if($this->Paging == 'repeat'){
+		if($this->Paging == Cpdf_Content::PMODE_REPEAT){
 			array_push($this->delayedContent,  array($text, $width, $justify, $wordSpaceAdjust));
 			return;
 		}
@@ -2952,7 +2951,10 @@ class Cpdf_Writing extends Cpdf_Content {
 						// end tag
 						$this->fontStyle = substr($this->fontStyle, 0, $p).substr($this->fontStyle, $p+1);
 						
-						//$TEXTBLOCK.=' '.sprintf("/%s %.1F Tf", $this->FontLabel.$this->CURFONT->FontId, $this->fontSize);
+						if($curTagIndex != 0){
+							$TEXTBLOCK.=' '.sprintf("/%s %.1F Tf", $this->FontLabel.$this->CURFONT->FontId, $this->fontSize);
+						}
+						
 						$TEXTBLOCK.=' '.$this->prepareLine($tmpstr);
 						// reset the font style to its default
 						$this->SetFont($this->baseFontName, $this->fontSize, $this->fontStyle);
@@ -2963,7 +2965,11 @@ class Cpdf_Writing extends Cpdf_Content {
 						$this->fontStyle .= $parameter;
 						// set the font style here, no need to do callbacks. $param can be 'b' or 'i'
 						$this->SetFont($this->baseFontName, $this->fontSize, $this->fontStyle);
-						$TEXTBLOCK.=' '.sprintf("/%s %.1F Tf", $this->FontLabel.$this->CURFONT->FontId, $this->fontSize);
+						
+						if($curTagIndex == 0){
+							$TEXTBLOCK.=' '.sprintf("/%s %.1F Tf", $this->FontLabel.$this->CURFONT->FontId, $this->fontSize);
+						}
+						
 						$TEXTBLOCK.=' '.$this->prepareLine($tmpstr);
 					}
                 }
@@ -3835,7 +3841,7 @@ class Cpdf_Table extends Cpdf_Appearance{
 					
 			$p = $this->pages->NewPage($this->page->Mediabox);
 			$this->page = $p;
-			$this->cb = new Cpdf_Callbacks($this->pages, 'add');
+			$this->cb = new Cpdf_Callbacks($this->pages, Cpdf_Content::PMODE_ADD);
 			
 			
 			if(Cpdf_Common::IsDefined($this->BreakPage, Cpdf_Content::PB_BLEEDBOX) ){
@@ -4020,8 +4026,8 @@ class Cpdf_Callbacks {
 			// DEBUGGING: reset the DEBUG setting
 			$this->pages->DEBUG = $tmp;
 		}
-		$this->ap->SetPageMode($this->paging);
 		
+		$this->ap->SetPageMode($this->paging);
 		$this->ap->AwaitCallback = $this->callbackIndex;
 		
 		return $this->ap;
@@ -4031,6 +4037,7 @@ class Cpdf_Callbacks {
 		if(!isset($bbox)){
 			$bbox = $this->callbacks[$this->callbackIndex];
 		}
+		
 		$annot = &$this->pages->NewAnnotation($annoType, $bbox, $border, $color);
 		$annot->SetPageMode($this->paging);
 		$this->annots[$this->callbackIndex] = &$annot; 
