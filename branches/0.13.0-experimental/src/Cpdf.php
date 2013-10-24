@@ -1475,28 +1475,9 @@ class Cpdf extends Cpdf_Common {
 	 * @param array $cropbox
 	 * @param array $bleedbox
 	 */
-	public function NewPage($mediabox, $cropbox = null, $bleedbox = null){	
-		if(!isset($cropbox) || (is_array($cropbox) && count($cropbox) != 4)){
-			$cropbox = array(
-				$mediabox[0],
-				$mediabox[1],
-				$mediabox[2],
-				$mediabox[3]
-			);
-		}
-		if(!isset($bleedbox) || (is_array($bleedbox) && count($bleedbox) != 4)){
-			$bleedbox = array(
-				$cropbox[0] + 20,
-				$cropbox[1] + 20,
-				$cropbox[2] - 20,
-				$cropbox[3] - 20
-			);
-		}
-		
+	public function NewPage($mediabox, $cropbox = null, $bleedbox = null){
 		$this->CURPAGE = new Cpdf_Page($this, $mediabox, $cropbox, $bleedbox);
-		
 		$this->CURPAGE->PageNum = ++$this->PageNum;
-		
 		
 		$this->pageObjects[$this->PageNum] = $this->CURPAGE;
 		//array_push($this->pageObjects, $this->CURPAGE);
@@ -1687,7 +1668,7 @@ class Cpdf extends Cpdf_Common {
 	private function outputObjects(){
 		$res = '';
 		if(is_array($this->contentObjects) && count($this->contentObjects) > 0){
-			foreach ($this->contentObjects as $k => $value) {
+			foreach ($this->contentObjects as $k => &$value) {
 				
 				// content with Paging eq to 'none' or NULL it will be ignored
 				if(!isset($value->Paging)) continue;
@@ -1696,6 +1677,10 @@ class Cpdf extends Cpdf_Common {
 				
 				// set the unique PDF objects Id for every content stored in contentObjects
 				$value->ObjectId = ++$this->objectNum;
+				
+				if(method_exists($this, 'OnCallbackObject')){
+					call_user_func(array($this, 'OnCallbackObject'), $value);
+				}
 				
 				// does the content contain a page?
 				if(isset($value->page)){
@@ -1790,7 +1775,11 @@ class Cpdf extends Cpdf_Common {
 		$pages = '';
 		$repeatContent = '';
 		if($pageCount > 0){
-			foreach ($this->pageObjects as $value) {
+			foreach ($this->pageObjects as &$value) {
+				// callback function for each page object
+				if(method_exists($this, 'OnCallbackPage')){
+					call_user_func(array($this, 'OnCallbackPage'), $value);
+				}
 				// output the page header here
 				foreach ($this->contentRefs['nopage'] as $objectId => $mode) {
 					if($mode[0] == Cpdf_Content::PMODE_REPEAT){
@@ -1880,6 +1869,7 @@ class Cpdf extends Cpdf_Common {
 	}
 
 	public function Stream($filename = 'file.pdf'){
+		
 		$tmp = $this->OutputAll();
 		$c = "application/pdf";
 		
@@ -2167,14 +2157,26 @@ class Cpdf_Page {
 	
 	public $Background;
 	
-	//public $contentRefs;
-	//public $annotRefs;
+	private $entries;
 
-	public function __construct(&$pages,$mediabox, $cropbox = array(), $bleedbox = array()){
+	public function __construct(&$pages,$mediabox, $cropbox = null, $bleedbox = null){
+		$this->setBoxes($mediabox, $cropbox, $bleedbox);
+		
+		$this->pages = &$pages;
+		$this->entries = array();
+	}
+	
+	private function setBoxes($mediabox, $cropbox = null, $bleedbox = null){
+		if(!isset($cropbox) || (is_array($cropbox) && count($cropbox) != 4)){
+			$cropbox = array( $mediabox[0], $mediabox[1], $mediabox[2],	$mediabox[3]);
+		}
+		if(!isset($bleedbox) || (is_array($bleedbox) && count($bleedbox) != 4)){
+			$bleedbox = array($cropbox[0] + 20,	$cropbox[1] + 20, $cropbox[2] - 20, $cropbox[3] - 20);
+		}
+		
 		$this->Mediabox = $mediabox;
 		$this->Cropbox = $cropbox;
 		$this->Bleedbox = $bleedbox;
-		$this->pages = &$pages;
 	}
 	
 	/**
@@ -2216,6 +2218,10 @@ class Cpdf_Page {
 		$tmp = $this->Bleedbox[2];
 		$this->Bleedbox[2] = $this->Bleedbox[3];
 		$this->Bleedbox[3] = $tmp;
+	}
+	
+	public function AddEntry($key, $value){
+		$this->entries[$key] = $value;
 	}
 	
 	public function OutputAsObject(){
@@ -2275,13 +2281,17 @@ class Cpdf_Page {
 		}
 		
 		if(is_array($this->Mediabox)){
-			$res.= ' /MediaBox ['.$this->Mediabox[0].' '.$this->Mediabox[1].' '.$this->Mediabox[2].' '.$this->Mediabox[3].']';
+			$res.= ' /MediaBox '.sprintf("[%.3F %.3F %.3F %.3F]", $this->Mediabox[0], $this->Mediabox[1], $this->Mediabox[2], $this->Mediabox[3]);
 		}
 		if(is_array($this->Cropbox)){
-			$res.= ' /CropBox ['.$this->Cropbox[0].' '.$this->Cropbox[1].' '.$this->Cropbox[2].' '.$this->Cropbox[3].']';
+			$res.= ' /CropBox '.sprintf("[%.3F %.3F %.3F %.3F]", $this->Cropbox[0], $this->Cropbox[1], $this->Cropbox[2], $this->Cropbox[3]);
 		}
 		if(is_array($this->Bleedbox)){
-			$res.= ' /BleedBox ['.$this->Bleedbox[0].' '.$this->Bleedbox[1].' '.$this->Bleedbox[2].' '.$this->Bleedbox[3].']';
+			$res.= ' /BleedBox '.sprintf("[%.3F %.3F %.3F %.3F]", $this->Bleedbox[0], $this->Bleedbox[1], $this->Bleedbox[2], $this->Bleedbox[3]);
+		}
+		
+		foreach($this->entries as $k => $v){
+			$res.= " /$k $v";
 		}
 		
 		$res.=" >>\nendobj";
@@ -2340,6 +2350,7 @@ class Cpdf_Content extends Cpdf_Common {
 	public $page;
 	
 	protected $contents;
+	protected $entries;
 	
 	public function __construct(&$pages){
 		$this->pages = &$pages;
@@ -2348,6 +2359,7 @@ class Cpdf_Content extends Cpdf_Common {
 		$this->transferGlobalSettings();
 		
 		$this->contents = '';
+		$this->entries = array();
 		
 		$this->BreakPage = self::PB_BLEEDBOX;
 		$this->BreakColumn = false;
@@ -2366,6 +2378,14 @@ class Cpdf_Content extends Cpdf_Common {
 		}
 	}
 	
+	public function AddRaw($str){
+		$this->contents .= $str;
+	}
+	
+	public function AddEntry($k, $value){
+		$this->entries[$k] = $value;
+	}
+	
 	
 	/**
 	 * Set page option for content and callbacks to define when the object should be displayed
@@ -2382,33 +2402,42 @@ class Cpdf_Content extends Cpdf_Common {
 		return $this->contents;
 	}
 	
-	public function OutputAsObject($optEntries = array()){
+	public function OutputAsObject(){
 		$res = '<<';
+		
+		$l = 0;
 		$tmp = $this->Output();
-		// make sure compression is included and declare it properly
-		if(function_exists('gzcompress') && $this->Compression){
-			if(isset($optEntries['Filter'])){
-				$optEntries['Filter'] = '[/FlateDecode '.$optEntries['Filter'].']';
-			} else {
-				$res.=' /Filter /FlateDecode';
+		if(!empty($tmp)){
+			// make sure compression is included and declare it properly
+			if(function_exists('gzcompress') && $this->Compression){
+				if(isset($this->entries['Filter'])){
+					$this->AddEntry('Filter', '[/FlateDecode '.$this->entries['Filter'].']');
+				} else {
+					$this->AddEntry('Filter', '/FlateDecode');
+				}
+				$tmp = gzcompress($tmp, $this->Compression);
 			}
-			$tmp = gzcompress($tmp, $this->Compression);
+			
+			if(isset($this->pages->encryptionObject)){
+				$encObj = &$this->pages->encryptionObject;
+				$encObj->encryptInit($this->ObjectId);
+				$tmp = $encObj->ARC4($tmp);
+			}
+			$l = strlen($tmp);
+			$res.= ' /Length '.$l;
 		}
 		
-		if(isset($this->pages->encryptionObject)){
-			$encObj = &$this->pages->encryptionObject;
-			$encObj->encryptInit($this->ObjectId);
-			$tmp = $encObj->ARC4($tmp);
-		}
-		if(is_array($optEntries)){
-			foreach($optEntries as $k=>$v){
+		if(is_array($this->entries)){
+			foreach($this->entries as $k=>$v){
 				$res.= " /$k $v";
 			}
 		}
 		
-		$l = strlen($tmp);
-		$res.= ' /Length '.$l." >> stream\n".$tmp."\n\nendstream";
+		$res.= ' >>';
 		
+		if($l > 0){
+			$res.= " stream\n".$tmp."\n\nendstream";
+		}
 		$res = "\n".$this->ObjectId." 0 obj\n".$res."\nendobj"; 
 		
 		$this->pages->AddXRef($this->ObjectId, strlen($res));
@@ -3486,9 +3515,9 @@ class Cpdf_Appearance extends Cpdf_Writing{
 	public function OutputAsObject(){
 		$entries = array();
 		if(!empty($this->Ressources)){
-			$entries['Ressources'] = $this->Ressources;
+			$this->AddEntry('Resources', $this->Ressources);
 		}
-		return parent::OutputAsObject($entries);
+		return parent::OutputAsObject();
 	}
 	
 	public function Callback($bbox, $resize = false){
@@ -4611,22 +4640,20 @@ class Cpdf_Image extends Cpdf_Content {
 		$res = "\n$this->ObjectId 0 obj";
 		$res.="\n<< /Subtype /Image";
 		
-		$entries = array(
-						'Width' => $this->orgWidth,
-						'Height' => $this->orgHeight,
-					);
+		$this->AddEntry('Width', $this->orgWidth);
+		$this->AddEntry('Height', $this->orgHeight);
 		
 		$paletteObj = '';
 		
 		switch ($this->ImageType) {
 			case IMAGETYPE_JPEG:
 				if($this->channels == 1){
-					$entries['ColorSpace'] = '/DeviceGray';
+					$this->AddEntry('ColorSpace', '/DeviceGray');
 				}else{
-					$entries['ColorSpace'] = '/DeviceRGB';
+					$this->AddEntry('ColorSpace', '/DeviceRGB');
 				}
-				$entries['Filter'] = '/DCTDecode';
-				$entries['BitsPerComponent'] = $this->bits;
+				$this->AddEntry('Filter', '/DCTDecode');
+				$this->AddEntry('BitsPerComponent', $this->bits);
 				break;
 			case IMAGETYPE_PNG:
 				if(strlen($this->palette)){
@@ -4652,32 +4679,32 @@ class Cpdf_Image extends Cpdf_Content {
 						switch ($this->transparency['type']) {
 							case 'indexed':
 								$tmp=' ['.$this->transparency['data'].' '.$this->transparency['data'].'] ';
-								$entries['Mask'] = $tmp;
-								$entries['ColorSpace'] = '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$pId.' 0 R]';
+								$this->AddEntry('Mask', $tmp);
+								$this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$pId.' 0 R]');
 								break;
 							case 'alpha':
-								$entries['SMask'] = $pId.' 0 R';
-								$entries['ColorSpace'] = '/'.$this->colorspace;
+								$this->AddEntry('Mask', $pId.' 0 R');
+								$this->AddEntry('ColorSpace', '/'.$this->colorspace);
 								break;
 						}
 					}
 				} else {
-						$entries['ColorSpace'] = '/'.$this->colorspace;
-					}
+					$this->AddEntry('ColorSpace', '/'.$this->colorspace);
+				}
 				
-				$entries['BitsPerComponent'] = $this->bits;
-				$entries['Filter'] = '/FlateDecode';
-				$entries['DecodeParms'] = '<< /Predictor 15 /Colors '.$this->numColors.' /Columns '.$this->orgWidth.' /BitsPerComponent '.$this->bits.'>>';
+				$this->AddEntry('BitsPerComponent', $this->bits);
+				$this->AddEntry('Filter', '/FlateDecode');
+				$this->AddEntry('DecodeParms', '<< /Predictor 15 /Colors '.$this->numColors.' /Columns '.$this->orgWidth.' /BitsPerComponent '.$this->bits.'>>');
 				break;
 		}
 
 		$tmp = $this->data;
 		// gzcompress
 		if(function_exists('gzcompress') && $this->Compression && $this->ImageType != IMAGETYPE_PNG){
-			if(isset($entries['Filter'])){
-				$entries['Filter'] = '[/FlateDecode '.$entries['Filter'].']';
+			if(isset($this->entries['Filter'])){
+				$this->AddEntry('Filter', '[/FlateDecode '.$this->entries['Filter'].']');
 			} else {
-				$entries['Filter']= '/FlateDecode';
+				$this->AddEntry('Filter', 'FlateDecode');
 			}
 			$tmp = gzcompress($tmp, $this->Compression);
 		}
@@ -4688,7 +4715,7 @@ class Cpdf_Image extends Cpdf_Content {
 			$tmp = $encObj->ARC4($tmp);
 		}
 		
-		foreach ($entries as $k => $v) {
+		foreach ($this->entries as $k => $v) {
 			$res.= " /$k $v";
 		}
 		$res.=' /Length '.strlen($tmp).' >>';
