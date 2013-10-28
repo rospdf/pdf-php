@@ -20,7 +20,7 @@
  *
  * @category Documents
  * @package Cpdf
- * @version 0.12.2-RC2 (>=php4.0.6)
+ * @version 0.12.2-rc3 (>=php4.0.6)
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
