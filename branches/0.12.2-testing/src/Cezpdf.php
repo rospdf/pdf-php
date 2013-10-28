@@ -20,7 +20,7 @@
  *
  * @category Documents
  * @package Cpdf
- * @version 0.12.2-RC1 (>=php4.0.6)
+ * @version 0.12.2-RC2 (>=php4.0.6)
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
@@ -847,7 +847,8 @@ class Cezpdf extends Cpdf {
      */
     public function ezGetTextWidth($size,$text){
         $mx=0;
-        $lines = explode("\n",$text);
+        //$lines = explode("\n",$text);
+        $lines = preg_split("[\r\n|\r|\n]",$text);
         foreach ($lines as $line){
             $w = $this->getTextWidth($size,$line);
             if ($w>$mx){
@@ -952,6 +953,8 @@ class Cezpdf extends Cpdf {
         // find the maximum cell widths based on the data
         foreach ($data as $row){
             foreach ($cols as $colName=>$colHeading){
+                // BUGFIX #16 ignore empty columns | thanks jafjaf
+                if (empty($row[$colName])) continue;
                 $w = $this->ezGetTextWidth($options['fontSize'],(string)$row[$colName])*1.01;
                 if ($w > $maxWidth[$colName]){
                     $maxWidth[$colName]=$w;
@@ -1297,14 +1300,16 @@ class Cezpdf extends Cpdf {
                             if (isset($row[$colName])){
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])){
 
-                                    $lines = explode("\n",$row[$colName]);
+                                    //$lines = explode("\n",$row[$colName]);
+                                    $lines = preg_split("[\r\n|\r|\n]",$row[$colName]);
                                     if (isset($row[$options['cols'][$colName]['link']]) && strlen($row[$options['cols'][$colName]['link']])){
                                         foreach ($lines as $k=>$v){
                                             $lines[$k]='<c:alink:'.$row[$options['cols'][$colName]['link']].'>'.$v.'</c:alink>';
                                         }
                                     }
                                 } else {
-                                    $lines = explode("\n",$row[$colName]);
+                                    //$lines = explode("\n",$row[$colName]);
+                                    $lines = preg_split("[\r\n|\r|\n]",$row[$colName]);
                                 }
                             } else {
                                 $lines = array();
@@ -1544,7 +1549,8 @@ class Cezpdf extends Cpdf {
             $height = $this->getFontHeight($size);
         }
 
-        $lines = explode("\n",$text);
+//        $lines = explode("\n",$text);
+        $lines = preg_split("[\r\n|\r|\n]",$text);
         foreach ($lines as $line){
             $start=1;
             while (strlen($line) || $start){
