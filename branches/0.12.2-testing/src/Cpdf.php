@@ -19,7 +19,7 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version  0.12.2-RC1 (>=php4.0.6)
+ * @version  0.12.2-RC2 (>=php4.0.6)
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
@@ -1847,6 +1847,13 @@ class Cpdf
         $this->debug('openFont executed: '.$font.' - '.$name.' / IsUnicode: '.$this->isUnicode);
         $cachedFile = 'cached'.$name.'.php';
         
+        // PATCH #13 - isUnicode cachedFile (font) problem | thank you jafjaf
+        if ($this->isUnicode){
+            $cachedFile = 'cached'.$name.'unicode.php';
+        } else {
+            $cachedFile = 'cached'.$name.'.php';
+        }
+        
         // use the temp folder to read/write cached font data
         if (file_exists($this->tempPath.'/'.$cachedFile)) {
             $cacheDate = filemtime($this->tempPath.'/'.$cachedFile);
@@ -2318,7 +2325,10 @@ class Cpdf
             } else {
                 $nf = $this->fontFamilies[$cf][$this->currentTextState];
             }
-            $this->selectFont($nf,'',0);
+            // PATCH #14 - subset file fix when using font family | thank you johannes
+            $isSubset = false;
+            if (isset($this->fonts[$this->currentBaseFont]['isSubset'])) $isSubset = $this->fonts[$this->currentBaseFont]['isSubset'];
+            $this->selectFont($nf,'', 0, $isSubset);
             $this->currentFont = $nf;
             $this->currentFontNum = $this->fonts[$nf]['fontNum'];
         } else {
