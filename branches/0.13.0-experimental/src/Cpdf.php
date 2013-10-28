@@ -617,7 +617,7 @@ class Cpdf_Font {
 		$this->EmbedFont = $this->pages->EmbedFont;
 		$this->props = array();
 		
-		$this->prefix = "AAAAAD+";
+		$this->prefix = $this->randomSubset();
 		
 		if($p=strrpos($fontFile, '.')){
 			$ext = substr($fontFile, $p);
@@ -646,6 +646,20 @@ class Cpdf_Font {
 	}
 	
 	/**
+	 * generate a random string as font subset prefix
+	 */
+	private function randomSubset(){
+		$length = 6;
+		// can also have more then A-F, but should be enough
+		$characters = 'ABCDEF';
+    	$randomString = '';
+    	for ($i = 0; $i < $length; $i++) {
+        	$randomString .= $characters[rand(0, strlen($characters) - 1)];
+    	}
+    	return $randomString.'+';
+	}
+	
+	/**
 	 * add chars to an array.
 	 * Used for font subsetting
 	 */
@@ -668,6 +682,7 @@ class Cpdf_Font {
             $this->props = require($this->pages->TempPath.'/'.$cachedFile);
             if (isset($this->props['_version_']) && $this->props['_version_'] == 4) {
                 // USE THE CACHED FILE end exit here
+                $this->IsUnicode = $this->props['isUnicode'];
                 return;
 			}
         }
@@ -758,7 +773,8 @@ class Cpdf_Font {
 	 */
 	private function readAFM($fontpath){
 		// AFM is always ANSI - no chance for unicode
-		$this->props['isUnicode'] = false;
+		$this->IsUnicode = false;
+		$this->props['isUnicode'] = $this->IsUnicode;
 		
         $file = file($fontpath);
         foreach ($file as $row) {
@@ -829,6 +845,9 @@ class Cpdf_Font {
 	 * @param string $fontpath - path of the *.ttf font file
 	 */
 	private function readTTF($fontpath){
+		// set unicode to all TTF fonts by default
+		$this->IsUnicode = true;
+		
 		$ttf = new TTF(file_get_contents($fontpath));
 		
         $head = $ttf->unmarshalHead();
@@ -1115,21 +1134,31 @@ class Cpdf_Font {
 				//echo "\n$k ($v) == $nextk ($nextv)";
 				if(($k + 1) == $nextk){
 					if(!$opened){
-						$res.= " $k [$v $nextv";
+						$res.= " $k [$v";
 						$opened = true;
-					} else {
+					} else if($opened) {
 						$res.= ' '.$v;
-						prev($this->cidWidths);
 					}
+					prev($this->cidWidths);
 				} else {
 					if($opened){
 						$res.=" $v]";
+					} else {
+						$res.= " $k [$v]";
 					}
+					
 					$opened = false;
 					prev($this->cidWidths);
 				}
-				
 			}
+			
+			if(isset($nextk) && isset($nextv)){
+				$res.= "] $nextk [$nextv] ";
+			} else {
+				$res.= '] ';
+			}
+			
+			
 			/*
 			foreach ($this->cidWidths as $k => $v) {
 				$res.= "$k [$v] ";
@@ -1236,7 +1265,7 @@ class Cpdf_Font {
 			$res.= ' /Type1 /BaseFont /'.$this->FontName;
 			//$res.= " /Encoding /".$this->props['EncodingScheme'];
 			$res.= " /Encoding /WinAnsiEncoding";
-		} else if($this->IsUnicode){
+		} else {
 			$data = $this->outputBinary();
 			
 			$unicode = $this->outputUnicode();
@@ -1260,7 +1289,7 @@ class Cpdf_Font {
 			 
 			 $res.= " /ToUnicode $this->unicodeId 0 R";
 			 
-		} else {
+		} /*else {
 			if($this->EmbedFont){
 				$data = $this->outputBinary();
 			} else {
@@ -1292,7 +1321,7 @@ class Cpdf_Font {
 				$a++;
 			}
 			$res.="]";
-		}
+		}*/
 		
 		
 		$res.= " >>\nendobj";
@@ -1438,6 +1467,10 @@ class Cpdf extends Cpdf_Common {
 	 * primitive hashtable for images
 	 */
 	private $hashTable;
+	/**
+	 * pdf resources for all pages
+	 */
+	protected $resources;
 	
 	public function __construct($mediabox, $cropbox = null, $bleedbox = null){
 		
@@ -1456,6 +1489,7 @@ class Cpdf extends Cpdf_Common {
 		$this->xref = array();
 		$this->contentObjects = array();
 		$this->hashTable = array();
+		$this->resources = array('ProcSet'=>'[/PDF/TEXT/ImageB/ImageC/ImageI]');
 		
 		$this->Metadata = new Cpdf_Metadata($this);
 		
@@ -1595,6 +1629,11 @@ class Cpdf extends Cpdf_Common {
 	 */
 	public function SetEncryption($mode, $user, $owner, $permission){
 		$this->encryptionObject = new Cpdf_Encryption($this, $mode, $user, $owner, $permission);
+	}
+	
+	
+	protected function AddResource($key, $value){
+		$this->resources[$key] = $value;
 	}
 	
 	/**
@@ -1817,20 +1856,23 @@ class Cpdf extends Cpdf_Common {
 		
 		// -- START Resource Header
 		// according to pdf ref we can put all procsets by default
-		$tmp.= ' /Resources << /ProcSet [/PDF/TEXT/ImageB/ImageC/ImageI]';
 		
-		if(!empty($fontrefs)){
-			$tmp.= ' /Font <<'.$fontrefs.' >>';
-		}
-		
+		// add font refs into resource
+		$this->AddResource('Font', '<<'.$fontrefs.' >>');
+		// add xobject refs, mostly images into resources
 		if(isset($this->contentRefs['pages'])){
-			$tmp.= ' /XObject <<';
+			$imagerefs = '<<';
 			foreach ($this->contentRefs['pages'] as $key => $value) {
-				$tmp.=' /'.$this->ImageLabel.$value[0]." $key 0 R";
+				$imagerefs.=' /'.$this->ImageLabel.$value[0]." $key 0 R";
 			}
-			$tmp.= ' >>';
+			$imagerefs.= ' >>';
+			$this->AddResource('XObject', '<<'.$imagerefs.' >>');
 		}
 		
+		$tmp.= ' /Resources << ';
+		foreach ($this->resources as $k => $v) {
+			$tmp.= " /$k $v";
+		}
 		$tmp.= ' >>';
 		// -- END Resource Header
 		
@@ -2335,10 +2377,10 @@ class Cpdf_Content extends Cpdf_Common {
 	
 	protected $pagingCallback;
 	
-	const PB_CELL = 4;
 	const PB_BLEEDBOX = 1;
 	const PB_BBOX = 2;
-		
+	const PB_CELL = 4;
+	
 	public $BreakPage;
 	public $BreakColumn;
 	
@@ -2649,6 +2691,7 @@ class Cpdf_Writing extends Cpdf_Content {
 			array_push($this->delayedContent,  array($text, $width, $justify, $wordSpaceAdjust));
 			return;
 		}
+		
 		if(mb_detect_encoding($text) != 'UTF-8'){
 			$text = utf8_encode($text);
 		}
@@ -2702,7 +2745,6 @@ class Cpdf_Writing extends Cpdf_Content {
 						$this->y -= $this->fontHeight + $this->fontDescender;
 						
 					} else if($this->BreakPage > 0) {
-						
 						$obj = $this->DoClone($this);
 						$this->pages->addObject($obj, true);
 						
@@ -2719,7 +2761,7 @@ class Cpdf_Writing extends Cpdf_Content {
 						
 						$this->page = $p;
 						
-						if(($this->BreakPage & Cpdf_Content::PB_BLEEDBOX) == Cpdf_Content::PB_BLEEDBOX){
+						if(Cpdf_Common::IsDefined($this->BreakPage, Cpdf_Content::PB_BLEEDBOX)){
 							$this->initialBBox[1] = $this->page->Bleedbox[1];
 							$this->initialBBox[3] = $this->page->Bleedbox[3];
 						}
@@ -2786,6 +2828,7 @@ class Cpdf_Writing extends Cpdf_Content {
 			$this->callbackObject = null;
 			$this->y = $this->BBox[3];
 			$this->y -= $this->fontHeight + $this->fontDescender;
+			
 			foreach($this->delayedContent as $v){
 				$this->AddText($v[0], $v[1], $v[2], $v[3]);
 			}
