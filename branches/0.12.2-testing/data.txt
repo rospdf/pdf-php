@@ -29,6 +29,14 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc4>
+
+- indexed PNG fixed (but without alpha channel)
+- background color check simplified in Cezpdf.php which causes sporadic errors on line 219
+- custom callback for underlined (c:uline) is set to allowedTags by default
+- some fixes with text directives (E.g. &lt;b&gt;[new line]text[new line]text&lt;/b&gt;)
+- corrected getTextWidth by removing all directives set in $pdf->allowedTags
+
 2<version 0.12-rc3>
 
 - removed unused Begin Text - objects (BT ... ET) by checking empty text in addText method
@@ -37,6 +45,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 - optimized pdf output for link annotation (actions are now set inline)
 - fixed sprintf locale output for rectangle in o_annotation
 - NEW FEATURE: new annotation called comments - demo in examples/annotations.php
+- applied patch no# 13 - 16
 
 2<version 0.12-rc2>
 

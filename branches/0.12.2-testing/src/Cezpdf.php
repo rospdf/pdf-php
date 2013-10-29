@@ -20,7 +20,7 @@
  *
  * @category Documents
  * @package Cpdf
- * @version 0.12.2-rc3 (>=php4.0.6)
+ * @version 0.12.2-rc4 (>=php4.0.6)
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
@@ -216,7 +216,7 @@ class Cezpdf extends Cpdf {
             switch ($this->ezBackground['type'])
             {
                 case 'color':
-                    if (isset($this->ezBackground['color']) && count(array_filter( array_map( function($_){ return is_numeric($_)&&0<=$_&&$_<=1; }, $this->ezBackground['color']))) == 3)
+                    if (isset($this->ezBackground['color']) && is_array($this->ezBackground['color']) && count($this->ezBackground['color']) == 3)
                     {
                         $this->saveState();
                         $this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
@@ -1549,7 +1549,7 @@ class Cezpdf extends Cpdf {
             $height = $this->getFontHeight($size);
         }
 
-//        $lines = explode("\n",$text);
+        //$lines = explode("\n",$text);
         $lines = preg_split("[\r\n|\r|\n]",$text);
         foreach ($lines as $line){
             $start=1;

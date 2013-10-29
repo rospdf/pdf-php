@@ -119,7 +119,7 @@ class Cpdf
      * Example for the internal links ONLY would be: 
      * $allowedTags = 'ilink:?.*?';
      */
-     public $allowedTags = 'b|strong|i|alink:?.*?|ilink:?.*?';
+     public $allowedTags = 'b|strong|i|uline|alink:?.*?|ilink:?.*?';
      
     /**
      * @var boolean used to either embed or not embed ttf/pfb fonts.
@@ -1375,8 +1375,11 @@ class Cpdf
                     if (isset($options['transparency'])){
                         switch($options['transparency']['type']){
                         case 'indexed':
-                            $tmp=' [ '.$options['transparency']['data'].' '.$options['transparency']['data'].'] ';
-                            $this->objects[$id]['info']['Mask'] = $tmp;
+                            // temporary no transparency for indexed PNG images
+                            unset($this->objects[$this->numObj]['info']);
+                            //$tmp=' [ '.$options['transparency']['data'].' '.$options['transparency']['data'].'] ';
+                            //$this->objects[$id]['info']['Mask'] = $tmp;
+                            
                             $this->objects[$id]['info']['ColorSpace'] = ' [ /Indexed /DeviceRGB '.(strlen($options['pdata'])/3-1).' '.$this->numObj.' 0 R ]';
                             break;
                         case 'alpha':
@@ -1845,7 +1848,6 @@ class Cpdf
         }
         
         $this->debug('openFont executed: '.$font.' - '.$name.' / IsUnicode: '.$this->isUnicode);
-        $cachedFile = 'cached'.$name.'.php';
         
         // PATCH #13 - isUnicode cachedFile (font) problem | thank you jafjaf
         if ($this->isUnicode){
@@ -2742,6 +2744,7 @@ class Cpdf
                 
                 $tmpstr = mb_substr($text, $prevEndTagIndex, $curTagIndex - $prevEndTagIndex, 'UTF-8');
                 $tmpstr = $this->filterText($tmpstr, false, false);
+                
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
                 
                 // if the text does not fit to $width, $tmp[2] contains the length to break the line
@@ -2851,8 +2854,7 @@ class Cpdf
                     $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
                     return $cb;
                 } else {
-                    $cb[$prevEndTagIndex] = array('x'=> $nx, 'y'=> $ny, 'f'=>'break', 'p' => $tmp[3], 'width'=>$tmp[0]);
-                    return $cb;
+                    $restWidth -= $tmp[0];
                 }
             }
             
@@ -2953,7 +2955,7 @@ class Cpdf
           $this->wordSpaceAdjust = $wordSpaceAdjust;
           $this->addContent(sprintf(" %.3F Tw", $wordSpaceAdjust));
         }
-        
+
         $start=0;
         foreach($directives as  $pos => $directive){
             if($pos > $start){
@@ -2985,8 +2987,6 @@ class Cpdf
                     }
                 }
                 return mb_substr($text,$pos + $directive['p'], $len, 'UTF-8');
-            } else if($func == 'break') {
-                break;
             } else { // custom callbacks
                 $this->addContent(' ET');
                 $this->$func($directive);
@@ -3073,6 +3073,8 @@ class Cpdf
      * @access public
      */
     public function getTextWidth($size,$text){
+        $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/";
+        $text=preg_replace($regex, '', $text);
         $tmp = $this->getTextLength($size, $text);
         return $tmp[0];
     }
