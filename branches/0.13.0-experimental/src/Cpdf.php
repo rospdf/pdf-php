@@ -1153,6 +1153,9 @@ class Cpdf_Font {
 			}
 			
 			if(isset($nextk) && isset($nextv)){
+				if($opened){
+					$res.= "]";
+				}
 				$res.= " $nextk [$nextv]";
 			}
 			
