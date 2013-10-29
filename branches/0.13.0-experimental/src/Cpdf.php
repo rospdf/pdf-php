@@ -1153,18 +1153,14 @@ class Cpdf_Font {
 			}
 			
 			if(isset($nextk) && isset($nextv)){
-				$res.= "] $nextk [$nextv] ";
-			} else {
-				$res.= '] ';
+				$res.= " $nextk [$nextv]";
 			}
-			
 			
 			/*
 			foreach ($this->cidWidths as $k => $v) {
 				$res.= "$k [$v] ";
 			}*/
-		$res.="]";
-        		
+        $res.= ' ]';	
 		$res.= " >>";
 		$res.="\nendobj";
 		
@@ -2699,7 +2695,6 @@ class Cpdf_Writing extends Cpdf_Content {
 		if(!isset($this->CURFONT)){
 			$this->SetFont('Helvetica');
 		}
-		$pageBreak = false;
 		
 		// use the BBox to calculate the possible width depended on the page size
 		// ignore the width for callbacks TODO: include the bbox of the caller
