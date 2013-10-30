@@ -1561,6 +1561,16 @@ class Cpdf extends Cpdf_Common {
 	}
 	
 	/**
+	 * create a new content object to use raw input (esspecially used for images)
+	 */
+	public function NewContent(){
+		$c = new Cpdf_Content($this);
+		
+		array_push($this->contentObjects, $c);
+		return $c;
+	}
+	
+	/**
 	 * Build a table and return the object to proceed with table cells
 	 */
 	public function NewTable($bbox = array(), $columns = 2, $backgroundColor = null, $lineStyle = null, $drawLines = Cpdf_Table::DRAWLINE_TABLE){
@@ -1857,7 +1867,9 @@ class Cpdf extends Cpdf_Common {
 		// according to pdf ref we can put all procsets by default
 		
 		// add font refs into resource
-		$this->AddResource('Font', '<<'.$fontrefs.' >>');
+		if(!empty($fontrefs)){
+			$this->AddResource('Font', '<<'.$fontrefs.' >>');
+		}
 		// add xobject refs, mostly images into resources
 		if(isset($this->contentRefs['pages'])){
 			$imagerefs = '<<';
@@ -1865,7 +1877,7 @@ class Cpdf extends Cpdf_Common {
 				$imagerefs.=' /'.$this->ImageLabel.$value[0]." $key 0 R";
 			}
 			$imagerefs.= ' >>';
-			$this->AddResource('XObject', '<<'.$imagerefs.' >>');
+			$this->AddResource('XObject', $imagerefs);
 		}
 		
 		$tmp.= ' /Resources << ';
@@ -4504,7 +4516,7 @@ class Cpdf_Image extends Cpdf_Content {
                     	$this->numColors = 1;
 						break;
 				}
-				
+				//print_r($iChunk);
 				$this->data = $iChunk['idata'];
 				$this->palette = $iChunk['pdata'];
 				$this->transparency = $iChunk['transparency'];
@@ -4684,7 +4696,7 @@ class Cpdf_Image extends Cpdf_Content {
 		$this->AddEntry('Width', $this->orgWidth);
 		$this->AddEntry('Height', $this->orgHeight);
 		
-		$paletteObj = '';
+		$paletteObj = null;
 		
 		switch ($this->ImageType) {
 			case IMAGETYPE_JPEG:
@@ -4698,33 +4710,33 @@ class Cpdf_Image extends Cpdf_Content {
 				break;
 			case IMAGETYPE_PNG:
 				if(strlen($this->palette)){
-					$pId = ++$this->pages->objectNum;
-					$paletteObj = "\n".$pId." 0 obj";
-					$paletteObj.= "\n<< /Subtype /Image /Width ".$this->orgWidth." /Height ".$this->orgHeight;
+					$paletteObj = new Cpdf_Content($this->pages);
+					$paletteObj->ObjectId = ++$this->pages->objectNum;
 					
-					$paletteObj.=' /Filter /FlateDecode';
-					$paletteObj.= ' /Length '.strlen($this->palette);
+					$paletteObj->AddRaw($this->palette);
+					// do not compress the palette as it already is compressed
+					// when palette is used as alpha channel fir indexed PNG, ignore the compression
+					$paletteObj->Compression = 0;
 					
-					$paletteObj.= ' /ColorSpace /DeviceGray';
+					$paletteObj->AddEntry('Subtype', '/Image');
+					$paletteObj->AddEntry('Width', $this->orgWidth);
+					$paletteObj->AddEntry('Height', $this->orgHeight);
 					
-					$paletteObj.= ' /BitsPerComponent '.$this->bits;
-					$paletteObj.= ' /DecodeParms << /Predictor 15 /Colors 1 /BitsPerComponent '.$this->bits.' /Columns '.$this->orgWidth.' >>';
-					$paletteObj.= " >>\n";
-					
-					$paletteObj.= "stream\n".$this->palette."\nendstream";
-					$paletteObj.= "\nendobj";
-					
-					$this->pages->AddXRef($pId, strlen($paletteObj));
+					$paletteObj->AddEntry('ColorSpace', '/DeviceGray');
+					$paletteObj->AddEntry('BitsPerComponent', $this->bits);
+					$paletteObj->AddEntry('DecodeParms', '<< /Predictor 15 /Colors 1 /BitsPerComponent '.$this->bits.' /Columns '.$this->orgWidth.' >>');
 					
 					if(isset($this->transparency)){
 						switch ($this->transparency['type']) {
 							case 'indexed':
-								$tmp=' ['.$this->transparency['data'].' '.$this->transparency['data'].'] ';
-								$this->AddEntry('Mask', $tmp);
-								$this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$pId.' 0 R]');
+								// disable transparancy on indexed PNGs for time being
+								//$tmp=' ['.$this->transparency['data'].' '.$this->transparency['data'].'] ';
+								//$this->AddEntry('Mask', $tmp);
+								$this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$paletteObj->ObjectId.' 0 R]');
 								break;
 							case 'alpha':
-								$this->AddEntry('Mask', $pId.' 0 R');
+								$paletteObj->AddEntry('Filter', '/FlateDecode');
+								$this->AddEntry('SMask', $paletteObj->ObjectId.' 0 R');
 								$this->AddEntry('ColorSpace', '/'.$this->colorspace);
 								break;
 						}
@@ -4745,7 +4757,7 @@ class Cpdf_Image extends Cpdf_Content {
 			if(isset($this->entries['Filter'])){
 				$this->AddEntry('Filter', '[/FlateDecode '.$this->entries['Filter'].']');
 			} else {
-				$this->AddEntry('Filter', 'FlateDecode');
+				$this->AddEntry('Filter', '/FlateDecode');
 			}
 			$tmp = gzcompress($tmp, $this->Compression);
 		}
@@ -4765,7 +4777,10 @@ class Cpdf_Image extends Cpdf_Content {
 		
 		$this->pages->AddXRef($this->ObjectId, strlen($res));
 		
-		return $res.$paletteObj;
+		if(is_object($paletteObj)){
+			$res.= $paletteObj->OutputAsObject();
+		}
+		return $res;
 	}
 }
 
