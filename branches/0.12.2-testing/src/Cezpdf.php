@@ -1342,7 +1342,7 @@ class Cezpdf extends Cpdf {
                                             $just='left';
                                         }
 
-                                        $line=$this->addText($pos[$colName],$this->y,$options['fontSize'], $line, $maxWidth[$colName], $just);
+                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                     }
                                 }
                             }
@@ -1414,7 +1414,7 @@ class Cezpdf extends Cpdf {
                             $y0 = $y0_orig;
                             $y1 = $y1_orig;
                             $ok=0;
-                            // MARKIERT
+                            
                             $dm = $this->ez['leftMargin']-$baseLeftMargin;
                             foreach ($basePos as $k=>$v){
                                 $pos[$k]=$v+$dm;
