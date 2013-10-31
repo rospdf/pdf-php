@@ -74,9 +74,13 @@ function dots($info){
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12-rc3";
+$project_version = "0.12-rc5";
 
 $pdf = new Creport('a4','portrait', 'none', null);
+// to test on windows xampp
+  if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+  }
 $start = microtime(true);
 
 // IMPORTANT: To allow custom callbacks being executed
@@ -265,6 +269,6 @@ if (isset($_GET['d']) && $_GET['d']){
 }
 
 $end = microtime(true) - $start;
-error_log($end . ' execution in seconds');
+error_log($end);
 
 ?>

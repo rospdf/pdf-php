@@ -29,6 +29,12 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc5>
+
+- fixed bug when table page breaks (changed some private declarations into protected)
+- font cache fixed by disabling subsets for non-unicode fonts (need improvement)
+- NEW PROPERTY cacheTimeout to allow setting the cache lifetime (default: 1 day)
+
 2<version 0.12-rc4>
 
 - indexed PNG fixed (but without alpha channel)

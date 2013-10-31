@@ -19,7 +19,7 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version  0.12.2-rc4 (>=php4.0.6)
+ * @version  0.12.2-rc5 (>=php4.0.6)
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
@@ -81,14 +81,14 @@ class Cpdf
      *
      * @var integer
      */
-    private $numObj=0;
+    protected $numObj=0;
 
     /**
       * this array contains all of the pdf objects, ready for final assembly
       *
       * @var array
       */
-    private $objects = array();
+    protected $objects = array();
 
     /**
      * allows object being hashed (affect images only)
@@ -125,7 +125,13 @@ class Cpdf
      * @var boolean used to either embed or not embed ttf/pfb fonts.
      */
     protected $embedFont = true;
-
+    
+    /**
+     * font cache timeout in seconds
+     * @default 86400 - 1 day
+     */
+    public $cacheTimeout = 86400;
+    
     /**
      * store the information about the relationship between font families
      * this used so that the code knows which font is the bold version of another font, etc.
@@ -201,32 +207,32 @@ class Cpdf
       *
       * @var integer
       */
-    private $currentPage;
+    protected $currentPage;
 
     /**
       * object number of the currently active contents block
       */
-    private $currentContents;
+    protected $currentContents;
 
     /**
       * number of fonts within the system
       */
-    private $numFonts = 0;
+    protected $numFonts = 0;
 
     /**
      * current colour for fill operations, defaults to inactive value, all three components should be between 0 and 1 inclusive when active
      */
-    private $currentColour = array('r' => -1, 'g' => -1, 'b' => -1);
+    protected $currentColour = array('r' => -1, 'g' => -1, 'b' => -1);
 
     /**
      * current colour for stroke operations (lines etc.)
      */
-    private $currentStrokeColour = array('r' => -1, 'g' => -1, 'b' => -1);
+    protected $currentStrokeColour = array('r' => -1, 'g' => -1, 'b' => -1);
 
     /**
       * current style that lines are drawn in
       */
-    private $currentLineStyle='';
+    protected $currentLineStyle='';
 
     /**
       * an array which is used to save the state of the document, mainly the colours and styles
@@ -242,7 +248,7 @@ class Cpdf
     /**
      * number of page objects within the document
      */
-    private $numPages=0;
+    protected $numPages=0;
 
     /**
      * object Id storage stack
@@ -367,7 +373,7 @@ class Cpdf
      *
      * @var string
      */
-    private $checkpoint = '';
+    protected $checkpoint = '';
 
     /**
      * Constructor - starts a new document
@@ -759,7 +765,7 @@ class Cpdf
                         // find font program id for TTF fonts (FontFile2)
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
                         // if subsetting is set
-                        if($this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset'])){
+                        if($this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset']) && $this->fonts[$o['info']['fontFileName']]['isUnicode']){
                             $this->debug('subset font for ' . $o['info']['fontFileName'], E_USER_NOTICE);
                             $subsetFontName = "AAAAAD+" . $o['info']['name'];
                             $o['info']['name'] = $subsetFontName;
@@ -1370,19 +1376,19 @@ class Cpdf
                 if (strlen($options['pdata'])){
                     $this->numObj++;
                     $this->objects[$this->numObj]=array('t'=>'image','c'=>'','info'=>array());
-                    $this->objects[$this->numObj]['info'] = array('Type'=>'/XObject', 'Subtype'=>'/Image', 'Width'=> $options['iw'], 'Height'=> $options['ih'], 'Filter'=>'/FlateDecode', 'ColorSpace'=>'/DeviceGray', 'BitsPerComponent'=>'8', 'DecodeParms'=>'<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>');
+                    $this->objects[$this->numObj]['info'] = array('Type'=>'/XObject', 'Subtype'=>'/Image', 'Width'=> $options['iw'], 'Height'=> $options['ih'], 'ColorSpace'=>'/DeviceGray', 'BitsPerComponent'=>'8', 'DecodeParms'=>'<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>');
                     $this->objects[$this->numObj]['data']=$options['pdata'];
                     if (isset($options['transparency'])){
                         switch($options['transparency']['type']){
                         case 'indexed':
                             // temporary no transparency for indexed PNG images
-                            unset($this->objects[$this->numObj]['info']);
                             //$tmp=' [ '.$options['transparency']['data'].' '.$options['transparency']['data'].'] ';
                             //$this->objects[$id]['info']['Mask'] = $tmp;
                             
                             $this->objects[$id]['info']['ColorSpace'] = ' [ /Indexed /DeviceRGB '.(strlen($options['pdata'])/3-1).' '.$this->numObj.' 0 R ]';
                             break;
                         case 'alpha':
+                            $this->objects[$this->numObj]['info']['Filter'] = '/FlateDecode';
                             $this->objects[$id]['info']['SMask'] = $this->numObj.' 0 R';
                             $this->objects[$id]['info']['ColorSpace'] = '/'.$options['color'];
                             break;
@@ -1859,10 +1865,8 @@ class Cpdf
         // use the temp folder to read/write cached font data
         if (file_exists($this->tempPath.'/'.$cachedFile)) {
             $cacheDate = filemtime($this->tempPath.'/'.$cachedFile);
-            
-            if(file_exists($font.'.ttf') && filemtime($font.'.ttf') > $cacheDate) {
+            if(($cacheDate + $this->cacheTimeout) < time() ) {
                 unset($this->fonts[$font]);
-                $this->debug('openFont: update required for cached file '.$this->tempPath.'/'.$cachedFile);
             } else {
                 $this->debug('openFont: font cache found in '.$this->tempPath.'/'.$cachedFile);
                 $this->fonts[$font] = require($this->tempPath.'/'.$cachedFile);
@@ -2921,7 +2925,7 @@ class Cpdf
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
-        
+
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0){ 
             for ($i = $this->nCallback; $i > 0; $i--){
