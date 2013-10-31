@@ -1,15 +1,24 @@
-ROS PDF OBJECT ORIENTED CLASS - version 0.13.0
------------------------------------------------
-     NEW CLASS - NEW METHODS - NEW FEATURE
+   ROS PDF OBJECT ORIENTED CLASS - version 0.13.0
+---------------------------------------------------
+     NEW CLASS - NEW METHODS - NEW FEATURES
              --- EXPERIMENTAL ---
-This version of ROS PDF is completely
-reprogrammed (except some image related methods)
-to fully support php5 object orientation
+ This ROS-OO PDF class is completely  reprogrammed
+ (except some image related methods) to fully sup-
+ port php5 object orientation
 
+ The ROS-OO does not contain the Cezpdf.php as it 
+ is included into Cpdf.php.
+ 
+ Some Examples (01-09) can be found here:
+ http://pdf-php.sf.net/pdf-php-testing/examples/
+ 
+---------------------------------------------------
+    CURRENT RELEASE CANDIDATE version 0.12-rc5
+---------------------------------------------------
+ Use SVN to checkout from 
+ svn://svn.code.sf.net/p/pdf-php/code/tags/0.12-rc5
+ 
+ For the manual please refer to:
+ http://pdf-php.sf.net/pdf-php-code/readme.php 
 
-NEW RELEASE CANDIDATE version 0.12-rc2
-----------------------------------------
-Use svn checkout svn://svn.code.sf.net/p/pdf-php/code/tags/0.12-rc2 pdf-php-code
-Please refer to http://pdf-php.sf.net/pdf-php-code/readme.php for the manual
-
-Trunk is currently in version 0.11.8
+ Trunk is currently running on version 0.11.8
