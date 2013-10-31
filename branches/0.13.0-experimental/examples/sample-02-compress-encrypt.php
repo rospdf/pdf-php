@@ -7,7 +7,10 @@ include '../src/Cpdf.php';
 // NewPage parameter can be either a default layout, defined in Cpdf_Common
 // or an array three numbers to define a bounding box (Example: array(20, 20, 550, 800))
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
-
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->TempPath = 'E:/xampp/xampp/tmp';
+}
 $textObject = $pdf->NewText();
 
 if($pdf->Compression <> 0){

@@ -10,7 +10,12 @@ include '../src/Cpdf.php';
 // A new page parameter can be either a default layout, defined in Cpdf_Common
 // or an array three numbers to define a bounding box (Example: array(20, 20,550, 800)) 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
-//$pdf->PDFVersion = 1.4;
+
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->TempPath = 'E:/xampp/xampp/tmp';
+}
+
 $pdf->Compression = 0;
 
 // initialize first text object

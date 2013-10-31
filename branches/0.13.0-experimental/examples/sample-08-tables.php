@@ -6,6 +6,10 @@ set_time_limit(180);
 include 'Cpdf.php';
 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->TempPath = 'E:/xampp/xampp/tmp';
+}
 
 $ls = new Cpdf_LineStyle(1, 'butt', 'miter');
 $table = $pdf->NewTable(array('ly'=>774, 'ux'=>280), 4, null, $ls,  Cpdf_Table::DRAWLINE_ROW);

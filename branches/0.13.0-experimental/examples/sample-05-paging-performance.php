@@ -8,6 +8,10 @@ $start = microtime(true);
 include '../src/Cpdf.php';
 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->TempPath = 'E:/xampp/xampp/tmp';
+}
 //$pdf->Compression = 0;
 
 // Show page numbers - make use of 'repeat' function while paging

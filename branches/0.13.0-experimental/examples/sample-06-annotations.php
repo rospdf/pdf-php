@@ -5,7 +5,10 @@ set_time_limit(180);
 include '../src/Cpdf.php';
 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
-
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->TempPath = 'E:/xampp/xampp/tmp';
+}
 $t = $pdf->NewText();
 $t->AddText("// IMPORTANT NOTE about Annotations");
 $t->AddText("// Some viewers DO NOT DISPLAY annotations at all (for instance Chromes PDF Viewer");
