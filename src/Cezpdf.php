@@ -203,7 +203,7 @@ class Cezpdf extends Cpdf {
             switch ($this->ezBackground['type'])
             {
                 case 'color':
-                    if (isset($this->ezBackground['color']) && count(array_filter( array_map( function($_){ return is_numeric($_)&&0<=$_&&$_<=1; }, $this->ezBackground['color']))) == 3)
+                    if (isset($this->ezBackground['color']) && is_array($this->ezBackground['color']) && count($this->ezBackground['color']) == 3)
                     {
                         $this->saveState();
                         $this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
@@ -908,7 +908,7 @@ class Cezpdf extends Cpdf {
         if (!is_array($options)){
             $options=array();
         }
-
+        
         $defaults = array('shaded'=>1,'showBgCol'=>0,'showLines'=>1,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
