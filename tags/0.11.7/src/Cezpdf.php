@@ -203,13 +203,13 @@ class Cezpdf extends Cpdf {
 	        switch ($this->ezBackground['type'])
 	        {
 	            case 'color':
-	            	if (isset($this->ezBackground['color']) && count(array_filter( array_map( function($_){ return is_numeric($_)&&0<=$_&&$_<=1; }, $this->ezBackground['color']))) == 3)
-	            	{
-	                	$this->saveState();
-	                	$this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
-	                	$this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
-	                	$this->restoreState();
-	            	}
+	            	if (isset($this->ezBackground['color']) && is_array($this->ezBackground['color']) && count($this->ezBackground['color']) == 3)
+                    {
+                        $this->saveState();
+                        $this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
+                        $this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
+                        $this->restoreState();
+                    }
 	                break;
 	            case 'image':
 	            	$ypos = 0;

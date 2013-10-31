@@ -56,14 +56,14 @@ class Cpdf
      *
      * @var integer
      */
-    private $numObj=0;
+    protected $numObj=0;
 
     /**
       * this array contains all of the pdf objects, ready for final assembly
       *
       * @var array
       */
-    private $objects = array();
+    protected $objects = array();
 
     /**
      * allows object being hashed (affect images only)
@@ -168,32 +168,32 @@ class Cpdf
       *
       * @var integer
       */
-    private $currentPage;
+    protected $currentPage;
 
     /**
       * object number of the currently active contents block
       */
-    private $currentContents;
+    protected $currentContents;
 
     /**
       * number of fonts within the system
       */
-    private $numFonts = 0;
+    protected $numFonts = 0;
 
     /**
      * current colour for fill operations, defaults to inactive value, all three components should be between 0 and 1 inclusive when active
      */
-    private $currentColour = array('r' => -1, 'g' => -1, 'b' => -1);
+    protected $currentColour = array('r' => -1, 'g' => -1, 'b' => -1);
 
     /**
      * current colour for stroke operations (lines etc.)
      */
-    private $currentStrokeColour = array('r' => -1, 'g' => -1, 'b' => -1);
+    protected $currentStrokeColour = array('r' => -1, 'g' => -1, 'b' => -1);
 
     /**
       * current style that lines are drawn in
       */
-    private $currentLineStyle='';
+    protected $currentLineStyle='';
 
     /**
       * an array which is used to save the state of the document, mainly the colours and styles
@@ -209,7 +209,7 @@ class Cpdf
     /**
      * number of page objects within the document
      */
-    private $numPages=0;
+    protected $numPages=0;
 
     /**
      * object Id storage stack
@@ -241,7 +241,7 @@ class Cpdf
     /**
       * number of images being tracked within the document
       */
-    private $numImages=0;
+    protected $numImages=0;
 
     /**
       * an array containing options about the document
@@ -336,10 +336,12 @@ class Cpdf
      * store the stack for the transaction commands, each item in here is a record of the values of all the
      * variables within the class, so that the user can rollback at will (from each 'start' command)
      * note that this includes the objects array, so these can be large.
-     *
+     * 
+     * Important: This must be declared as protected to allow proper table paging
+     * 
      * @var string
      */
-    private $checkpoint = '';
+    protected $checkpoint = '';
 
     /**
      * Constructor - starts a new document
