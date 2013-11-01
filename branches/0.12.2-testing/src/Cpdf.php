@@ -5,7 +5,7 @@
  * Create pdf documents without additional modules
  * Note that the companion class Document_CezPdf can be used to extend this class and
  * simplify the creation of documents.
- *
+ * <pre>
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -18,18 +18,32 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/
+ * </pre>
+ *
+ * **Document object methods**
+ *
+ * There is about one object method for each type of object in the pdf document<br>
+ * Each function has the same call list ($id,$action,$options).<br>
+ * <pre>
+ * $id = the object ID of the object, or what it is to be if it is being created<br>
+ * $action = a string specifying the action to be performed, though ALL must support:<br>
+ *           'new' - create the object with the id $id<br>
+ *           'out' - produce the output for the pdf object<br>
+ * $options = optional, a string or array containing the various parameters for the object<br>
+ * </pre>
+ * These, in conjunction with the output function are the ONLY way for output to be produced
+ * within the pdf 'file'.
  *
  * @category Documents
  * @package	 Cpdf
- * @version $Id$
+ * @version [0.12-rc5] $Id$
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
  * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
- *
  * @copyright 2007 - 2013 The authors
  * @license  GNU General Public License v3
- * @link     http://pdf-php.sf.net
+ * @link http://pdf-php.sf.net R&OS on sourceforge.net
  */ 
 class Cpdf
 {
@@ -39,15 +53,15 @@ class Cpdf
      * For instance setEncryption may cause the pdf version to increase to $this->pdfversion = 1.4
      * 
      * Minimum 1.3
+     * @var string $pdfversion default is 1.3
      */
     protected $pdfversion = 1.3;
     /**
-     * allow the programmer to output debug messages on serveral places
+     * allow the programmer to output debug messages on several places<br>
      * 'none' = no debug output at all
      * 'error_log' = use error_log
      * 'variable' = store in a variable called $this->messages
-     *
-     * @default 'error_log'
+     * @var string $DEBUG Default is error_log
      */
     public $DEBUG = 'error_log';
     
@@ -57,84 +71,90 @@ class Cpdf
      * E_USER_WARNING = errors and warning
      * E_USER_NOTICE =  nearly everything
      *
-     * @default E_USER_WARNING
+     * @var int $DEBUGLEVEL Default E_USER_WARNING
      */
     public $DEBUGLEVEL = E_USER_WARNING;
     /**
      * Reversed char string to allow arabic or Hebrew
+     * @todo incomplete implementation
      */
     public $rtl = false;
     
     /**
      * flag to validate the output and if output method has be executed
+     * This option is not really in use but is set to true in checkAllHere method
+     * @var bool
      */
     protected $valid = false;
     
     /**
-     * global defined temporary path used on several places, especially for font caching
+     * temporary path used for image and font caching.
+     * Need to get changed when using XAMPP
+     * @var string
      */
     public $tempPath = '/tmp';
     /**
      * the current number of pdf objects in the document
-     *
      * @var integer
      */
     protected $numObj=0;
 
     /**
-      * this array contains all of the pdf objects, ready for final assembly
-      *
-      * @var array
-      */
+     * contains pdf objects ready for the final assembly
+     * @var array
+     */
     protected $objects = array();
 
     /**
-     * allows object being hashed (affect images only)
+     * set to true allows object being hashed. Primary used for images
+     * @var bool
      */
     public $hashed = true;
     /**
-     * Object hash used to free pdf from redundancies
+     * Object hash array used to free pdf from redundancies
+     * @var array
      */
     private $objectHash = array();
     
     /**
       * the objectId (number within the objects array) of the document catalog
-      *
       * @var integer
       */
     private $catalogId;
-
-
+    
+    /**
+     * default encoding for NON-UNICODE text
+     @var string default encoding is IS0-8859-1
+     */
     public $targetEncoding = 'ISO-8859-1';
     /**
-     * @var boolean Whether the text passed in should be treated as Unicode or just local character set.
+     * set this to true allows TTF font being parsed as unicode in PDF output.
+     * This also converts all text output into utf16_be
+     * @var boolean default is false
      */
     public $isUnicode = false;
     
     /**
-     * @var string Defined tags allowed in any text input, like addText or addTextWrap (default: bold, italic and links)
-     * IMPORTANT: Custom callbacks need to get defined here as well
-     * Example for the internal links ONLY would be: 
-     * $allowedTags = 'ilink:?.*?';
+     * define the tags being allowed in any text input, like addText or addTextWrap (default: bold, italic and links)
+     * @var string
      */
      public $allowedTags = 'b|strong|i|uline|alink:?.*?|ilink:?.*?';
      
     /**
-     * @var boolean used to either embed or not embed ttf/pfb fonts.
+     * used to either embed or not embed the ttf/pfb font program
+     * @var boolean default embed the font program
      */
     protected $embedFont = true;
     
     /**
      * font cache timeout in seconds
-     * @default 86400 - 1 day
+     * @var integer default is 86400 which is 1 day
      */
     public $cacheTimeout = 86400;
     
     /**
-     * store the information about the relationship between font families
-     * this used so that the code knows which font is the bold version of another font, etc.
-     * the value of this array is initialised in the constructor function.
-     *
+     * stores the font family information for either core fonts or any other TTF font program.
+     * Once the font family is defined, directives like bold and italic
      * @var array
      */
     private $fontFamilies = array(
@@ -159,7 +179,9 @@ class Cpdf
     );
 
     /**
-     * the core fonts to ignore them from unicode
+     * all CoreFonts available in PDF by default.
+     * This array is used check if TTF font need to get attached and/or is unicode
+     * @var array
      */
     private $coreFonts = array('courier', 'courier-bold', 'courier-oblique', 'courier-boldoblique',
     'helvetica', 'helvetica-bold', 'helvetica-oblique', 'helvetica-boldoblique',
@@ -169,51 +191,49 @@ class Cpdf
     /**
      * array carrying information about the fonts that the system currently knows about
      * used to ensure that a font is not loaded twice, among other things
-     *
      * @var array
      */
     private $fonts = array();
 
     /**
       * a record of the current font
-      *
       * @var string
       */
     private $currentFont='';
 
     /**
      * the current base font
-     *
      * @var string
      */
     private $currentBaseFont='';
 
     /**
       * the number of the current font within the font array
-      *
       * @var integer
       */
     private $currentFontNum=0;
 
     /**
+     * no clue for what this is used
      * @var integer
      */
     private $currentNode;
 
     /**
       * object number of the current page
-      *
       * @var integer
       */
     protected $currentPage;
 
     /**
       * object number of the currently active contents block
+      * @var integer
       */
     protected $currentContents;
 
     /**
       * number of fonts within the system
+      * @var integer
       */
     protected $numFonts = 0;
 
@@ -337,7 +357,7 @@ class Cpdf
      */
     private $encryptionKey='';
     
-    /*
+    /**
      * encryption padding fetched from the Adobe PDF reference
      */
     private $encryptionPad;
@@ -374,10 +394,10 @@ class Cpdf
     protected $checkpoint = '';
 
     /**
-     * Constructor - starts a new document
+     * Constructor - start with a new PDF document
      *
      * @param array $pageSize Array of 4 numbers, defining the bottom left and upper right corner of the page. first two are normally zero.
-     *
+     * @param bool $isUnicode
      * @return void
      */
     public function __construct($pageSize = array(0, 0, 612, 792), $isUnicode = false)
@@ -396,23 +416,7 @@ class Cpdf
     }
 
     /**
-     * Document object methods (internal use only)
-     *
-     * There is about one object method for each type of object in the pdf document
-     * Each function has the same call list ($id,$action,$options).
-     * $id = the object ID of the object, or what it is to be if it is being created
-     * $action = a string specifying the action to be performed, though ALL must support:
-     *           'new' - create the object with the id $id
-     *           'out' - produce the output for the pdf object
-     * $options = optional, a string or array containing the various parameters for the object
-     *
-     * These, in conjunction with the output function are the ONLY way for output to be produced
-     * within the pdf 'file'.
-     */
-
-    /**
      * destination object, used to specify the location for the user to jump to, presently on opening
-     * @access private
      */
     private function o_destination($id,$action,$options='')
     {
@@ -449,7 +453,6 @@ class Cpdf
 
     /**
      * sets the viewer preferences
-     * @access private
      */
     private function o_viewerPreferences($id,$action,$options='')
     {
@@ -489,7 +492,6 @@ class Cpdf
 
     /**
      * define the document catalog, the overall controller for the document
-     * @access private
      */
     private function o_catalog($id, $action, $options = '')
     {
@@ -541,7 +543,6 @@ class Cpdf
 
     /**
      * object which is a parent to the pages in the document
-     * @access private
      */
     private function o_pages($id,$action,$options='')
     {
@@ -640,7 +641,6 @@ class Cpdf
     
     /**
      * defines the outlines in the doc, empty for now
-     * @access private
      */
     private function o_outlines($id,$action,$options='')
     {
@@ -672,7 +672,6 @@ class Cpdf
 
     /**
      * an object to hold the font description
-     * @access private
      */
     private function o_font($id,$action,$options=''){
         if ($action!='new'){
@@ -858,7 +857,6 @@ class Cpdf
 
     /**
      * a font descriptor, needed for including additional fonts
-     * @access private
      */
     private function o_fontDescriptor($id, $action, $options = '')
     {
@@ -911,7 +909,6 @@ class Cpdf
 
     /**
      * the font encoding
-     * @access private
      */
     private function o_fontEncoding($id,$action,$options=''){
         if ($action!='new'){
@@ -949,7 +946,6 @@ class Cpdf
 
     /**
      * a descendent cid font, needed for unicode fonts
-     * @access private
      */
     private function o_fontDescendentCID($id, $action, $options = '') {
         if ($action !== 'new') {
@@ -1023,7 +1019,6 @@ class Cpdf
 
     /**
       * a font glyph to character map, needed for unicode fonts
-      * @access private
       */
     private function o_fontGIDtoCIDMap($id, $action, $options = '') {
         if ($action !== 'new') {
@@ -1060,7 +1055,6 @@ class Cpdf
 
     /**
      * define the document information
-     * @access private
      */
     private function o_info($id,$action,$options=''){
         if ($action!='new'){
@@ -1109,7 +1103,6 @@ class Cpdf
      * Additional actions, like SubmitForm, ResetForm, ImportData, Javascript will be part of
      * o_actions. Unless we also do not handle them similar to Links.
      *
-     * @access private
      */
     private function o_action($id,$action,$options=''){
         if ($action!='new'){
@@ -1153,7 +1146,6 @@ class Cpdf
     /**
      * an annotation object, this will add an annotation to the current page.
      * initially will support just link annotations
-     * @access private
      */
     private function o_annotation($id,$action,$options=''){
         if ($action!='new'){
@@ -1221,7 +1213,6 @@ class Cpdf
 
     /**
      * a page object, it also creates a contents object to hold its contents
-     * @access private
      */
     private function o_page($id,$action,$options=''){
         if ($action!='new'){
@@ -1291,7 +1282,6 @@ class Cpdf
 
     /**
      * the contents objects hold all of the content which appears on pages
-     * @access private
      */
     private function o_contents($id,$action,$options=''){
         if ($action!='new'){
@@ -1342,7 +1332,6 @@ class Cpdf
 
     /**
      * an image object, will be an XObject in the document, includes description and data
-     * @access private
      */
     private function o_image($id,$action,$options=''){
         if ($action!='new'){
@@ -1422,7 +1411,6 @@ class Cpdf
 
     /**
      * encryption object.
-     * @access private
      */
     private function o_encryption($id,$action,$options=''){
         if ($action!='new'){
@@ -1477,7 +1465,6 @@ class Cpdf
      * owner part of the encryption
      * @param $owner - owner password plus padding
      * @param $user - user password plus padding
-     * @access private
      */
     private function encryptOwner($owner, $user){
         $keylength = 5;
@@ -1563,7 +1550,6 @@ class Cpdf
     /**
      * internal method to convert string to hexstring (used for owner and user dictionary)
      * @param $string - any string value
-     * @access protected
      */
     protected function strToHex($string)
     {
@@ -1583,7 +1569,6 @@ class Cpdf
 
     /**
      * calculate the 16 byte version of the 128 bit md5 digest of the string
-     * @access private
      */
     private function md5_16($string){
         $tmp = md5($string);
@@ -1593,7 +1578,6 @@ class Cpdf
 
     /**
      * initialize the encryption for processing a particular object
-     * @access private
      */
     private function encryptInit($id){
         $tmp = $this->encryptionKey;
@@ -1612,7 +1596,6 @@ class Cpdf
 
     /**
      * initialize the ARC4 encryption
-     * @access private
      */
     private function ARC4_init($key=''){
         $this->arc4 = '';
@@ -1639,7 +1622,6 @@ class Cpdf
 
     /**
      * ARC4 encrypt a text string
-     * @access private
      */
     private function ARC4($text){
         $len=strlen($text);
@@ -1667,7 +1649,6 @@ class Cpdf
     
     /**
      * add a link in the document to an external URL
-     * @access public
      */
     public function addLink($url,$x0,$y0,$x1,$y1){
         $this->numObj++;
@@ -1677,7 +1658,6 @@ class Cpdf
 
     /**
      * add a link in the document to an internal destination (ie. within the document)
-     * @access public
      */
     public function addInternalLink($label,$x0,$y0,$x1,$y1){
         $this->numObj++;
@@ -1689,7 +1669,6 @@ class Cpdf
      * set the encryption of the document
      * can be used to turn it on and/or set the passwords which it will have.
      * also the functions that the user will have are set here, such as print, modify, add
-     * @access public
      */
     public function setEncryption($userPass = '',$ownerPass = '',$pc = array(), $mode = 1){
         if($mode > 1){
@@ -1735,7 +1714,6 @@ class Cpdf
 
     /**
      * should be used for internal checks, not implemented as yet
-     * @access public
      */
     function checkAllHere() {
         // set the validation flag to true when everything is ok.
@@ -1746,7 +1724,6 @@ class Cpdf
     /**
      * return the pdf stream as a string returned from the function
      * This method is protect to force user to use ezOutput from Cezpdf.php
-     * @access protected
      */
     function output($debug=0){
         if ($debug){
@@ -1797,7 +1774,6 @@ class Cpdf
      * if this is called on an existing document results may be unpredictable, but the existing document would be lost at minimum
      * this function is called automatically by the constructor function
      *
-     * @access protected
      */
     protected function newDocument($pageSize=array(0,0,612,792)){
         $this->numObj=0;
@@ -2083,7 +2059,6 @@ class Cpdf
      * @param integer $set      What is this
      *
      * @return void
-     * @access public
      */
     public function selectFont($fontName, $encoding = '', $set = 1, $subsetFont = false)
     {
@@ -2305,7 +2280,6 @@ class Cpdf
      * This function will change the currentFont to whatever it should be, but will not change the
      * currentBaseFont.
      *
-     * @access protected
      */
     protected function setCurrentFont(){
         if (strlen($this->currentBaseFont)==0){
@@ -2346,7 +2320,6 @@ class Cpdf
     /**
      * function for the user to find out what the ID is of the first page that was created during
      * startup - useful if they wish to add something to it later.
-     * @access protected
      */
     protected function getFirstPageId(){
         return $this->firstPageId;
@@ -2354,7 +2327,6 @@ class Cpdf
 
     /**
      * add content to the currently active object
-     * @access protected
      */
     protected function addContent($content){
         $this->objects[$this->currentContents]['c'].=$content;
@@ -2362,7 +2334,6 @@ class Cpdf
 
     /**
      * sets the colour for fill operations
-     * @access public
      */
     public function setColor($r,$g,$b,$force=0){
         if ($r>=0 && ($force || $r!=$this->currentColour['r'] || $g!=$this->currentColour['g'] || $b!=$this->currentColour['b'])){
@@ -2373,7 +2344,6 @@ class Cpdf
 
     /**
      * sets the colour for stroke operations
-     * @access public
      */
     public function setStrokeColor($r,$g,$b,$force=0){
         if ($r>=0 && ($force || $r!=$this->currentStrokeColour['r'] || $g!=$this->currentStrokeColour['g'] || $b!=$this->currentStrokeColour['b'])){
@@ -2384,7 +2354,6 @@ class Cpdf
 
     /**
      * draw a line from one set of coordinates to another
-     * @access public
      */
     public function line($x1,$y1,$x2,$y2){
         $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1).' m '.sprintf('%.3F',$x2).' '.sprintf('%.3F',$y2).' l S';
@@ -2392,7 +2361,6 @@ class Cpdf
 
     /**
      * draw a bezier curve based on 4 control points
-     * @access public
      */
     public function curve($x0,$y0,$x1,$y1,$x2,$y2,$x3,$y3){
         // in the current line style, draw a bezier curve from (x0,y0) to (x3,y3) using the other two points
@@ -2403,7 +2371,6 @@ class Cpdf
 
     /**
      * draw a part of an ellipse
-     * @access public
      */
     public function partEllipse($x0,$y0,$astart,$afinish,$r1,$r2=0,$angle=0,$nSeg=8){
         $this->ellipse($x0,$y0,$r1,$r2,$angle,$nSeg,$astart,$afinish,0);
@@ -2411,7 +2378,6 @@ class Cpdf
 
     /**
      * draw a filled ellipse
-     * @access public
      */
     public function filledEllipse($x0,$y0,$r1,$r2=0,$angle=0,$nSeg=8,$astart=0,$afinish=360){
         return $this->ellipse($x0,$y0,$r1,$r2=0,$angle,$nSeg,$astart,$afinish,1,1);
@@ -2426,7 +2392,6 @@ class Cpdf
      * if $r2 is not set, then a circle is drawn
      * nSeg is not allowed to be less than 2, as this will simply draw a line (and will even draw a
      * pretty crappy shape at 2, as we are approximating with bezier curves.
-     * @access public
      */
     public function ellipse($x0,$y0,$r1,$r2=0,$angle=0,$nSeg=8,$astart=0,$afinish=360,$close=1,$fill=0){
         if ($r1==0){
@@ -2503,7 +2468,6 @@ class Cpdf
      *   (2) represents 2 on, 2 off, 2 on , 2 off ...
      *   (2,1) is 2 on, 1 off, 2 on, 1 off.. etc
      * phase is a modifier on the dash pattern which is used to shift the point at which the pattern starts.
-     * @access public
      */
     public function setLineStyle($width=1,$cap='',$join='',$dash='',$phase=0){
 
@@ -2533,7 +2497,6 @@ class Cpdf
 
     /**
      * draw a polygon, the syntax for this is similar to the GD polygon command
-     * @access public
      */
     public function polygon($p,$np,$f=0){
         $this->objects[$this->currentContents]['c'].="\n";
@@ -2551,7 +2514,6 @@ class Cpdf
     /**
      * a filled rectangle, note that it is the width and height of the rectangle which are the secondary paramaters, not
      * the coordinates of the upper-right corner
-     * @access public
      */
     public function filledRectangle($x1,$y1,$width,$height){
         $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1).' '.sprintf('%.3F',$width).' '.sprintf('%.3F',$height).' re f';
@@ -2560,7 +2522,6 @@ class Cpdf
     /**
      * draw a rectangle, note that it is the width and height of the rectangle which are the secondary paramaters, not
      * the coordinates of the upper-right corner
-     * @access public 
      */
     public function rectangle($x1,$y1,$width,$height){
         $this->objects[$this->currentContents]['c'].="\n".sprintf('%.3F',$x1).' '.sprintf('%.3F',$y1).' '.sprintf('%.3F',$width).' '.sprintf('%.3F',$height).' re S';
@@ -2569,7 +2530,6 @@ class Cpdf
     /**
      * add a new page to the document
      * this also makes the new page the current active object
-     * @access public
      */
     public function newPage($insert=0,$id=0,$pos='after'){
 
@@ -2619,7 +2579,6 @@ class Cpdf
      * output the pdf code, streaming it to the browser
      * the relevant headers are set so that hopefully the browser will recognise it
      * this method is protected to force user to use ezStream method from Cezpdf.php
-     * @access protected
      */
     protected function stream($options=''){
         // setting the options allows the adjustment of the headers
@@ -2655,7 +2614,6 @@ class Cpdf
 
     /**
      * return the height in units of the current font in the given size
-     * @access public
      */
     public function getFontHeight($size){
         if (!$this->numFonts){
@@ -2672,7 +2630,6 @@ class Cpdf
      * return the font decender, this will normally return a negative number
      * if you add this number to the baseline, you get the level of the bottom of the font
      * it is in the pdf user units
-     * @access public
      */
     public function getFontDecender($size){
         // note that this will most likely return a negative value
@@ -2687,7 +2644,6 @@ class Cpdf
      * filter the text, this is applied to all text just before being inserted into the pdf document
      * it escapes the various things that need to be escaped, and so on
      *
-     * @access protected
      */
     protected function filterText($text, $bom = true, $convert_encoding = true){
         $cf = $this->currentFont;
@@ -2915,7 +2871,6 @@ class Cpdf
 
     /**
      * add text to the document, at a specified location, size and angle on the page
-     * @access public
      */
     public function addText($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test=0) {
         if($text == "") return '';
@@ -3072,7 +3027,6 @@ class Cpdf
     /**
      * calculate how wide a given text string will be on a page, at a given size.
      * this can be called externally, but is alse used by the other class functions
-     * @access public
      */
     public function getTextWidth($size,$text){
         $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/";
@@ -3156,7 +3110,6 @@ class Cpdf
     /**
      * do a part of the calculation for sorting out the justification of the text
      *
-     * @access private
      */
     private function adjustWrapText($text,$actual,$width,&$x,&$adjust,$justification){
         switch ($justification){
@@ -3187,7 +3140,6 @@ class Cpdf
      * this will be called at a new page to return the state to what it was on the
      * end of the previous page, before the stack was closed down
      * This is to get around not being able to have open 'q' across pages
-     * @access public
      */
     public function saveState($pageEnd=0){
         if ($pageEnd){
@@ -3212,7 +3164,6 @@ class Cpdf
 
     /**
      * restore a previously saved state
-     * @access public
      */
     public function restoreState($pageEnd=0){
         if (!$pageEnd){
@@ -3232,7 +3183,6 @@ class Cpdf
      * the current one.
      * this object will not appear until it is included within a page.
      * the function will return the object number
-     * @access public
      */
     public function openObject(){
         $this->nStack++;
@@ -3248,7 +3198,6 @@ class Cpdf
 
     /**
     * open an existing object for editing
-    * @access public
     */
     public function reopenObject($id){
        $this->nStack++;
@@ -3262,7 +3211,6 @@ class Cpdf
 
     /**
      * close an object
-     * @access public
      */
     public function closeObject(){
         // close the object, as long as there was one open in the first place, which will be indicated by
@@ -3278,7 +3226,6 @@ class Cpdf
 
     /**
      * stop an object from appearing on pages from this point on
-     * @access public
      */
     public function stopObject($id){
         // if an object has been appearing on pages up to now, then stop it, this page will
@@ -3290,7 +3237,6 @@ class Cpdf
 
     /**
      * after an object has been created, it wil only show if it has been added, using this function.
-     * @access public
      */
     public function addObject($id,$options='add'){
         // add the specified object to the page
@@ -3337,7 +3283,6 @@ class Cpdf
 
     /**
      * add content to the documents info object
-     * @access public
      */
     public function addInfo($label,$value=0){
         // this will only work if the label is one of the valid ones.
@@ -3355,7 +3300,6 @@ class Cpdf
 
     /**
      * set the viewer preferences of the document, it is up to the browser to obey these.
-     * @access public
      */
     public function setPreferences($label,$value=0){
         // this will only work if the label is one of the valid ones.
@@ -3371,7 +3315,6 @@ class Cpdf
     /**
      * extract an integer from a position in a byte stream
      *
-     * @access private
      */
     private function getBytes(&$data,$pos,$num){
         // return the integer represented by $num bytes from $pos within $data
@@ -3386,7 +3329,6 @@ class Cpdf
     /**
      * reads the PNG chunk
      * @param $data - binary part of the png image
-     * @access private
      */
     private function readPngChunks(&$data){
         $default = array('info'=> array(), 'transparency'=> null, 'idata'=> null, 'pdata'=> null, 'haveHeader'=> false);
@@ -3530,7 +3472,6 @@ class Cpdf
     /**
      * add a PNG image into the document, from a file
      * this should work with remote files
-     * @access public
      */
     public function addPngFromFile($file,$x,$y,$w=0,$h=0){
         // read in a png file, interpret it, then add to the system
@@ -3630,7 +3571,6 @@ class Cpdf
     
     /**
      * add a JPEG image into the document, from a file
-     * @access public
      */
     public function addJpegFromFile($img,$x,$y,$w=0,$h=0){
         // attempt to add a jpeg image straight from a file, using no GD commands
@@ -3672,7 +3612,6 @@ class Cpdf
      * @param $y - y cord
      * @param $w - width
      * @param $h - height
-     * @access public
      */
     public function addGifFromFile($img, $x, $y, $w=0, $h=0){
         if (!file_exists($img)){
@@ -3716,7 +3655,6 @@ class Cpdf
      * @param $w width
      * @param $h height
      * @param $quality image quality
-     * @access protected
      */
     protected function addImage(&$img,$x,$y,$w=0,$h=0,$quality=75){
         // add a new image into the current location, as an external object
@@ -3759,7 +3697,6 @@ class Cpdf
 
     /**
      * common code used by the two JPEG adding functions
-     * @access private
      */
     private function addJpegImage_common(&$data,$x,$y,$w=0,$h=0,$imageWidth,$imageHeight,$channels=3){
         // note that this function is not to be called externally
@@ -3788,7 +3725,6 @@ class Cpdf
 
     /**
      * specify where the document should open when it first starts
-     * @access public
      */
     public function openHere($style,$a=0,$b=0,$c=0){
         // this function will open the document at a specified page, in a specified style
@@ -3809,7 +3745,6 @@ class Cpdf
 
     /**
      * create a labelled destination within the document
-     * @access public
      */
     public function addDestination($label,$style,$a=0,$b=0,$c=0){
         // associates the given label with the destination, it is done this way so that a destination can be specified after
@@ -3826,7 +3761,6 @@ class Cpdf
      * define font families, this is used to initialize the font families for the default fonts
      * and for the user to add new ones for their fonts. The default bahavious can be overridden should
      * that be desired.
-     * @access public
      */
     public function setFontFamily($family, $options = ''){
         if (is_array($options)) {
@@ -3840,7 +3774,6 @@ class Cpdf
 
     /**
      * used to add messages for use in debugging
-     * @access protected
      */
     protected function debug($message, $error_type = E_USER_NOTICE)
     {
@@ -3864,7 +3797,6 @@ class Cpdf
      *
      * @param string $action WHAT IS THIS?
      * @return void
-     * @access protected
      */
     public function transaction($action){
         switch ($action){

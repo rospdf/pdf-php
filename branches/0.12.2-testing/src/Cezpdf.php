@@ -2,10 +2,12 @@
 
 include_once 'Cpdf.php';
 /**
- * Helper class to create pdf documents
-   This class will take the basic interaction facilities of the Cpdf class
+ * Helper class to create pdf documents via ROS PDF class called 'Cpdf'
+ *
+ * This class will take the basic interaction facilities of the Cpdf class
  * and make more useful functions so that the user does not have to
  * know all the ins and outs of pdf presentation to produce something pretty.
+ * <pre>
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -18,18 +20,16 @@ include_once 'Cpdf.php';
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/
- *
+ * </pre>
  * @category Documents
  * @package Cpdf
- * @version $Id$
+ * @version [0.12-rc5] $Id$
  * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
- *
  * @copyright 2007 - 2013 The authors
  * @license GNU General Public License v3
  * @link http://www.sourceforge.net/p/pdf-php/
-
  */
 class Cezpdf extends Cpdf {
 
@@ -52,25 +52,9 @@ class Cezpdf extends Cpdf {
 
     /**
      * background color/image information
-     * @see Cezpdf::setBackground()
-     * @see Cezpdf::addBackgroundImage($xOffset = 0, $yOffset = 0)
      */
     protected $ezBackground = array();
     /**
-     *   $type        : { 'none' | 'color' | 'colour' | 'image' }
-     *   $options     : if type == 'color' or 'colour':
-     *                    $options[0] = red-component   of backgroundcolour ( 0 <= r <= 1)
-     *                    $options[1] = green-component of backgroundcolour ( 0 <= g <= 1)
-     *                    $options[2] = blue-component  of backgroundcolour ( 0 <= b <= 1)
-     *                  if type == 'image':
-     *                    $options['img']     = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
-     *                    $options['width']   = width of background image; default is width of page
-     *                    $options['height']  = height of background image; default is height of page
-     *                    $options['xpos']    = horizontal position of background image; default is 0
-     *                    $options['ypos']    = vertical position of background image; default is 0
-     *           *new*    $options['repeat']  = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0
-     *                                          highly recommend to set this->hashed to true when using repeat function
-     *
      * Assuming that people don't want to specify the paper size using the absolute coordinates
      * allow a couple of options:
      * orientation can be 'portrait' or 'landscape'
@@ -81,12 +65,27 @@ class Cezpdf extends Cpdf {
      * Added new page formats (45 standard ISO paper formats and 4 american common formats)
      * paper cordinates are calculated in this way: (inches * 72) where 1 inch = 2.54 cm
      *
-     * Now you may also pass a 2 values array containing the page width and height in centimeters
+     * **$options**<br>
+     * if $type equals to 'color'<br>
+     *   $options[0] = red-component   of backgroundcolour ( 0 <= r <= 1)<br>
+     *   $options[1] = green-component of backgroundcolour ( 0 <= g <= 1)<br>
+     *   $options[2] = blue-component  of backgroundcolour ( 0 <= b <= 1)<br>
+     * if $type equals to 'image':<br>
+     *   $options['img']     = location of image file; URI's are allowed if allow_url_open is enabled in php.ini<br>
+     *   $options['width']   = width of background image; default is width of page<br>
+     *   $options['height']  = height of background image; default is height of page<br>
+     *   $options['xpos']    = horizontal position of background image; default is 0<br>
+     *   $options['ypos']    = vertical position of background image; default is 0<br>
+     *   $options['repeat']  = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0<br>
      *
-     * @param $paper
-     * @param $orientation
-     * @param $type
-     * @param $options
+     * highly recommend to set this->hashed to true when using repeat function<br>
+     * 
+     * @since [0.11.3] added repeat option for images
+     *
+     * @param mixed $paper paper format as string ('A4', 'A5', 'B5', ...) or an array with two/four elements defining the size
+     * @param string $orientation either portrait or landscape
+     * @param string $type background type - 'none', 'image' or 'color'
+     * @param array $options see options from above
      */
     public function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
         if (!is_array($paper)){
@@ -223,7 +222,6 @@ class Cezpdf extends Cpdf {
     /**
      * set the background image or color on all pages
      * gets executed in constructor and in ezNewPage
-     * @access protected
      */
     protected function setBackground(){
         if(isset($this->ezBackground['type'])){
@@ -295,7 +293,6 @@ class Cezpdf extends Cpdf {
      * 
      * @param float $xOffset horizontal offset
      * @param float $yOffset vertical offset
-     * @access private
      */
     private function addBackgroundImage($xOffset = 0, $yOffset = 0){
         switch ($this->ezBackground['format']) {
@@ -309,13 +306,17 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * setup a document margin
+     * setup a margin on document page
      * 
-     * @param $top
-     * @param $bottom
-     * @param $left
-     * @param $right
-     * @access public
+     * **Example**<br>
+     * <pre>
+     * $pdf->ezSetMargins(50,50,50,50)
+     * </pre>
+     *
+     * @param float $top top margin
+     * @param float $bottom botom margin
+     * @param float $left left margin
+     * @param float $right right margin
      */
     public function ezSetMargins($top,$bottom,$left,$right){
         // sets the margins to new values
@@ -336,15 +337,13 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * set document margins by using cm
+     * setup a margin on document page
+     * 
      * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
-     *
-     * @see Cezpdf::ezSetMargins($top,$bottom,$left,$right)
-     * @param $top
-     * @param $bottom
-     * @param $left
-     * @param $right
-     * @access public
+     * @param float $top top margin in cm
+     * @param float $bottom botom margin in cm
+     * @param float $left left margin in cm
+     * @param float $right right margin in cm
      */
     public function ezSetCmMargins($top,$bottom,$left,$right){
         $top = ( $top / 2.54 ) * 72;
@@ -356,7 +355,11 @@ class Cezpdf extends Cpdf {
 
     /**
      * create a new page
-     * @access public
+     *
+     * **Example**<br>
+     * <pre>
+     * $pdf->ezNewPage()
+     * </pre>
      */
     public function ezNewPage(){
         $pageRequired=1;
@@ -402,7 +405,6 @@ class Cezpdf extends Cpdf {
     /**
      * starts to flow text into columns
      * @param $options array with option for gaps and number of columns - default: array('gap'=>10, 'num'=>2)
-     * @access public
      */
     public function ezColumnsStart($options=array()){
         // start from the current y-position, make the set number of columne
@@ -439,7 +441,6 @@ class Cezpdf extends Cpdf {
 
     /**
      * stops the multi column mode
-     * @access public
      */
     public function ezColumnsStop(){
         if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
@@ -458,7 +459,6 @@ class Cezpdf extends Cpdf {
      * @param $status
      * @param $pageNum
      * @param $pos
-     * @access public
      */
     public function ezInsertMode($status=1,$pageNum=1,$pos='before'){
         switch($status){
@@ -476,9 +476,8 @@ class Cezpdf extends Cpdf {
 
     /**
      * sets the Y position of the document.
-     * If Y reaches the bottom margin (set by Cezpdf::ezSetMargins() ) then a new page is generated
+     * If Y reaches the bottom margin a new page is generated
      * @param float $y Y position
-     * @access public
      */
     public function ezSetY($y){
         // used to change the vertical position of the writing point.
@@ -491,10 +490,9 @@ class Cezpdf extends Cpdf {
 
     /**
      * changes the Y position of the document by writing positive or negative numbers.
-     * If Y reaches the bottom margin (set by Cezpdf::ezSetMargins() ) then a new page is generated
+     * If Y reaches the bottom margin a new page is generated
      * @param $dy
      * @param $mod
-     * @access public
      */
     public function ezSetDy($dy,$mod=''){
         // used to change the vertical position of the writing point.
@@ -520,15 +518,13 @@ class Cezpdf extends Cpdf {
      * Adjust this function so that each time you 'start' page numbers then you effectively start a different batch
      * return the number of the batch, so that they can be stopped in a different order if required.
      *
-     * @param integer $x X-coordinate
-     * @param integer $y Y-coordinate
+     * @param float $x X-coordinate
+     * @param float $y Y-coordinate
      * @param $size
-     * @param string $pos use right or left
-     * @param $pattern
-     * @param integer $num optional. make the first page this number, the number of total pages will
-     * be adjusted to account for this.
+     * @param string $pos use either right or left
+     * @param string $pattern pattern where {PAGENUM} is the current page number and {TOTALPAGENUM} is the page count in total
+     * @param int $num optional. make the first page this number, the number of total pages will be adjusted to account for this.
      *
-     * @access public
      * @return int count of ez['pageNumbering']
      */
     public function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
@@ -550,7 +546,6 @@ class Cezpdf extends Cpdf {
      * returns the number of a page within the specified page numbering system
      * @param $pageNum
      * @param $i
-     * @access public
      * @return int page number
      */
     public function ezWhatPageNumber($pageNum,$i=0){
@@ -583,8 +578,7 @@ class Cezpdf extends Cpdf {
     }
     
     /**
-     * returns the current page number
-     * @access public
+     * receive the current page number
      * @return int page number
      */
     public function ezGetCurrentPageNumber(){
@@ -597,7 +591,6 @@ class Cezpdf extends Cpdf {
      * @param $stopTotal
      * @param $next
      * @param $i
-     * @access public
      * @return unknown_type
      */
     public function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
@@ -632,7 +625,6 @@ class Cezpdf extends Cpdf {
      * @see Cezpdf::ezStartPageNumbers()
      * @param $lbl
      * @param $tmp
-     * @access private
      * @return int page number
      */
     private function ezPageNumberSearch($lbl,&$tmp){
@@ -653,7 +645,6 @@ class Cezpdf extends Cpdf {
     /**
      * save page numbers for paging
      * @see Cezpdf::ezStartPageNumbers()
-     * @access private
      */
     private function addPageNumbers(){
         // this will go through the pageNumbering array and add the page numbers are required
@@ -726,7 +717,6 @@ class Cezpdf extends Cpdf {
 
     /**
      * some clean up function (especially used after paging)
-     * @access private
      */
     private function cleanUp(){
         $this->addPageNumbers();
@@ -734,18 +724,19 @@ class Cezpdf extends Cpdf {
 
     /**
      * internal method to draw different table lines
-     * @param $pos
-     * @param $gap
-     * @param $x0
-     * @param $x1
-     * @param $y0
-     * @param $y1
-     * @param $y2
-     * @param $col
-     * @param $inner
-     * @param $outer
-     * @param $opt
-     * @access protected
+     * called by ezTable() method
+     *
+     * @param array $pos start position of each column
+     * @param float $gap gap used from ezTable()
+     * @param float $x0 some coordinates
+     * @param $x1 some X coordinates
+     * @param $y0 some Y coordinates 
+     * @param $y1 some Y coordinates
+     * @param $y2 some Y coordinates
+     * @param array $col line color as array
+     * @param float $inner inner line thickness
+     * @param float $outer outer line thickness
+     * @param int $opt what lines to display
      */
     protected function ezTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
         $x0=1000;
@@ -776,17 +767,17 @@ class Cezpdf extends Cpdf {
 
     /**
      * used to display the headline of a table
-     * @see Cezpdf::ezTable()
-     * @param $cols
+     * called by ezTable() method
+     * 
+     * @param array $cols column array from ezTable option parameter
      * @param $pos
-     * @param $maxWidth
-     * @param $height
+     * @param float $maxWidth maximum width
+     * @param float $height height of the heading
      * @param $decender
-     * @param $gap
-     * @param $size
-     * @param $y
+     * @param float $gap
+     * @param float $size font size
+     * @param float $y actual Y position
      * @param $optionsAll
-     * @access protected
      */
     protected function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
         // uses ezText to add the text, and returns the height taken by the largest heading
@@ -852,12 +843,10 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * will calculate the maximum width, taking into account that the text may be broken
-     * by line breaks.
+     * calculate the maximum width, taking into account until text may be broken
      *
      * @param $size
      * @param $text
-     * @access public
      * @return unknown_type
      */
     public function ezGetTextWidth($size,$text){
@@ -875,12 +864,9 @@ class Cezpdf extends Cpdf {
 
     /**
      *  add a table of information to the pdf document
-     *  $data is a two dimensional array
-     *  $cols (optional) is an associative array, the keys are the names of the columns from $data
-     *  to be presented (and in that order), the values are the titles to be given to the columns
-     *  $title (optional) is the title to be put on the top of the table
      *
-     *  $options is an associative array which can contain:
+     *  **$options**
+     * <pre>
      * 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
      * 'showHeadings' => 0 or 1
      * 'shaded'=> 0,1,2,3 default is 1 (1->alternate lines are shaded, 0->no shading, 2-> both shaded, second uses shadeCol2)
@@ -895,26 +881,34 @@ class Cezpdf extends Cpdf {
      * 'lineCol' => (r,g,b) array, defining the colour of the lines, default, black.
      * 'xPos' => 'left','right','center','centre',or coordinate, reference coordinate in the x-direction
      * 'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'
-     * 'width'=> <number> which will specify the width of the table, if it turns out to not be this
-     * wide, then it will stretch the table to fit, if it is wider then each cell will be made
-     * proportionalty smaller, and the content may have to wrap.
+     * 'width'=> <number> which will specify the width of the table, if it turns out to not be this wide, then it will stretch the table to fit, if it is wider then each cell will be made proportionalty smaller, and the content may have to wrap.
      * 'maxWidth'=> <number> similar to 'width', but will only make table smaller than it wants to be
      * 'cols' => array(<colname>=>array('justification'=>'left','width'=>100,'link'=>linkDataName,'bgcolor'=>array(r,g,b) ),<colname>=>....) allow the setting of other paramaters for the individual columns
-     * 'minRowSpace'=> the minimum space between the bottom of each row and the bottom margin, in which a new row will be started
-     * if it is less, then a new page would be started, default=-100
+     * 'minRowSpace'=> the minimum space between the bottom of each row and the bottom margin, in which a new row will be started if it is less, then a new page would be started, default=-100
      * 'innerLineThickness'=>1
      * 'outerLineThickness'=>1
      * 'splitRows'=>0, 0 or 1, whether or not to allow the rows to be split across page boundaries
      * 'protectRows'=>number, the number of rows to hold with the heading on page, ie, if there less than this number of rows on the page, then move the whole lot onto the next page, default=1
      * 'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
      * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
+     * </pre>
+     * **Example**<br>
+     * <pre>
+     * $data = array(
+     *    array('num'=>1,'name'=>'gandalf','type'=>'wizard')<br>
+     *   ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')<br>
+     *   ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')<br>
+     *   ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')<br>
+     *   ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')<br>
+     *   );<br>
+     * $pdf->ezTable($data);<br>
+     * </pre>
      *
-     * @param $data
-     * @param $cols
-     * @param $title
-     * @param $options
-     * @access public
-     * @return float actual y position
+     * @param array $data the data to fill the table cells as a two dimensional array
+     * @param array $cols (optional) is an associative array, the keys are the names of the columns from $data to be presented (and in that order), the values are the titles to be given to the columns
+     * @param string $title (optional) is the title to be put on the top of the table
+     * @param array $options all possible options, see description above
+     * @return float the actual y position
      */
     public function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){
@@ -1485,10 +1479,11 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     *
-     * @param $text
-     * @access protected
-     * @return unknown_type
+     * internal method to convert some text directives (like custom callbacks)
+     * @used-by ezTable()
+     * @used-by ezText()
+     * @param string $text text to be parsed
+     * @return string customized text
      */
     protected function ezProcessText($text){
         // this function will intially be used to implement underlining support, but could be used for a range of other
@@ -1506,25 +1501,29 @@ class Cezpdf extends Cpdf {
      * the default value (12 I think).
      * the text will go to the start of the next line when a return code "\n" is found.
      * possible options are:
-     * 'left'=> number, gap to leave from the left margin
-     * 'right'=> number, gap to leave from the right margin
-     * 'aleft'=> number, absolute left position (overrides 'left')
-     * 'aright'=> number, absolute right position (overrides 'right')
-     * 'justification' => 'left','right','center','centre','full'
      *
-     * only set one of the next two items (leading overrides spacing)
-     * 'leading' => number, defines the total height taken by the line, independent of the font height.
-     * 'spacing' => a real number, though usually set to one of 1, 1.5, 2 (line spacing as used in word processing)
+     * 'left'=> number, gap to leave from the left margin<br>
+     * 'right'=> number, gap to leave from the right margin<br>
+     * 'aleft'=> number, absolute left position (overrides 'left')<br>
+     * 'aright'=> number, absolute right position (overrides 'right')<br>
+     * 'justification' => 'left','right','center','centre','full'<br>
+     *
+     * only set one of the next two items (leading overrides spacing)<br>
+     * 'leading' => number, defines the total height taken by the line, independent of the font height.<br>
+     * 'spacing' => a real number, though usually set to one of 1, 1.5, 2 (line spacing as used in word processing)<br>
      *
      * if $test is set then this should just check if the text is going to flow onto a new page or not, returning true or false
      *
-     *
-     * @param $text
-     * @param $size
-     * @param $options
-     * @param $test
-     * @access public
-     * @return unknown_type
+     * **Example**<br>
+     * <pre>
+     * $pdf->ezText('This is a text string\nplus next line', 12, array('justification'=> 'center'));
+     * </pre>
+     * 
+     * @param string $text text string
+     * @param float $size font size
+     * @param array $options options from above
+     * @param bool $test is this test output only (to check if it fit to the page for instance)
+     * @return float|bool Y position or true/false if $test parameter is set
      */
     public function ezText($text,$size=0,$options=array(),$test=0){
         // apply the filtering which will make the underlining function.
@@ -1564,7 +1563,6 @@ class Cezpdf extends Cpdf {
             $height = $this->getFontHeight($size);
         }
 
-        //$lines = explode("\n",$text);
         $lines = preg_split("[\r\n|\r|\n]",$text);
         foreach ($lines as $line){
             $start=1;
@@ -1603,18 +1601,23 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * Used to display image
+     * Used to display images
      * supported images are:
      *  - JPEG
      *  - PNG (transparent)
      *  - GIF (but internally converted into JPEG)
-     * @param $image
-     * @param $pad
-     * @param $width
+     *
+     * **Example**<br>
+     * <pre>
+     * $pdf->ezImage('file.jpg', 5, 100, 'full', 'right', array('color'=> array(0.2, 0.4, 0.4), 'width'=> 2, 'cap'=>'round'));
+     * </pre>
+     * 
+     * @param string $image image file or url path
+     * @param float $pad image padding
+     * @param float $width max width
      * @param $resize
-     * @param $just
-     * @param $border
-     * @access public
+     * @param string $just justification of the image ('left', 'right', 'center')
+     * @param array $border border array - see example 
      * @return unknown_type
      */
     public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
@@ -1729,14 +1732,14 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * Outputs the PDF content as stream
-     * $options
-     * 	'compress' => 0/1 to enable compression. For compression level please use $this->options['compression'] = <level> at the very first point. Default: 1 
-     *  'download' => 0/1 to display inline (in browser) or as download. Default: 0
+     * Output the PDF content as stream
      * 
-     * @param $options
-     * @access public
-     * @return unknown_type
+     * $options
+     *
+     * 'compress' => 0/1 to enable compression. For compression level please use $this->options['compression'] = <level> at the very first point. Default: 1<br>
+     * 'download' => 0/1 to display inline (in browser) or as download. Default: 0<br>
+     *
+     * @param array $options options array from above
      */
     public function ezStream($options=''){
         $this->cleanUp();
@@ -1744,10 +1747,10 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * returns the PDF as "string"
+     * pdf output as string
+     *
      * @param $options
-     * @access public
-     * @return unknown_type
+     * @return string pdf content as string
      */
     public function ezOutput($options=0){
         $this->cleanUp();
@@ -1764,8 +1767,9 @@ class Cezpdf extends Cpdf {
      *
      * The id of the template will be returned for the user to operate on it later
      *
-     * @param $templateFile
-     * @access public
+     * SECURITY NOTICE: php function 'eval' is used in execTemplate
+     * 
+     * @param string $templateFile php script to be execupte
      * @return unknown_type
      * @deprecated method deprecated in 0.12.0
      */
@@ -1802,11 +1806,10 @@ class Cezpdf extends Cpdf {
 
     /**
      * executes the template
+     *
      * @param $id
      * @param $data
      * @param $options
-     * @access public
-     * @return unknown_type
      * @deprecated method deprecated in 0.12.0
      */
     public function execTemplate($id,$data=array(),$options=array()){
@@ -1819,9 +1822,13 @@ class Cezpdf extends Cpdf {
 
     /**
      * callback function for internal links
+     *
+     * **Example**<br>
+     * <pre>
+     * $pdf->ezText('<c:ilink:destName>Internal Link</c:ilink>');
+     * </pre>
+     *
      * @param $info
-     * @access public
-     * @return unknown_type
      */
     public function ilink($info){
         $this->alink($info,1);
@@ -1829,10 +1836,13 @@ class Cezpdf extends Cpdf {
 
     /**
      * callback function for external links 
-     * @param $info
+     *
+     * **Example**<br>
+     * <pre>
+     * $pdf->ezText('&lt;c:alink:www.google.de&gt;Hello google&lt;/c:alink&gt;');<br>
+     * </pre>
+     * @param array $info callback info array
      * @param $internal
-     * @access public
-     * @return unknown_type
      */
     public function alink($info,$internal=0){
         // a callback function to support the formation of clickable links within the document
@@ -1879,9 +1889,8 @@ class Cezpdf extends Cpdf {
 
     /**
      * a callback function to support underlining
-     * @param $info
-     * @access public
-     * @return unknown_type
+     *
+     * @param array $info callback info array
      */
     public function uline($info){
         $lineFactor=0.05; // the thickness of the line as a proportion of the height. also the drop of the line.
@@ -1918,9 +1927,8 @@ class Cezpdf extends Cpdf {
     
     /**
      * a callback function to support comment annotation
+     *
      * @param $info
-     * @access public
-     * @return unknown_type
      */
     public function comment(&$info){
         if(isset($info)){
