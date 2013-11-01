@@ -21,7 +21,7 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version  0.12.2-rc5 (>=php4.0.6)
+ * @version $Id$
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
