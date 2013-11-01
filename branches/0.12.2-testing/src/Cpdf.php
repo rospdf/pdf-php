@@ -25,11 +25,11 @@
  * There is about one object method for each type of object in the pdf document<br>
  * Each function has the same call list ($id,$action,$options).<br>
  * <pre>
- * $id = the object ID of the object, or what it is to be if it is being created<br>
- * $action = a string specifying the action to be performed, though ALL must support:<br>
- *           'new' - create the object with the id $id<br>
- *           'out' - produce the output for the pdf object<br>
- * $options = optional, a string or array containing the various parameters for the object<br>
+ * $id = the object ID of the object, or what it is to be if it is being created
+ * $action = a string specifying the action to be performed, though ALL must support:
+ *   'new' - create the object with the id $id
+ *   'out' - produce the output for the pdf object
+ * $options = optional, a string or array containing the various parameters for the object
  * </pre>
  * These, in conjunction with the output function are the ONLY way for output to be produced
  * within the pdf 'file'.
@@ -1551,7 +1551,7 @@ class Cpdf
      * internal method to convert string to hexstring (used for owner and user dictionary)
      * @param $string - any string value
      */
-    protected function strToHex($string)
+    private function strToHex($string)
     {
         $hex = '';
         for ($i=0; $i < strlen($string); $i++)
@@ -1559,7 +1559,7 @@ class Cpdf
         return $hex;
     }
     
-    protected function hexToStr($hex)
+    private function hexToStr($hex)
     {
         $str = '';
         for($i=0;$i<strlen($hex);$i+=2)
@@ -1649,6 +1649,11 @@ class Cpdf
     
     /**
      * add a link in the document to an external URL
+     * @param string $url URL address
+     * @param float $x0 bottom-left position in a rectangle
+     * @param float $y0 top-left position in a rectangle
+     * @param float $x0 bottom-right position in a rectangle
+     * @param float $x0 top-right position in a rectangle
      */
     public function addLink($url,$x0,$y0,$x1,$y1){
         $this->numObj++;
@@ -1658,6 +1663,11 @@ class Cpdf
 
     /**
      * add a link in the document to an internal destination (ie. within the document)
+     * @param string $label label name of the destination
+     * @param float $x0 bottom-left position in a rectangle
+     * @param float $y0 top-left position in a rectangle
+     * @param float $x0 bottom-right position in a rectangle
+     * @param float $x0 top-right position in a rectangle
      */
     public function addInternalLink($label,$x0,$y0,$x1,$y1){
         $this->numObj++;

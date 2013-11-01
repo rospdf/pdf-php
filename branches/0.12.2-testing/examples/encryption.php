@@ -12,6 +12,10 @@ class Creport extends Cezpdf{
 }
 
 $pdf = new Creport('a4','portrait');
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 if(!isset($_GET['nocrypt'])){
 	// define the encryption mode (either RC4 40bit or RC4 128bit)
