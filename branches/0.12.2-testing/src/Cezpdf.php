@@ -29,7 +29,7 @@ include_once 'Cpdf.php';
  * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
  * @copyright 2007 - 2013 The authors
  * @license GNU General Public License v3
- * @link http://www.sourceforge.net/p/pdf-php/
+ * @link http://pdf-php.sf.net
  */
 class Cezpdf extends Cpdf {
 

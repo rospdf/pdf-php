@@ -43,7 +43,7 @@
  * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
  * @copyright 2007 - 2013 The authors
  * @license  GNU General Public License v3
- * @link http://pdf-php.sf.net R&OS on sourceforge.net
+ * @link http://pdf-php.sf.net
  */ 
 class Cpdf
 {
