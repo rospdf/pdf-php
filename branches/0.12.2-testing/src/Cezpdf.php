@@ -1,10 +1,11 @@
 <?php
+
+include_once 'Cpdf.php';
 /**
  * Helper class to create pdf documents
    This class will take the basic interaction facilities of the Cpdf class
  * and make more useful functions so that the user does not have to
  * know all the ins and outs of pdf presentation to produce something pretty.
- *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
@@ -20,26 +21,40 @@
  *
  * @category Documents
  * @package Cpdf
- * @version 0.12.2-rc5 (>=php4.0.6)
- * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
+ * @version $Id$
+ * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
- * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
+ * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
  *
  * @copyright 2007 - 2013 The authors
  * @license GNU General Public License v3
  * @link http://www.sourceforge.net/p/pdf-php/
 
  */
-include_once 'Cpdf.php';
-
 class Cezpdf extends Cpdf {
 
-    public $ez=array('fontSize'=>10); // used for storing most of the page configuration parameters
-    public $y; // this is the current vertical positon on the page of the writing point, very important
-    public $ezPages=array(); // keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
+    /**
+     * used to store most of the page configuration parameters
+     */
+    public $ez=array('fontSize'=>10);
+    /**
+     * stores the actual vertical position on the page of the writing point, very important
+     */
+    public $y;
+    /**
+     * keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
+     */
+    public $ezPages=array();
+    /**
+     * stores the number of pages used in this document
+     */
     public $ezPageCount=0;
 
-    // Background color and image stuff added
+    /**
+     * background color/image information
+     * @see Cezpdf::setBackground()
+     * @see Cezpdf::addBackgroundImage($xOffset = 0, $yOffset = 0)
+     */
     protected $ezBackground = array();
     /**
      *   $type        : { 'none' | 'color' | 'colour' | 'image' }
@@ -47,7 +62,7 @@ class Cezpdf extends Cpdf {
      *                    $options[0] = red-component   of backgroundcolour ( 0 <= r <= 1)
      *                    $options[1] = green-component of backgroundcolour ( 0 <= g <= 1)
      *                    $options[2] = blue-component  of backgroundcolour ( 0 <= b <= 1)
-      *                   if type == 'image':
+     *                  if type == 'image':
      *                    $options['img']     = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
      *                    $options['width']   = width of background image; default is width of page
      *                    $options['height']  = height of background image; default is height of page
@@ -72,7 +87,6 @@ class Cezpdf extends Cpdf {
      * @param $orientation
      * @param $type
      * @param $options
-     * @return unknown_type
      */
     public function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
         if (!is_array($paper)){
@@ -207,7 +221,7 @@ class Cezpdf extends Cpdf {
     }
     
     /**
-     * Set the background image or color on all pages
+     * set the background image or color on all pages
      * gets executed in constructor and in ezNewPage
      * @access protected
      */
@@ -276,8 +290,11 @@ class Cezpdf extends Cpdf {
     }
     
     /**
-     * adds background image for JPEG and PNG file format
+     * add background image for JPEG and PNG file format
      * Especially used for repeating function
+     * 
+     * @param float $xOffset horizontal offset
+     * @param float $yOffset vertical offset
      * @access private
      */
     private function addBackgroundImage($xOffset = 0, $yOffset = 0){
@@ -292,12 +309,12 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     *
+     * setup a document margin
+     * 
      * @param $top
      * @param $bottom
      * @param $left
      * @param $right
-     * @return unknown_type
      * @access public
      */
     public function ezSetMargins($top,$bottom,$left,$right){
@@ -319,14 +336,14 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * Set Margins in centimeters
+     * set document margins by using cm
      * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
      *
+     * @see Cezpdf::ezSetMargins($top,$bottom,$left,$right)
      * @param $top
      * @param $bottom
      * @param $left
      * @param $right
-     * @return unknown_type
      * @access public
      */
     public function ezSetCmMargins($top,$bottom,$left,$right){
@@ -338,8 +355,7 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * creates a new Page
-     * @return unknown_type
+     * create a new page
      * @access public
      */
     public function ezNewPage(){
@@ -385,8 +401,7 @@ class Cezpdf extends Cpdf {
 
     /**
      * starts to flow text into columns
-     * @param $options array with option for gaps and no of columns
-     * @return unknown_type
+     * @param $options array with option for gaps and number of columns - default: array('gap'=>10, 'num'=>2)
      * @access public
      */
     public function ezColumnsStart($options=array()){
@@ -424,7 +439,6 @@ class Cezpdf extends Cpdf {
 
     /**
      * stops the multi column mode
-     * @return unknown_type
      * @access public
      */
     public function ezColumnsStop(){
@@ -439,12 +453,11 @@ class Cezpdf extends Cpdf {
 
     /**
      * puts the document into insert mode. new pages are inserted until this is re-called with status=0
-     * by default pages wil be inserted at the start of the document
+     * by default pages will be inserted at the start of the document
      *
      * @param $status
      * @param $pageNum
      * @param $pos
-     * @return unknown_type
      * @access public
      */
     public function ezInsertMode($status=1,$pageNum=1,$pos='before'){
@@ -462,9 +475,9 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * sets the Y position of the document
-     * @param $y
-     * @return unknown_type
+     * sets the Y position of the document.
+     * If Y reaches the bottom margin (set by Cezpdf::ezSetMargins() ) then a new page is generated
+     * @param float $y Y position
      * @access public
      */
     public function ezSetY($y){
@@ -477,10 +490,10 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     * changes the Y position of the document by writing positive or negative numbers
+     * changes the Y position of the document by writing positive or negative numbers.
+     * If Y reaches the bottom margin (set by Cezpdf::ezSetMargins() ) then a new page is generated
      * @param $dy
      * @param $mod
-     * @return unknown_type
      * @access public
      */
     public function ezSetDy($dy,$mod=''){
@@ -516,7 +529,7 @@ class Cezpdf extends Cpdf {
      * be adjusted to account for this.
      *
      * @access public
-     * @return unknown_type
+     * @return int count of ez['pageNumbering']
      */
     public function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
         if (!$pos || !strlen($pos)){
@@ -538,7 +551,7 @@ class Cezpdf extends Cpdf {
      * @param $pageNum
      * @param $i
      * @access public
-     * @return integer page number
+     * @return int page number
      */
     public function ezWhatPageNumber($pageNum,$i=0){
         // given a particular generic page number (ie, document numbered sequentially from beginning),
@@ -572,7 +585,7 @@ class Cezpdf extends Cpdf {
     /**
      * returns the current page number
      * @access public
-     * @return integer page number
+     * @return int page number
      */
     public function ezGetCurrentPageNumber(){
         // return the strict numbering (1,2,3,4..) number of the current page
@@ -615,11 +628,12 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     *
+     * internal function to search the page number
+     * @see Cezpdf::ezStartPageNumbers()
      * @param $lbl
      * @param $tmp
      * @access private
-     * @return unknown_type
+     * @return int page number
      */
     private function ezPageNumberSearch($lbl,&$tmp){
         foreach ($tmp as $i=>$v){
@@ -637,6 +651,8 @@ class Cezpdf extends Cpdf {
     }
 
     /**
+     * save page numbers for paging
+     * @see Cezpdf::ezStartPageNumbers()
      * @access private
      */
     private function addPageNumbers(){
@@ -709,15 +725,15 @@ class Cezpdf extends Cpdf {
     }
 
     /**
+     * some clean up function (especially used after paging)
      * @access private
-     * @return unknown_type
      */
     private function cleanUp(){
         $this->addPageNumbers();
     }
 
     /**
-     *
+     * internal method to draw different table lines
      * @param $pos
      * @param $gap
      * @param $x0
@@ -730,7 +746,6 @@ class Cezpdf extends Cpdf {
      * @param $outer
      * @param $opt
      * @access protected
-     * @return unknown_type
      */
     protected function ezTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
         $x0=1000;
@@ -760,7 +775,8 @@ class Cezpdf extends Cpdf {
     }
 
     /**
-     *
+     * used to display the headline of a table
+     * @see Cezpdf::ezTable()
      * @param $cols
      * @param $pos
      * @param $maxWidth
@@ -771,7 +787,6 @@ class Cezpdf extends Cpdf {
      * @param $y
      * @param $optionsAll
      * @access protected
-     * @return unknown_type
      */
     protected function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
         // uses ezText to add the text, and returns the height taken by the largest heading
@@ -893,13 +908,13 @@ class Cezpdf extends Cpdf {
      * 'protectRows'=>number, the number of rows to hold with the heading on page, ie, if there less than this number of rows on the page, then move the whole lot onto the next page, default=1
      * 'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
      * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
-       *
+     *
      * @param $data
      * @param $cols
      * @param $title
      * @param $options
      * @access public
-     * @return unknown_type
+     * @return float actual y position
      */
     public function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){

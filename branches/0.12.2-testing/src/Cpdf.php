@@ -1,4 +1,6 @@
 <?php
+@include_once('include/TTFsubset.php');
+
 /**
  * Create pdf documents without additional modules
  * Note that the companion class Document_CezPdf can be used to extend this class and
@@ -28,11 +30,7 @@
  * @copyright 2007 - 2013 The authors
  * @license  GNU General Public License v3
  * @link     http://pdf-php.sf.net
- */
- 
-// include TTF and TTFsubset classes
-@include_once('include/TTFsubset.php');
- 
+ */ 
 class Cpdf
 {
     /**
