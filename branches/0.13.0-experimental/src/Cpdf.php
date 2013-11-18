@@ -674,9 +674,7 @@ class Cpdf_Font {
 		$cachedFile = 'cache.'.$this->FontName.'.php';
 		
 		// use the temp folder to read/write cached font data
-		// TODO: FIX font caching for font subsets. 
-		// TODO: Also when font subsetting is disabled once font is already cached
-		// For the time being... DO NOT USE CACHE AT ALL
+		// TODO: FIX font caching for font subsets - should be done already 
 		
         if (file_exists($this->pages->TempPath.'/'.$cachedFile) && filemtime($this->pages->TempPath.'/'.$cachedFile) > strtotime('-'.$this->pages->CacheTimeout)) {
             $this->props = require($this->pages->TempPath.'/'.$cachedFile);
@@ -1698,7 +1696,7 @@ class Cpdf extends Cpdf_Common {
 		if(isset($this->encryptionObject)){
 			$res.= ' /Encrypt '.$this->encryptionObject->ObjectId.' 0 R';
 		}
-		$res.= ' /ID [<'.$this->FileIdentifier.'><'.$this->FileIdentifier.'>]';
+		$res.= ' /ID [('.$this->FileIdentifier.') ('.$this->FileIdentifier.')]';
 		$res.= " >>";
 		$res.="\nstartxref\n".($pos+1)."\n%%EOF\n";
 		return $res;
