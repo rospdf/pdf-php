@@ -803,8 +803,8 @@ class Cezpdf extends Cpdf {
         // begin the transaction
         $this->transaction('start');
         $ok=0;
-        //  $y-=$gap-$decender;
-        $y-=$gap;
+        $y-=$gap-$decender;
+        //$y-=$gap;
         while ($ok==0){
             foreach ($cols as $colName=>$colHeading){
                 $this->ezSetY($y);
