@@ -29,6 +29,11 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc6>
+
+- fixed bug #71 - wrong fileIdentfier cause Adobe Reader to invalidate search
+- corrected table border on page break
+
 2<version 0.12-rc5>
 
 - fixed bug when table page breaks (changed some private declarations into protected)
