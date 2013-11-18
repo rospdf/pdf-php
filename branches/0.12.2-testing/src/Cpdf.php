@@ -1773,7 +1773,7 @@ class Cpdf
             $content .= " /Encrypt ".$this->arc4_objnum." 0 R";
         }
         if (strlen($this->fileIdentifier)){
-            $content .= " /ID[<".$this->fileIdentifier."><".$this->fileIdentifier.">]";
+            $content .= " /ID[(".$this->fileIdentifier.") (".$this->fileIdentifier.")]";
         }
         $content .= " >>\nstartxref\n".$pos."\n%%EOF\n";
         return $content;
@@ -1936,7 +1936,7 @@ class Cpdf
                     $idDeltaArray = $encodingTable['idDeltaArray'];
                     $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
                     $glyphIdArray = $encodingTable['glyphIdArray'];
-                
+                	
                     for ($seg = 0; $seg < $segCount; $seg++) {
                     $endCount = $endCountArray[$seg];
                     $startCount = $startCountArray[$seg];
