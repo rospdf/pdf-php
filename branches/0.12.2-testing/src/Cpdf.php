@@ -2712,9 +2712,7 @@ class Cpdf
                 
                 $tmpstr = mb_substr($text, $prevEndTagIndex, $curTagIndex - $prevEndTagIndex, 'UTF-8');
                 $tmpstr = $this->filterText($tmpstr, false, false);
-                
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
-                
                 // if the text does not fit to $width, $tmp[2] contains the length to break the line
                 if($tmp[2] > 0){
                     // position where the line break occurs
@@ -2751,7 +2749,6 @@ class Cpdf
                 
                 $prevEndTagIndex = $endTagIndex;
                 $restWidth -= $tmp[0];
-                
                 $nx += $tmp[0];
                 $ny += $tmp[1];
                 
@@ -2802,10 +2799,6 @@ class Cpdf
                 }
             }
             
-            // restore previous stored font style 
-            $this->currentTextState = $store_currentTextState;
-            $this->setCurrentFont();
-            
             $l = mb_strlen($text, 'UTF-8');
             
             if($prevEndTagIndex < $l){
@@ -2813,6 +2806,10 @@ class Cpdf
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
                 // if the text does not fit to $width, $tmp[2] contains the length
                 if($tmp[2] > 0){
+                    // restore previous stored font style 
+                    $this->currentTextState = $store_currentTextState;
+                    $this->setCurrentFont();
+                    
                     $tmpstr = mb_substr($text, 0, $prevEndTagIndex + $tmp[2], 'UTF-8');
                     // adjust to position if justification is set
                     $this->adjustWrapText($tmpstr, $width - ($restWidth - $tmp[0]), $width, $x, $wordSpaceAdjust, $justification);
@@ -2826,10 +2823,13 @@ class Cpdf
                 }
             }
             
+            // restore previous stored font style 
+            $this->currentTextState = $store_currentTextState;
+            $this->setCurrentFont();
+            
             // adjust to position if justification is set
             $tmpx = $x;
             if($justification != 'full') {
-                
                 $this->adjustWrapText($tmpstr, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
             }
             
@@ -2840,7 +2840,6 @@ class Cpdf
                     $v['x'] += $x - $tmpx;
                 }
             }
-            
         } else {
             $tmp = $this->getTextLength($size, $text, $width, $angle, $wordSpaceAdjust);
             // if the text does not fit to $width, $tmp[2] contains the length
