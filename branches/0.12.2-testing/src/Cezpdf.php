@@ -697,7 +697,7 @@ class Cezpdf extends Cpdf {
                         $pat = str_replace('{TOTALPAGENUM}',$total,$pat);
                         $this->reopenObject($id);
                         switch($info['pos']){
-                            case 'right':
+                            case 'left':
                                 $this->addText($info['x'],$info['y'],$info['size'],$pat);
                                 break;
                             default:
