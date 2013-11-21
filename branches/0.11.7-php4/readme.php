@@ -75,6 +75,10 @@ function dots($info){
 
 //$pdf = new Cezpdf('a4','portrait');
 $pdf = new Creport('a4','portrait', 'none', null);
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 $pdf -> ezSetMargins(50,70,50,50);
 
@@ -84,7 +88,7 @@ $pdf->saveState();
 $pdf->setStrokeColor(0,0,0,1);
 $pdf->line(20,40,578,40);
 $pdf->line(20,822,578,822);
-$pdf->addText(50,34,6,'http://www.sourceforge.net/p/pdf-php');
+$pdf->addText(50,34,6,'http://pdf-php.sf.net/');
 $pdf->restoreState();
 $pdf->closeObject();
 // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'
@@ -102,7 +106,7 @@ $pdf->selectFont($mainFont);
 $pdf->ezText("PHP Pdf Creation\n",30,array('justification'=>'centre'));
 $pdf->ezText("Module-free creation of Pdf documents\nfrom within PHP\n",20,array('justification'=>'centre'));
 $pdf->ezText("developed by R&OS Ltd",18,array('justification'=>'centre'));
-$pdf->ezText("\n<c:alink:http://www.sourceforge.net/p/pdf-php>http://www.sourceforge.net/p/pdf-php</c:alink>\n\nversion 0.11",18,array('justification'=>'centre'));
+$pdf->ezText("\n<c:alink:http://pdf-php.sf.net/>http://pdf-php.sf.net/</c:alink>\n\nversion 0.11.7-php4",18,array('justification'=>'centre'));
 
 $pdf->ezSetDy(-100);
 // modified to use the local file if it can
