@@ -12,7 +12,10 @@ class Creport extends Cezpdf{
 }
 
 $pdf = new Creport('a4','portrait','color',array(0.8,0.8,0.8));
-//$pdf->fileIdentifier = md5("Hallo");
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 
 $pdf -> ezSetMargins(20,20,20,20);

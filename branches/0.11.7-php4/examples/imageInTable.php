@@ -6,6 +6,10 @@ if(!file_exists($ext)){
 
 include $ext;
 $pdf = new CezTableImage("a4");
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 $image = '../ros.jpg';
 // test gif file

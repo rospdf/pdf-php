@@ -21,13 +21,13 @@ include_once 'Cpdf.php';
 
 class Cezpdf extends Cpdf {
 
-    public $ez=array('fontSize'=>10); // used for storing most of the page configuration parameters
-    public $y; // this is the current vertical positon on the page of the writing point, very important
-    public $ezPages=array(); // keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
-    public $ezPageCount=0;
+    var $ez=array('fontSize'=>10); // used for storing most of the page configuration parameters
+    var $y; // this is the current vertical positon on the page of the writing point, very important
+    var $ezPages=array(); // keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
+    var $ezPageCount=0;
 
     // Background color and image stuff added
-    protected $ezBackground = array();
+    var $ezBackground = array();
     /**
      *   $type        : { 'none' | 'color' | 'colour' | 'image' }
      *   $options     : if type == 'color' or 'colour':
@@ -61,7 +61,7 @@ class Cezpdf extends Cpdf {
      * @param $options
      * @return unknown_type
      */
-    public function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
+    function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
         if (!is_array($paper)){
             switch (strtoupper($paper)){
                 case '4A0': {$size = array(0,0,4767.87,6740.79); break;}
@@ -198,12 +198,12 @@ class Cezpdf extends Cpdf {
      * gets executed in constructor and in ezNewPage
      * @access protected
      */
-	protected function setBackground(){
+	function setBackground(){
 		if(isset($this->ezBackground['type'])){
 	        switch ($this->ezBackground['type'])
 	        {
 	            case 'color':
-	            	if (isset($this->ezBackground['color']) && count(array_filter( array_map( function($_){ return is_numeric($_)&&0<=$_&&$_<=1; }, $this->ezBackground['color']))) == 3)
+	            	if (isset($this->ezBackground['color']) && is_array($this->ezBackground['color']) && count($this->ezBackground['color']) == 3)
 	            	{
 	                	$this->saveState();
 	                	$this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
@@ -267,7 +267,7 @@ class Cezpdf extends Cpdf {
 	 * Especially used for repeating function
 	 * @access private
 	 */
-	private function addBackgroundImage($xOffset = 0, $yOffset = 0){
+	function addBackgroundImage($xOffset = 0, $yOffset = 0){
 		switch ($this->ezBackground['format']) {
             case IMAGETYPE_JPEG:
             	$this->addJpegFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
@@ -287,7 +287,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezSetMargins($top,$bottom,$left,$right){
+    function ezSetMargins($top,$bottom,$left,$right){
         // sets the margins to new values
         $this->ez['topMargin']=$top;
         $this->ez['bottomMargin']=$bottom;
@@ -316,7 +316,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezSetCmMargins($top,$bottom,$left,$right){
+    function ezSetCmMargins($top,$bottom,$left,$right){
         $top = ( $top / 2.54 ) * 72;
         $bottom = ( $bottom / 2.54 ) * 72;
         $left = ( $left / 2.54 ) * 72;
@@ -329,7 +329,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezNewPage(){
+    function ezNewPage(){
         $pageRequired=1;
         if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
             // check if this is just going to a new column
@@ -376,7 +376,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezColumnsStart($options=array()){
+    function ezColumnsStart($options=array()){
         // start from the current y-position, make the set number of columne
         if (isset($this->ez['columns']) && $this->ez['columns']==1){
             // if we are already in a column mode then just return.
@@ -414,7 +414,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezColumnsStop(){
+    function ezColumnsStop(){
         if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
             $this->ez['columns']['on']=0;
             $this->ez['leftMargin']=$this->ez['columns']['margins'][0];
@@ -434,7 +434,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezInsertMode($status=1,$pageNum=1,$pos='before'){
+    function ezInsertMode($status=1,$pageNum=1,$pos='before'){
         switch($status){
             case '1':
                 if (isset($this->ezPages[$pageNum])){
@@ -454,7 +454,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezSetY($y){
+    function ezSetY($y){
         // used to change the vertical position of the writing point.
         $this->y = $y;
         if ( $this->y < $this->ez['bottomMargin']){
@@ -470,7 +470,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @access public
      */
-    public function ezSetDy($dy,$mod=''){
+    function ezSetDy($dy,$mod=''){
         // used to change the vertical position of the writing point.
         // changes up by a positive increment, so enter a negative number to go
         // down the page
@@ -505,7 +505,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
+    function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
         if (!$pos || !strlen($pos)){
             $pos='left';
         }
@@ -527,7 +527,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return integer page number
      */
-    public function ezWhatPageNumber($pageNum,$i=0){
+    function ezWhatPageNumber($pageNum,$i=0){
         // given a particular generic page number (ie, document numbered sequentially from beginning),
         // return the page number under a particular page numbering scheme ($i)
         $num=0;
@@ -561,7 +561,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return integer page number
      */
-    public function ezGetCurrentPageNumber(){
+    function ezGetCurrentPageNumber(){
         // return the strict numbering (1,2,3,4..) number of the current page
         return $this->ezPageCount;
     }
@@ -574,7 +574,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
+    function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
         // if stopTotal=1 then the totalling of pages for this number will stop too
         // if $next=1, then do this page, but not the next, else do not do this page either
         // if $i is set, then stop that particular pagenumbering sequence.
@@ -608,7 +608,7 @@ class Cezpdf extends Cpdf {
      * @access private
      * @return unknown_type
      */
-    private function ezPageNumberSearch($lbl,&$tmp){
+    function ezPageNumberSearch($lbl,&$tmp){
         foreach ($tmp as $i=>$v){
             if (is_array($v)){
                 if (isset($v[$lbl])){
@@ -626,7 +626,7 @@ class Cezpdf extends Cpdf {
     /**
      * @access private
      */
-    private function addPageNumbers(){
+    function addPageNumbers(){
         // this will go through the pageNumbering array and add the page numbers are required
         if (isset($this->ez['pageNumbering'])){
             $totalPages1 = $this->ezPageCount;
@@ -699,7 +699,7 @@ class Cezpdf extends Cpdf {
      * @access private
      * @return unknown_type
      */
-    private function cleanUp(){
+    function cleanUp(){
         $this->addPageNumbers();
     }
 
@@ -719,7 +719,7 @@ class Cezpdf extends Cpdf {
      * @access protected
      * @return unknown_type
      */
-    protected function ezTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
+    function ezTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
         $x0=1000;
         $x1=0;
         $this->setStrokeColor($col[0],$col[1],$col[2]);
@@ -760,7 +760,7 @@ class Cezpdf extends Cpdf {
      * @access protected
      * @return unknown_type
      */
-    protected function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
+    function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
         // uses ezText to add the text, and returns the height taken by the largest heading
         // this page will move the headings to a new page if they will not fit completely on this one
         // transaction support will be used to implement this
@@ -832,7 +832,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezGetTextWidth($size,$text){
+    function ezGetTextWidth($size,$text){
         $mx=0;
         $lines = explode("\n",$text);
         foreach ($lines as $line){
@@ -887,7 +887,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezTable(&$data,$cols='',$title='',$options=''){
+    function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){
             return;
         }
@@ -1458,7 +1458,7 @@ class Cezpdf extends Cpdf {
      * @access protected
      * @return unknown_type
      */
-    protected function ezProcessText($text){
+    function ezProcessText($text){
         // this function will intially be used to implement underlining support, but could be used for a range of other
         // purposes
         $search = array('<u>','<U>','</u>','</U>');
@@ -1494,7 +1494,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezText($text,$size=0,$options=array(),$test=0){
+    function ezText($text,$size=0,$options=array(),$test=0){
         // apply the filtering which will make the underlining function.
         $text = $this->ezProcessText($text);
 
@@ -1584,7 +1584,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
+    function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
     	$temp = false;
         //beta ezimage function
         if (stristr($image, '://')) { //copy to temp file
@@ -1705,7 +1705,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezStream($options=''){
+    function ezStream($options=''){
         $this->cleanUp();
         $this->stream($options);
     }
@@ -1716,7 +1716,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ezOutput($options=0){
+    function ezOutput($options=0){
         $this->cleanUp();
         return $this->output($options);
     }
@@ -1736,7 +1736,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @deprecated method deprecated in 0.12.0
      */
-    public function loadTemplate($templateFile){
+    function loadTemplate($templateFile){
         if (!file_exists($templateFile)){
             return -1;
         }
@@ -1776,7 +1776,7 @@ class Cezpdf extends Cpdf {
      * @return unknown_type
      * @deprecated method deprecated in 0.12.0
      */
-    public function execTemplate($id,$data=array(),$options=array()){
+    function execTemplate($id,$data=array(),$options=array()){
         // execute the given template on the current document.
         if (!isset($this->ez['templates'][$id])){
             return;
@@ -1790,7 +1790,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function ilink($info){
+    function ilink($info){
         $this->alink($info,1);
     }
 
@@ -1801,7 +1801,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function alink($info,$internal=0){
+    function alink($info,$internal=0){
         // a callback function to support the formation of clickable links within the document
         $lineFactor=0.05; // the thickness of the line as a proportion of the height. also the drop of the line.
         switch($info['status']){
@@ -1850,7 +1850,7 @@ class Cezpdf extends Cpdf {
      * @access public
      * @return unknown_type
      */
-    public function uline($info){
+    function uline($info){
         $lineFactor=0.05; // the thickness of the line as a proportion of the height. also the drop of the line.
         switch($info['status']){
             case 'start':
