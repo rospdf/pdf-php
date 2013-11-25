@@ -348,7 +348,7 @@ class Cpdf
      *
      * @return void
      */
-    function __construct($pageSize = array(0, 0, 612, 792), $isUnicode = false)
+    function Cpdf($pageSize = array(0, 0, 612, 792), $isUnicode = false)
     {
     	$this->isUnicode = $isUnicode;
     	// set the hardcoded encryption pad

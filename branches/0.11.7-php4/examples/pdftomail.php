@@ -7,7 +7,7 @@ include 'Cezpdf.php';
 require_once("Mail.php");
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o,'none');
+  		parent::Cezpdf($p, $o,'none');
 	}
 }
 $pdf = new Creport('a4','portrait');

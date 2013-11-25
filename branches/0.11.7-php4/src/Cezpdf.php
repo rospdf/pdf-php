@@ -61,7 +61,7 @@ class Cezpdf extends Cpdf {
      * @param $options
      * @return unknown_type
      */
-    function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
+    function Cezpdf($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
         if (!is_array($paper)){
             switch (strtoupper($paper)){
                 case '4A0': {$size = array(0,0,4767.87,6740.79); break;}
@@ -133,7 +133,7 @@ class Cezpdf extends Cpdf {
                 $size[3] = ( $paper[1] / 2.54 ) * 72;
             }
         }
-        parent::__construct($size);
+        parent::Cpdf($size);
         $this->ez['pageWidth']=$size[2];
         $this->ez['pageHeight']=$size[3];
 

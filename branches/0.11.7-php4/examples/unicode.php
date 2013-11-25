@@ -7,7 +7,7 @@ include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o,'none',array());
+  		parent::Cezpdf($p, $o,'none',array());
   		$this->isUnicode = true;
   		// always embed the font for the time being
   		//$this->embedFont = false;

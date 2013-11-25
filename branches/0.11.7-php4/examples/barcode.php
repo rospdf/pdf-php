@@ -45,7 +45,7 @@ function code39($text,$barcodethinwidth=2,$barcodeheight=40,$xpos=0,$ypos=0)
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		parent::__construct($p,$o);
+  		parent::Cezpdf($p,$o);
 	}
 	// Rectangle Callback function for Text output
 	function rect($info){

@@ -7,7 +7,7 @@ include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		parent::__construct($p,$o);
+  		parent::Cezpdf($p,$o);
 	}
 }
 
