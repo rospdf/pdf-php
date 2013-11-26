@@ -16,7 +16,7 @@ $pdf->allowedTags .= "|comment:.*?";
 
 $pdf->ezSetMargins(20,20,20,20);
 
-$pdf->selectFont('../src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezText("Some annotations are only shown in Adobe Reader. Chrome Viewer for instance does not show the icons\n");
 // text annotation (also know as comments)
 $pdf->ezText("<b>The 'Text' annotation:</b>");

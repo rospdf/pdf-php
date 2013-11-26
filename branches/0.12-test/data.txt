@@ -29,6 +29,14 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc8>
+
+NOTE: Due to the fontPath change it is <b>recommend to only use the font name</b> in $pdf->selectFont().
+NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
+
+- added "fontPath" property to define font folders outside the project root
+- fixed AAR search by setting unique fileIdentifiers
+
 2<version 0.12-rc7>
 
 - fixed bug #72 - directives cause wrong line alignment
@@ -237,7 +245,7 @@ If you want to get started in an easy manner, then here is the 'hello world' pro
 <?php
 include ('class.ezpdf.php');
 $pdf = new Cezpdf();
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezText('Hello World!',50);
 $pdf->ezStream();
 ?>
@@ -338,7 +346,7 @@ guarantees that there will be 100 units of space above the final writing point.
 
 #C
 $pdf = new Cezpdf();
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezNewPage();
 $pdf->ezStartPageNumbers(300,500,20,'','',1);
 $pdf->ezNewPage();
@@ -357,7 +365,7 @@ Here is a more complex example:
 
 #C
 
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezNewPage();
 $i=$pdf->ezStartPageNumbers(300,500,20,'','',1);
 $pdf->ezNewPage();
@@ -508,7 +516,7 @@ $pdf->ezTable($data);
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
 ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
@@ -527,7 +535,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,'Some LOTR Characters');
 #x
@@ -541,7 +549,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>0,'shaded'=>0,'showLines'=>0));
@@ -556,7 +564,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
 #c
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
@@ -570,7 +578,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
 #c
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
               ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>5));
@@ -586,7 +594,7 @@ $pdf->ezTable($data,array('type'=>'','name'=>''),''
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'','name'=>'')
               ,''
               ,array('showHeadings'=>0,'shaded'=>0,'xPos'=>'right','xOrientation'=>'left','width'=>100));
@@ -607,7 +615,7 @@ $pdf->ezTable($data,$cols,'',
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $cols = array('num'=>"number a a a a a a a a a a a a a a a\nmore",'name'=>'Name','type'=>'Type');
 
 $pdf->ezTable($data,$cols,'',array('xPos'=>90,'xOrientation'=>'right','width'=>300
@@ -626,7 +634,7 @@ $pdf->ezTable($data,array('type'=>'','name'=>''),''
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'','name'=>'')
               ,''
               ,array('showHeadings'=>0,'shaded'=>0,'width'=>400
@@ -648,7 +656,7 @@ $pdf->ezTable($data,array('type'=>'','name'=>'')
 #c
 
 #X
-$pdf->selectFont('./src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'','name'=>'')
         ,''
         ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
@@ -1273,16 +1281,16 @@ Note that the encoding directive will be effective <b>only the first time</b> th
 
 #C
 // use a Times-Roman font with MacExpertEncoding
-$pdf->selectFont('./src/fonts/Times-Roman','MacExpertEncoding');
+$pdf->selectFont('Times-Roman','MacExpertEncoding');
 // this next line should be equivalent
-$pdf->selectFont('./src/fonts/Times-Roman',array('encoding'=>'MacExpertEncoding'));
+$pdf->selectFont('Times-Roman',array('encoding'=>'MacExpertEncoding'));
 
 // setup the helvetica font for use with german characters
 $diff=array(196=>'Adieresis',228=>'adieresis',
              214=>'Odieresis',246=>'odieresis',
              220=>'Udieresis',252=>'udieresis',
              223=>'germandbls');
-$pdf->selectFont('./src/fonts/Helvetica'
+$pdf->selectFont('Helvetica'
        ,array('encoding'=>'WinAnsiEncoding'
              ,'differences'=>$diff));
 #c

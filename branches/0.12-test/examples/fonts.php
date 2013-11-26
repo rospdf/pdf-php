@@ -19,13 +19,13 @@ $pdf = new Creport('a4','portrait');
 $pdf->ezSetMargins(20,20,20,20);
 $pdf->openHere('Fit');
 
-$pdf->selectFont('../src/fonts/Helvetica.afm');
+$pdf->selectFont('Helvetica');
 $pdf->ezText("Text in Helvetica");
-$pdf->selectFont('../src/fonts/Courier.afm');
+$pdf->selectFont('Courier');
 $pdf->ezText("Text in Courier");
-$pdf->selectFont('../src/fonts/Times-Roman.afm');
+$pdf->selectFont('Times-Roman');
 $pdf->ezText("Text in Times New Roman");
-$pdf->selectFont('../src/fonts/ZapfDingbats.afm');
+$pdf->selectFont('ZapfDingbats');
 $pdf->ezText("Text in zapfdingbats");
 
 if (isset($_GET['d']) && $_GET['d']){

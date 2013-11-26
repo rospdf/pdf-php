@@ -12,12 +12,10 @@ class Creport extends Cezpdf{
 }
 
 $pdf = new Creport('a4','portrait','color',array(0.8,0.8,0.8));
-//$pdf->fileIdentifier = md5("Hallo");
-
 
 $pdf -> ezSetMargins(20,20,20,20);
 
-$mainFont = '../src/fonts/Times-Roman.afm';
+$mainFont = 'Times-Roman';
 // select a font
 $pdf->selectFont($mainFont);
 $size=12;

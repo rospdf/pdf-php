@@ -16,7 +16,7 @@ $pdf = new Creport('a4','portrait');
 $pdf->ezSetMargins(20,20,20,20);
 $pdf->openHere('Fit');
 
-$pdf->selectFont('../src/fonts/Helvetica.afm');
+$pdf->selectFont('Helvetica');
 for($i = 1; $i <= 2000; $i++){
     $pdf->ezText("Lorem ipsum dol Lorem ipsum dol Lorem ipsum dol Lorem ipsum dol Lorem ipsum dol $i");
 }

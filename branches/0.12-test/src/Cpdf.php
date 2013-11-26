@@ -36,7 +36,7 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version [0.12-rc7] $Id: Cpdf.php 207 2013-11-19 16:18:14Z ole1986 $
+ * @version [0.12-rc8] $Id: Cpdf.php 207 2013-11-19 16:18:14Z ole1986 $
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
@@ -194,7 +194,13 @@ class Cpdf
      * @var array
      */
     private $fonts = array();
-
+    
+    /**
+     * font path location
+     * @since 0.12-rc8
+     */
+    public $fontPath = './';
+    
     /**
       * a record of the current font
       * @var string
@@ -412,7 +418,10 @@ class Cpdf
               $this->targetEncoding = 'Windows-1252';
         }
         // use the md5 to have a unique identifier for all documents created with R&OS pdf class
-        $this->fileIdentifier = md5('ROSPDF');
+        $this->fileIdentifier = md5('ROSPDF'.time());
+        
+        // set the default font path to [...]/src/fonts
+        $this->fontPath = dirname(__FILE__).'/fonts';
     }
 
     /**
@@ -679,7 +688,10 @@ class Cpdf
         }
         switch ($action){
             case 'new':
-                $this->objects[$id]=array('t'=>'font','info'=>array('name'=>$options['name'], 'fontFileName' => $options['fontFileName'],'SubType'=>'Type1'));
+                $this->objects[$id]=array('t'=>'font','info'=>array('name'=>$options['name'], 'fontFileName'=> $options['fontFileName'], 'SubType'=>'Type1'));
+                
+                $fontFileName = &$options['fontFileName'];
+                
                 $fontNum=$this->numFonts;
                 $this->objects[$id]['info']['fontNum']=$fontNum;
                 // deal with the encoding and the differences
@@ -706,7 +718,7 @@ class Cpdf
                     $this->objects[$id]['info']['encoding']='WinAnsiEncoding';
                 }
                 
-                if ($this->fonts[$options['fontFileName']]['isUnicode']) {
+                if ($this->fonts[$fontFileName]['isUnicode']) {
                     // For Unicode fonts, we need to incorporate font data into
                     // sub-sections that are linked from the primary font section.
                     // Look at o_fontGIDtoCID and o_fontDescendentCID functions
@@ -755,6 +767,7 @@ class Cpdf
                   }
                 break;
             case 'out':
+                $fontFileName = &$o['info']['fontFileName'];
                 // when font program is embedded and its not a coreFont, attach the font either as subset or completely
                 if($this->embedFont && !in_array(strtolower($o['info']['name']), $this->coreFonts)){
                     // when TrueType font is used
@@ -762,8 +775,8 @@ class Cpdf
                         // find font program id for TTF fonts (FontFile2)
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
                         // if subsetting is set
-                        if($this->fonts[$o['info']['fontFileName']]['isSubset'] && !empty($this->fonts[$o['info']['fontFileName']]['subset']) && $this->fonts[$o['info']['fontFileName']]['isUnicode']){
-                            $this->debug('subset font for ' . $o['info']['fontFileName'], E_USER_NOTICE);
+                        if($this->fonts[$fontFileName]['isSubset'] && !empty($this->fonts[$fontFileName]['subset']) && $this->fonts[$fontFileName]['isUnicode']){
+                            $this->debug('subset font for ' . $fontFileName, E_USER_NOTICE);
                             $subsetFontName = "AAAAAD+" . $o['info']['name'];
                             $o['info']['name'] = $subsetFontName;
                             // find descendant font
@@ -774,14 +787,14 @@ class Cpdf
                             // use TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
                             $t = new TTFsubset();
                             // combine all used characters as string
-                            $s = implode('',array_keys($this->fonts[$o['info']['fontFileName']]['subset']));
+                            $s = implode('',array_keys($this->fonts[$fontFileName]['subset']));
                             // submit the string to TTFsubset class to return the subset (as binary)
-                            $data = $t->doSubset($o['info']['fontFileName'] . '.ttf', $s, null);
+                            $data = $t->doSubset($this->fontPath.'/'.$fontFileName . '.ttf', $s, null);
                             // $data is the new (subset) of the font font
                             //file_put_contents('/tmp/'.$o['info']['name'] . '.ttf', $data);
                             
                             $newcidwidth = array();
-                            $cidwidth = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
+                            $cidwidth = &$this->fonts[$fontFileName]['CIDWidths'];
                             foreach($t->TTFchars as $TTFchar){
                                 if(!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])){
                                     $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
@@ -789,8 +802,7 @@ class Cpdf
                             }
                             $cidwidth = $newcidwidth;
                         } else {
-                            $data = file_get_contents($o['info']['fontFileName']. '.ttf');
-                            
+                            $data = file_get_contents($this->fontPath.'/'.$fontFileName. '.ttf');
                         }
                     
                         // TODO: cache the subset
@@ -801,7 +813,7 @@ class Cpdf
                     } else if(isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile'])) {
                         // find FontFile id - used for PFB fonts
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
-                        $data = file_get_contents($o['info']['fontFileName']. '.pfb');
+                        $data = file_get_contents($this->fontPath.'/'.$fontFileName. '.pfb');
                         $l1 = strpos($data,'eexec')+6;
                         $l2 = strpos($data,'00000000')-$l1;
                         $l3 = strlen($data)-$l2-$l1;
@@ -811,7 +823,7 @@ class Cpdf
                     }
                 }
                 
-                if ($this->fonts[$o['info']['fontFileName']]['isUnicode']) {
+                if ($this->fonts[$fontFileName]['isUnicode']) {
                     // For Unicode fonts, we need to incorporate font data into
                     // sub-sections that are linked from the primary font section.
                     // Look at o_fontGIDtoCID and o_fontDescendentCID functions
@@ -988,6 +1000,7 @@ class Cpdf
           break;
 
         case 'out':
+          $fontFileName = &$o['info']['fontFileName'];
           $res = "\n$id 0 obj\n";
           $res.= "<</Type /Font /Subtype /CIDFontType2 /BaseFont /".$o['info']['name']." /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>";
           if (isset($o['info']['FontDescriptor'])) {
@@ -998,8 +1011,8 @@ class Cpdf
             $res.= " /DW ".$o['info']['MissingWidth']."";
           }
 
-          if (isset($o['info']['fontFileName']) && isset($this->fonts[$o['info']['fontFileName']]['CIDWidths'])) {
-            $cid_widths = &$this->fonts[$o['info']['fontFileName']]['CIDWidths'];
+          if (isset($fontFileName) && isset($this->fonts[$fontFileName]['CIDWidths'])) {
+            $cid_widths = &$this->fonts[$fontFileName]['CIDWidths'];
             $w = '';
             foreach ($cid_widths as $cid => $width) {
               $w .= "$cid [$width] ";
@@ -1032,7 +1045,7 @@ class Cpdf
 
         case 'out':
           $res = "\n$id 0 obj\n";
-          $fontFileName = $o['info']['fontFileName'];
+          $fontFileName = &$o['info']['fontFileName'];
           $tmp = $this->fonts[$fontFileName]['CIDtoGID'] = base64_decode($this->fonts[$fontFileName]['CIDtoGID']);
           
           if (isset($o['raw'])) {
@@ -1773,7 +1786,7 @@ class Cpdf
             $content .= " /Encrypt ".$this->arc4_objnum." 0 R";
         }
         if (strlen($this->fileIdentifier)){
-            $content .= " /ID[(".$this->fileIdentifier.") (".$this->fileIdentifier.")]";
+            $content .= " /ID [<".$this->fileIdentifier."><".$this->fileIdentifier.">]";
         }
         $content .= " >>\nstartxref\n".$pos."\n%%EOF\n";
         return $content;
@@ -1823,49 +1836,35 @@ class Cpdf
      *
      * @param string $font Font name (can contain both path and extension)
      *
-     * @return void
+     * @return bool true on success, false on error
      */
     protected function openFont($font) {
-        // assume that $font contains both the path and perhaps the extension to the file, split them
-        $pos = strrpos($font, '/');
-        if ($pos === false) {
-            // $dir  = './';
-            $dir  = dirname(__FILE__) . '/fonts/';
-            $name = $font;
-        } else {
-            $dir  = substr($font, 0, $pos + 1);
-            $name = substr($font, $pos + 1);
-        }
+        // $font should only contain the font name
+        $fullFontPath = $this->fontPath.'/'.$font;
         
-        $this->debug('openFont executed: '.$font.' - '.$name.' / IsUnicode: '.$this->isUnicode);
-        
+        $this->debug('openFont: '.$fullFontPath.' / IsUnicode: '.$this->isUnicode);
         // PATCH #13 - isUnicode cachedFile (font) problem | thank you jafjaf
         if ($this->isUnicode){
-            $cachedFile = 'cached'.$name.'unicode.php';
+            $cachedFile = 'cached'.$font.'unicode.php';
         } else {
-            $cachedFile = 'cached'.$name.'.php';
+            $cachedFile = 'cached'.$font.'.php';
         }
         
         // use the temp folder to read/write cached font data
         if (file_exists($this->tempPath.'/'.$cachedFile)) {
             $cacheDate = filemtime($this->tempPath.'/'.$cachedFile);
-            if(($cacheDate + $this->cacheTimeout) < time() ) {
-                unset($this->fonts[$font]);
-            } else {
+            if(($cacheDate + $this->cacheTimeout) >= time() ) {
                 $this->debug('openFont: font cache found in '.$this->tempPath.'/'.$cachedFile);
                 $this->fonts[$font] = require($this->tempPath.'/'.$cachedFile);
-                if (!isset($this->fonts[$font]['_version_']) || $this->fonts[$font]['_version_']<3) {
-                    // if the font file is old, then clear it out and prepare for re-creation
-                    $this->debug('openFont: version conflict with cached font file. Force rebuild...');
-                    unset($this->fonts[$font]);
+                if (isset($this->fonts[$font]['_version_']) && $this->fonts[$font]['_version_'] == 3) {
+                    // cache is valid - but without checking for a valid font path
+                   return true;
                 }
             }
-        }
-        
-        if(!isset($this->fonts[$font])){
+        } else {
             $this->debug('openFont: rebuilding font cache '.$cachedFile, E_USER_NOTICE);
-            if(file_exists($font.'.ttf') && class_exists('TTF')){
-                $ttf = new TTF(file_get_contents($font.'.ttf'));
+            if(file_exists($fullFontPath.'.ttf') && class_exists('TTF')){
+                $ttf = new TTF(file_get_contents($fullFontPath.'.ttf'));
                 
                 $head = $ttf->unmarshalHead();
                 $uname = $ttf->unmarshalName();
@@ -1883,7 +1882,7 @@ class Cpdf
                     'Ascender' => $hhea['ascender'],
                     'Descender' => $hhea['descender'],
                     'LineGap' => $hhea['lineGap'],
-                    'FontName' => $name
+                    'FontName' => $font
                 );
                 
                 foreach($uname['nameRecords'] as $v){
@@ -1979,10 +1978,11 @@ class Cpdf
                 
                 $cachedFont['CIDtoGID'] = base64_encode($cidtogid);
                 
-            } else if(file_exists($font.'.afm')){ /* Used for the core fonts (no unicode) */
+            } else if(file_exists($fullFontPath.'.afm')){
+                // use the core font program
                 $cachedFont = array('isUnicode' => false );
                 
-                $file = file($font.'.afm');
+                $file = file($fullFontPath.'.afm');
                 foreach ($file as $row) {
                     $row=trim($row);
                     $pos=strpos($row,' ');
@@ -2042,6 +2042,9 @@ class Cpdf
                         }
                     }
                 }
+            } else {
+                $this->debug(sprintf('openFont: no font file found for "%s" IsUnicode: %b', $font, $this->isUnicode), E_USER_ERROR);
+                return false;
             }
             
             $cachedFont['_version_']=3;
@@ -2050,11 +2053,10 @@ class Cpdf
             $fp = fopen($this->tempPath.'/'.$cachedFile,'w'); // use the temp folder to write cached font data
             fwrite($fp,'<?php /* R&OS php pdf class font cache file */ return '.var_export($cachedFont,true).'; ?>');
             fclose($fp);
-        } 
-        
-        if (!isset($this->fonts[$font])) {
-            $this->debug(sprintf('openFont: no font file found for "'.$font.'" IsUnicode: %b', $font, $this->isUnicode), E_USER_WARNING);
+            
+            return true;
         }
+        return false;
     }
 
     /**
@@ -2077,26 +2079,37 @@ class Cpdf
             $subsetFont = false;
         }
         
-        $ext = substr($fontName, -4);
-        if ($ext === '.afm' || $ext === '.ufm') {
-            $fontName = substr($fontName, 0, strlen($fontName)-4);
-        }
-        
+        // old font selection containing full path
         $pos = strrpos($fontName, '/');
         if ($pos !== false) {
-            $name = substr($fontName, $pos + 1);
-        } else {
-            $name = $fontName;
+            $fontName = substr($fontName, $pos + 1);
         }
+        
+        // file extension found
+        $pos = strrpos($fontName, '.');
+        if($pos){
+            $ext = substr($fontName, $pos + 1);
+            $fontName = substr($fontName, 0, $pos);
+        } else {
+            // default extension is ttf
+            $ext = 'ttf';
+        }
+        
         if (!isset($this->fonts[$fontName])){
-            // load the file
-            $this->openFont($fontName);
-            if (isset($this->fonts[$fontName])){
+            // check and load the font file, on no errors $ok = true
+            $ok = $this->openFont($fontName);
+            if(!$ok){
+                $fontName = 'Helvetica';
+                if(!isset($this->fonts[$fontName])){
+                    $this->debug("Error while loading coreFont - check \$pdf->fontPath and/or define one coreFont as fallback", E_USER_ERROR);
+                    die;
+                }
+            } else if(isset($this->fonts[$fontName])) {
                 $this->numObj++;
                 $this->numFonts++;
                 
                 $font = &$this->fonts[$fontName];
-                $options = array('name' => $name, 'fontFileName' => $fontName);
+                $options = array('name' => $fontName, 'fontFileName'=>$fontName); // orgFontName is necessary when font subsetting is used
                 
                 if (is_array($encoding)){
                     // then encoding and differences might be set
@@ -2118,17 +2131,15 @@ class Cpdf
                 // references into the font object
                 
                 $fbtype = '';
-                if (file_exists($fontName.'.pfb')){
+                if (file_exists($this->fontPath.'/'.$fontName.'.pfb')){
                     $fbtype = 'pfb';
-                } else if (file_exists($fontName.'.ttf')){
+                } else if (file_exists($this->fontPath.'/'.$fontName.'.ttf')){
                     $fbtype = 'ttf';
                 }
                 
-                $fbfile = $fontName.'.'.$fbtype;
-                
                 if ($fbtype){
                     $adobeFontName = $font['FontName'];
-                    $this->debug('selectFont: adding font file "'.$fbfile.'" to pdf');
+                    $this->debug('selectFont: adding font "'.$fontName.'" to pdf');
                     // find the array of fond widths, and put that into an object.
                     $firstChar = -1;
                     $lastChar = 0;
@@ -2253,8 +2264,8 @@ class Cpdf
                     }
                     $this->o_font($fontObj,'add',$tmp);
 
-                } else if(!in_array(strtolower($name), $this->coreFonts)) {
-                    $this->debug('selectFont: No pfb/ttf file found for "'.$name.'"', E_USER_WARNING);
+                } else if(!in_array(strtolower($fontName), $this->coreFonts)) {
+                    $this->debug('selectFont: No pfb/ttf file found for "'.$fontName.'"', E_USER_WARNING);
                 }
 
                 // also set the differences here, note that this means that these will take effect only the
@@ -2294,25 +2305,18 @@ class Cpdf
     protected function setCurrentFont(){
         if (strlen($this->currentBaseFont)==0){
             // then assume an initial font
-            $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
+            $this->selectFont('Helvetica');
         }
-        $pos = strrpos($this->currentBaseFont, '/');
-        if ($pos !== false) {
-            $cf = substr($this->currentBaseFont, $pos + 1);
-        } else {
-            $cf = $this->currentBaseFont;
-        }
+        
+        $cf = $this->currentBaseFont;
+        
         if (strlen($this->currentTextState)
             && isset($this->fontFamilies[$cf])
             && isset($this->fontFamilies[$cf][$this->currentTextState])){
             // then we are in some state or another
             // and this font has a family, and the current setting exists within it
             // select the font, then return it
-            if ($pos !== false) {
-                $nf = substr($this->currentBaseFont, 0, strrpos($this->currentBaseFont,'/') + 1).$this->fontFamilies[$cf][$this->currentTextState];
-            } else {
-                $nf = $this->fontFamilies[$cf][$this->currentTextState];
-            }
+            $nf = $this->fontFamilies[$cf][$this->currentTextState];
             // PATCH #14 - subset file fix when using font family | thank you johannes
             $isSubset = false;
             if (isset($this->fonts[$this->currentBaseFont]['isSubset'])) $isSubset = $this->fonts[$this->currentBaseFont]['isSubset'];
@@ -2322,8 +2326,8 @@ class Cpdf
         } else {
             // the this font must not have the right family member for the current state
             // simply assume the base font
-            $this->currentFont = $this->currentBaseFont;
-            $this->currentFontNum = $this->fonts[$this->currentFont]['fontNum'];
+            $this->currentFont = $cf;
+            $this->currentFontNum = $this->fonts[$cf]['fontNum'];
         }
     }
 

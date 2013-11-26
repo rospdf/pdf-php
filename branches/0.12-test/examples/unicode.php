@@ -21,7 +21,7 @@ $pdf->ezSetMargins(20,20,20,20);
 
 $f = (isset($_GET['font']))?$_GET['font']:'FreeSerif';
 
-$mainFont = '../src/fonts/'.$f;
+$mainFont = $f;
 // select a font and use font subsetting
 $pdf->selectFont($mainFont, '', 1, true);
 $pdf->ezText("Greek:");
@@ -32,8 +32,8 @@ $pdf->ezText("Arabic:");
 $pdf->ezText("لبسبيلتتاف لالبالفقث بببب");
 $pdf->ezText("Hebrew:");
 $pdf->ezText("אבגדהוזחטיכלמנסעפצקרשת");
-$pdf->ezText("Chinese:");
-$pdf->ezText("汉语/漢語 <- Some fonts might not contain these glyphs. Tested with Arial Unicode");
+//$pdf->ezText("Chinese:");
+//$pdf->ezText("汉语/漢語 <- Some fonts might not contain these glyphs. Tested with Arial Unicode");
 
 //$pdf->isUnicode = false;
 //$pdf->selectFont('../src/fonts/Courier');

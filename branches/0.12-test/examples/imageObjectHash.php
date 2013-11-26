@@ -18,7 +18,7 @@ if (isset($_GET['nohash'])){
 
 $pdf -> ezSetMargins(20,20,20,20);
 
-$mainFont = '../src/fonts/Times-Roman.afm';
+$mainFont = 'Times-Roman';
 // select a font
 $pdf->selectFont($mainFont);
 $size=12;

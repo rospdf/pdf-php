@@ -27,7 +27,7 @@ if(!isset($_GET['nocrypt'])){
 }
 
 // select a font
-$pdf->selectFont('../src/fonts/Times-Roman.afm');
+$pdf->selectFont('Times-Roman');
 $pdf->openHere('Fit');
 
 $pdf->ezText("This example shows how to crypt the PDF document\n");

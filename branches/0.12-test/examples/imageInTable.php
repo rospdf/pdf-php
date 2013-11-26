@@ -7,7 +7,7 @@ if(!file_exists($ext)){
 include $ext;
 $pdf = new CezTableImage("a4");
 
-$pdf->selectFont('../src/fonts/Helvetica');
+$pdf->selectFont('Helvetica');
 
 $image = '../ros.jpg';
 // test gif file

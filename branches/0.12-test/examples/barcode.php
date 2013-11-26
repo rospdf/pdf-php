@@ -66,8 +66,7 @@ $pdf->allowedTags .= "|rect:.*?";
 
 $pdf -> ezSetMargins(50,70,50,50);
 
-//$mainFont = './fonts/Helvetica.afm';
-$mainFont = '../src/fonts/Times-Roman.afm';
+$mainFont = 'Helvetica';
 // select a font
 $pdf->selectFont($mainFont);
 $size=12;

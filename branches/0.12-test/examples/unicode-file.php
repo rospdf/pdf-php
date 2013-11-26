@@ -29,7 +29,7 @@ $tmp = array(
 );
 $pdf->setFontFamily('FreeSerif', $tmp);
 
-$mainFont = '../src/fonts/'.$f;
+$mainFont = $f;
 // select a font
 $pdf->selectFont($mainFont);
 $pdf->openHere('Fit');
