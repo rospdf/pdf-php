@@ -36,7 +36,7 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version [0.12-rc8] $Id: Cpdf.php 207 2013-11-19 16:18:14Z ole1986 $
+ * @version [0.12-rc9] $Id: Cpdf.php 207 2013-11-19 16:18:14Z ole1986 $
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
@@ -138,7 +138,7 @@ class Cpdf
      * define the tags being allowed in any text input, like addText or addTextWrap (default: bold, italic and links)
      * @var string
      */
-     public $allowedTags = 'b|strong|i|uline|alink:?.*?|ilink:?.*?';
+     public $allowedTags = 'b|strong|i|uline|alink:?.*?|ilink:?.*?|color:?.*?';
      
     /**
      * used to either embed or not embed the ttf/pfb font program
@@ -1013,11 +1013,40 @@ class Cpdf
 
           if (isset($fontFileName) && isset($this->fonts[$fontFileName]['CIDWidths'])) {
             $cid_widths = &$this->fonts[$fontFileName]['CIDWidths'];
-            $w = '';
-            foreach ($cid_widths as $cid => $width) {
-              $w .= "$cid [$width] ";
-            }
-            $res.= " /W [$w]";
+            $res.= ' /W [';
+            reset($cid_widths);
+			$opened = false;
+			while (list($k,$v) = each($cid_widths)) {
+				list($nextk, $nextv) = each($cid_widths);
+				//echo "\n$k ($v) == $nextk ($nextv)";
+				if(($k + 1) == $nextk){
+					if(!$opened){
+						$res.= " $k [$v";
+						$opened = true;
+					} else if($opened) {
+						$res.= ' '.$v;
+					}
+					prev($cid_widths);
+				} else {
+					if($opened){
+						$res.=" $v]";
+					} else {
+						$res.= " $k [$v]";
+					}
+					
+					$opened = false;
+					prev($cid_widths);
+				}
+			}
+			
+			if(isset($nextk) && isset($nextv)){
+				if($opened){
+					$res.= "]";
+				}
+				$res.= " $nextk [$nextv]";
+			}
+            
+            $res.= ' ]';
           }
           
           if($this->embedFont){
@@ -1861,202 +1890,202 @@ class Cpdf
                    return true;
                 }
             }
-        } else {
-            $this->debug('openFont: rebuilding font cache '.$cachedFile, E_USER_NOTICE);
-            if(file_exists($fullFontPath.'.ttf') && class_exists('TTF')){
-                $ttf = new TTF(file_get_contents($fullFontPath.'.ttf'));
-                
-                $head = $ttf->unmarshalHead();
-                $uname = $ttf->unmarshalName();
-                $hhea = $ttf->unmarshalHhea();
-                $post = $ttf->unmarshalPost(true);
-                $maxp = $ttf->unmarshalMAXP();
-                $cmap = $ttf->unmarshalCmap();
-                
-                $cachedFont = array(
-                    'isUnicode' => $this->isUnicode, 
-                    'ItalicAngle' => $post['italicAngle'],
-                    'UnderlineThickness' => $post['underlineThickness'],
-                    'UnderlinePosition' => $post['underlinePosition'],
-                    'IsFixedPitch' => ($post['isFixedPitch'] == 0)? false : true,
-                    'Ascender' => $hhea['ascender'],
-                    'Descender' => $hhea['descender'],
-                    'LineGap' => $hhea['lineGap'],
-                    'FontName' => $font
-                );
-                
-                foreach($uname['nameRecords'] as $v){
-                    if($v['nameID'] == 1 && $v['languageID'] == 0){
-                        // fetch FontFamily from Default language (en?)
-                        $cachedFont['FamilyName'] = preg_replace('/\x00/','',$v['value']);
-                    } else if($v['nameID'] == 2 && $v['languageID'] == 0){
-                        // fetch font weight from Default language (en?)
-                        $cachedFont['Weight'] = preg_replace('/\x00/','',$v['value']);
-                    } else if($v['nameID'] == 3 && $v['languageID'] == 0){
-                        // fetch Unique font name from Default language (en?)
-                        $cachedFont['UniqueName'] = preg_replace('/\x00/','',$v['value']);
-                    } else if($v['nameID'] == 4 && $v['languageID'] == 0){
-                        // fetch font name (full style) from Default language (en?)
-                        $cachedFont['FullName'] = preg_replace('/\x00/','',$v['value']);
-                    } else if($v['nameID'] == 5 && $v['languageID'] == 0){
-                        // fetch version from Default language (en?)
-                        $cachedFont['Version'] = preg_replace('/\x00/','',$v['value']);
-                    }
+        }
+        
+        // if no cache is found, parse the font file and rebuild the cache
+        $this->debug('openFont: rebuilding font cache '.$cachedFile, E_USER_NOTICE);
+        if(file_exists($fullFontPath.'.ttf') && class_exists('TTF')){
+            $ttf = new TTF(file_get_contents($fullFontPath.'.ttf'));
+            
+            $head = $ttf->unmarshalHead();
+            $uname = $ttf->unmarshalName();
+            $hhea = $ttf->unmarshalHhea();
+            $post = $ttf->unmarshalPost(true);
+            $maxp = $ttf->unmarshalMAXP();
+            $cmap = $ttf->unmarshalCmap();
+            
+            $cachedFont = array(
+                'isUnicode' => $this->isUnicode, 
+                'ItalicAngle' => $post['italicAngle'],
+                'UnderlineThickness' => $post['underlineThickness'],
+                'UnderlinePosition' => $post['underlinePosition'],
+                'IsFixedPitch' => ($post['isFixedPitch'] == 0)? false : true,
+                'Ascender' => $hhea['ascender'],
+                'Descender' => $hhea['descender'],
+                'LineGap' => $hhea['lineGap'],
+                'FontName' => $font
+            );
+            
+            foreach($uname['nameRecords'] as $v){
+                if($v['nameID'] == 1 && $v['languageID'] == 0){
+                    // fetch FontFamily from Default language (en?)
+                    $cachedFont['FamilyName'] = preg_replace('/\x00/','',$v['value']);
+                } else if($v['nameID'] == 2 && $v['languageID'] == 0){
+                    // fetch font weight from Default language (en?)
+                    $cachedFont['Weight'] = preg_replace('/\x00/','',$v['value']);
+                } else if($v['nameID'] == 3 && $v['languageID'] == 0){
+                    // fetch Unique font name from Default language (en?)
+                    $cachedFont['UniqueName'] = preg_replace('/\x00/','',$v['value']);
+                } else if($v['nameID'] == 4 && $v['languageID'] == 0){
+                    // fetch font name (full style) from Default language (en?)
+                    $cachedFont['FullName'] = preg_replace('/\x00/','',$v['value']);
+                } else if($v['nameID'] == 5 && $v['languageID'] == 0){
+                    // fetch version from Default language (en?)
+                    $cachedFont['Version'] = preg_replace('/\x00/','',$v['value']);
                 }
-                
-                // calculate the bounding box properly by using 'units per em' property
-                $cachedFont['FontBBox'] = array(
-                                            intval($head['xMin'] / ($head['unitsPerEm'] / 1000)),
-                                            intval($head['yMin'] / ($head['unitsPerEm'] / 1000)), 
-                                            intval($head['xMax'] / ($head['unitsPerEm'] / 1000)), 
-                                            intval($head['yMax'] / ($head['unitsPerEm'] / 1000))
-                                        );
-                $cachedFont['UnitsPerEm'] = $head['unitsPerEm'];
-                
-                $encodingTable = array();
-                
-                $hmetrics = $ttf->unmarshalHmtx($hhea['numberOfHMetrics'],$maxp['numGlyphs']);
-                
-                // get format 6 or format 4 as primary cmap table map glyph with character
-                foreach($cmap['tables'] as $v){
-                    if(isset($v['format']) && $v['format'] == "4"){
-                        $encodingTable = $v;
-                        break;
-                    }
+            }
+            
+            // calculate the bounding box properly by using 'units per em' property
+            $cachedFont['FontBBox'] = array(
+                                        intval($head['xMin'] / ($head['unitsPerEm'] / 1000)),
+                                        intval($head['yMin'] / ($head['unitsPerEm'] / 1000)), 
+                                        intval($head['xMax'] / ($head['unitsPerEm'] / 1000)), 
+                                        intval($head['yMax'] / ($head['unitsPerEm'] / 1000))
+                                    );
+            $cachedFont['UnitsPerEm'] = $head['unitsPerEm'];
+            
+            $encodingTable = array();
+            
+            $hmetrics = $ttf->unmarshalHmtx($hhea['numberOfHMetrics'],$maxp['numGlyphs']);
+            
+            // get format 6 or format 4 as primary cmap table map glyph with character
+            foreach($cmap['tables'] as $v){
+                if(isset($v['format']) && $v['format'] == "4"){
+                    $encodingTable = $v;
+                    break;
                 }
+            }
+            
+            if($encodingTable['format'] == '4') {
+                $glyphsIndices = range(1, $maxp['numGlyphs']);
+                $charToGlyph = array();
                 
-                if($encodingTable['format'] == '4') {
-                    $glyphsIndices = range(1, $maxp['numGlyphs']);
-                    $charToGlyph = array();
-                    
-                    $segCount = $encodingTable['segCount'];
-                    $endCountArray = $encodingTable['endCountArray'];
-                    $startCountArray = $encodingTable['startCountArray'];
-                    $idDeltaArray = $encodingTable['idDeltaArray'];
-                    $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
-                    $glyphIdArray = $encodingTable['glyphIdArray'];
-                	
-                    for ($seg = 0; $seg < $segCount; $seg++) {
-                    $endCount = $endCountArray[$seg];
-                    $startCount = $startCountArray[$seg];
-                    $idDelta = $idDeltaArray[$seg];
-                    $idRangeOffset = $idRangeOffsetArray[$seg];
-                        for ($charCode = $startCount; $charCode <= $endCount; $charCode++) {
-                            if ($idRangeOffset != 0) {
-                            $j = $charCode - $startCount + $seg + $idRangeOffset / 2 - $segCount;
-                            $gid0 = $glyphIdArray[$j];
-                            } else {
-                            $gid0 = $idDelta + $charCode;
-                            }
-                            $gid0 %= 65536;
-                            if (in_array($gid0, $glyphsIndices)) {
-                                $charToGlyph[sprintf("%d", $charCode)] = $gid0;
-                            }
+                $segCount = $encodingTable['segCount'];
+                $endCountArray = $encodingTable['endCountArray'];
+                $startCountArray = $encodingTable['startCountArray'];
+                $idDeltaArray = $encodingTable['idDeltaArray'];
+                $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
+                $glyphIdArray = $encodingTable['glyphIdArray'];
+                
+                for ($seg = 0; $seg < $segCount; $seg++) {
+                $endCount = $endCountArray[$seg];
+                $startCount = $startCountArray[$seg];
+                $idDelta = $idDeltaArray[$seg];
+                $idRangeOffset = $idRangeOffsetArray[$seg];
+                    for ($charCode = $startCount; $charCode <= $endCount; $charCode++) {
+                        if ($idRangeOffset != 0) {
+                        $j = $charCode - $startCount + $seg + $idRangeOffset / 2 - $segCount;
+                        $gid0 = $glyphIdArray[$j];
+                        } else {
+                        $gid0 = $idDelta + $charCode;
+                        }
+                        $gid0 %= 65536;
+                        if (in_array($gid0, $glyphsIndices)) {
+                            $charToGlyph[sprintf("%d", $charCode)] = $gid0;
                         }
                     }
-                    $cidtogid = str_pad('', 256*256*2, "\x00");
-                    $cachedFont['C'] = array();
-                    
-                    foreach($charToGlyph as $char => $glyphIndex){
-                        if(!empty($char)){
-                            $m = TTF::getHMetrics($hmetrics, $hhea['numberOfHMetrics'], $glyphIndex);
-                            // calculate the correct char width by dividing it with 'units per em'
-                            $cachedFont['C'][$char] = intval($m[0] / ($head['unitsPerEm'] / 1000)); 
-                            if($this->isUnicode){
-                                if($char >= 0){
-                                    if ($char >= 0 && $char < 0xFFFF && $glyphIndex) {
-                                        $cidtogid[$char*2] = chr($glyphIndex >> 8);
-                                        $cidtogid[$char*2 + 1] = chr($glyphIndex & 0xFF);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    $this->debug('openFont: font file does not contain format 4 cmap', E_USER_WARNING);
                 }
+                $cidtogid = str_pad('', 256*256*2, "\x00");
+                $cachedFont['C'] = array();
                 
-                $cachedFont['CIDtoGID'] = base64_encode($cidtogid);
-                
-            } else if(file_exists($fullFontPath.'.afm')){
-                // use the core font program
-                $cachedFont = array('isUnicode' => false );
-                
-                $file = file($fullFontPath.'.afm');
-                foreach ($file as $row) {
-                    $row=trim($row);
-                    $pos=strpos($row,' ');
-                    if ($pos) {
-                        // then there must be some keyword
-                        $key = substr($row,0,$pos);
-                        switch ($key) {
-                        case 'FontName':
-                        case 'FullName':
-                        case 'FamilyName':
-                        case 'Weight':
-                        case 'ItalicAngle':
-                        case 'IsFixedPitch':
-                        case 'CharacterSet':
-                        case 'UnderlinePosition':
-                        case 'UnderlineThickness':
-                        case 'Version':
-                        case 'EncodingScheme':
-                        case 'CapHeight':
-                        case 'XHeight':
-                        case 'Ascender':
-                        case 'Descender':
-                        case 'StdHW':
-                        case 'StdVW':
-                        case 'StartCharMetrics':
-                            $cachedFont[$key]=trim(substr($row,$pos));
-                            break;
-                        case 'FontBBox':
-                            $cachedFont[$key]=explode(' ',trim(substr($row,$pos)));
-                            break;
-                        case 'C':
-                            // C 39 ; WX 222 ; N quoteright ; B 53 463 157 718 ;
-                            // use preg_match instead to improve performace
-                            // IMPORTANT: if "L i fi ; L l fl ;" is required preg_match must be amended
-                            $r = preg_match('/C (-?\d+) ; WX (-?\d+) ; N (\w+) ; B (-?\d+) (-?\d+) (-?\d+) (-?\d+) ;/', $row, $m);
-                            if($r == 1){
-                                //$dtmp = array('C'=> $m[1],'WX'=> $m[2], 'N' => $m[3], 'B' => array($m[4], $m[5], $m[6], $m[7]));
-                                $c = (int)$m[1];
-                                $n = $m[3];
-                                $width = floatval($m[2]);
-                
-                                if($c >= 0){
-                                    if ($c != hexdec($n)) {
-                                        $cachedFont['codeToName'][$c] = $n;
-                                      }
-                                    $cachedFont['C'][$c] = $width;
-                                    $cachedFont['C'][$n] = $width;
-                                }else{
-                                    $cachedFont['C'][$n] = $width;
-                                }
-                                
-                                if (!isset($cachedFont['MissingWidth']) && $c == -1 && $n === '.notdef') {
-                                      $cachedFont['MissingWidth'] = $width;
+                foreach($charToGlyph as $char => $glyphIndex){
+                    if(!empty($char)){
+                        $m = TTF::getHMetrics($hmetrics, $hhea['numberOfHMetrics'], $glyphIndex);
+                        // calculate the correct char width by dividing it with 'units per em'
+                        $cachedFont['C'][$char] = intval($m[0] / ($head['unitsPerEm'] / 1000)); 
+                        if($this->isUnicode){
+                            if($char >= 0){
+                                if ($char >= 0 && $char < 0xFFFF && $glyphIndex) {
+                                    $cidtogid[$char*2] = chr($glyphIndex >> 8);
+                                    $cidtogid[$char*2 + 1] = chr($glyphIndex & 0xFF);
                                 }
                             }
-                            break;
                         }
                     }
                 }
             } else {
-                $this->debug(sprintf('openFont: no font file found for "%s" IsUnicode: %b', $font, $this->isUnicode), E_USER_ERROR);
-                return false;
+                $this->debug('openFont: font file does not contain format 4 cmap', E_USER_WARNING);
             }
             
-            $cachedFont['_version_']=3;
-            // store the data in as cached file and in $this->fonts array
-            $this->fonts[$font]=$cachedFont;
-            $fp = fopen($this->tempPath.'/'.$cachedFile,'w'); // use the temp folder to write cached font data
-            fwrite($fp,'<?php /* R&OS php pdf class font cache file */ return '.var_export($cachedFont,true).'; ?>');
-            fclose($fp);
+            $cachedFont['CIDtoGID'] = base64_encode($cidtogid);
             
-            return true;
+        } else if(file_exists($fullFontPath.'.afm')){
+            // use the core font program
+            $cachedFont = array('isUnicode' => false );
+            
+            $file = file($fullFontPath.'.afm');
+            foreach ($file as $row) {
+                $row=trim($row);
+                $pos=strpos($row,' ');
+                if ($pos) {
+                    // then there must be some keyword
+                    $key = substr($row,0,$pos);
+                    switch ($key) {
+                    case 'FontName':
+                    case 'FullName':
+                    case 'FamilyName':
+                    case 'Weight':
+                    case 'ItalicAngle':
+                    case 'IsFixedPitch':
+                    case 'CharacterSet':
+                    case 'UnderlinePosition':
+                    case 'UnderlineThickness':
+                    case 'Version':
+                    case 'EncodingScheme':
+                    case 'CapHeight':
+                    case 'XHeight':
+                    case 'Ascender':
+                    case 'Descender':
+                    case 'StdHW':
+                    case 'StdVW':
+                    case 'StartCharMetrics':
+                        $cachedFont[$key]=trim(substr($row,$pos));
+                        break;
+                    case 'FontBBox':
+                        $cachedFont[$key]=explode(' ',trim(substr($row,$pos)));
+                        break;
+                    case 'C':
+                        // C 39 ; WX 222 ; N quoteright ; B 53 463 157 718 ;
+                        // use preg_match instead to improve performace
+                        // IMPORTANT: if "L i fi ; L l fl ;" is required preg_match must be amended
+                        $r = preg_match('/C (-?\d+) ; WX (-?\d+) ; N (\w+) ; B (-?\d+) (-?\d+) (-?\d+) (-?\d+) ;/', $row, $m);
+                        if($r == 1){
+                            //$dtmp = array('C'=> $m[1],'WX'=> $m[2], 'N' => $m[3], 'B' => array($m[4], $m[5], $m[6], $m[7]));
+                            $c = (int)$m[1];
+                            $n = $m[3];
+                            $width = floatval($m[2]);
+            
+                            if($c >= 0){
+                                if ($c != hexdec($n)) {
+                                    $cachedFont['codeToName'][$c] = $n;
+                                  }
+                                $cachedFont['C'][$c] = $width;
+                                $cachedFont['C'][$n] = $width;
+                            }else{
+                                $cachedFont['C'][$n] = $width;
+                            }
+                            
+                            if (!isset($cachedFont['MissingWidth']) && $c == -1 && $n === '.notdef') {
+                                  $cachedFont['MissingWidth'] = $width;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            $this->debug(sprintf('openFont: no font file found for "%s" IsUnicode: %b', $font, $this->isUnicode), E_USER_ERROR);
+            return false;
         }
-        return false;
+        
+        $cachedFont['_version_']=3;
+        // store the data in as cached file and in $this->fonts array
+        $this->fonts[$font]=$cachedFont;
+        $fp = fopen($this->tempPath.'/'.$cachedFile,'w'); // use the temp folder to write cached font data
+        fwrite($fp,'<?php /* R&OS php pdf class font cache file */ return '.var_export($cachedFont,true).'; ?>');
+        fclose($fp);
+        
+        return true;
     }
 
     /**
@@ -2779,7 +2808,7 @@ class Cpdf
                         }
                     } else {
                         $noClose = ($regs[1][$k][0] == 'C:')? true: false;
-                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'decender'=>$this->getFontDecender($size), 
+                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDecender($size), 
                                             'startTag' => $curTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
                         if(!$noCB){
                             if(!$noClose){

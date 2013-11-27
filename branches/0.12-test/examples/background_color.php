@@ -24,7 +24,7 @@ $height = $pdf->getFontHeight($size);
 // modified to use the local file if it can
 $pdf->openHere('Fit');
 
-$pdf->ezText("PDF with gray colored background");
+$pdf->ezText("PDF with some <c:color:1,0,0>blue</c:color> <c:color:0,1,0>red</c:color> and <c:color:0,0,1>green</c:color> colours", 12, array('justification'=>'right'));
 //$pdf->ezImage('images/test_grayscaled.png',0,0,'none','center');
 //$pdf->ezText("PNG grayscaled with alpha channel - currently not working");
 //$pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','center');

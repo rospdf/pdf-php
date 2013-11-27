@@ -29,6 +29,18 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc9>
+
+NOTE: callback function and ezText option 'justification'=>'full' can cause bad results
+NOTE: More info, see bug report #67 on https://sourceforge.net/p/pdf-php/bugs/67/
+
+- applied patch #9 ezTable: permit coloured background for headings - See example on page 14
+- applied patch #11 coloured text as callback by using &lt;c:color:r,g,b&gt;color text&lt;/c:color&gt;
+- optimized widths entry (/W [...]) for unicode font output
+- fixed openFont function which caused an abnormal exit or blank browser page
+- corrected ezTable 'showLine' option to display head line properly
+- some other slightly changes
+
 2<version 0.12-rc8>
 
 NOTE: Due to the fontPath change it is <b>recommend to only use the font name</b> in $pdf->selectFont().
@@ -475,31 +487,33 @@ The other options are described here:
 <b>$title</b> (optional) is the title to be put on the top of the table
 
 <b>$options</b> is an associative array which can contain:
- 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
- 'showHeadings' => 0 or 1
- 'shaded'=> 0,1,2, default is 1 (1->alternate lines are shaded, 0->no shading, 2->both sets are shaded)
- 'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)
- 'shadeCol' => (r,g,b) array, defining the colour of the shading, default is (0.8,0.8,0.8)
- 'shadeCol2' => (r,g,b) array, defining the colour of the shading of the second set, default is (0.7,0.7,0.7), used when 'shaded' is set to 2.
- 'fontSize' => 10
- 'textCol' => (r,g,b) array, text colour
- 'titleFontSize' => 12
- 'rowGap' => 2 , the space between the text and the row lines on each row
- 'colGap' => 5 , the space between the text and the column lines in each column
- 'lineCol' => (r,g,b) array, defining the colour of the lines, default, black.
- 'xPos' => 'left','right','center','centre',or coordinate, reference coordinate in the x-direction
- 'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'. This entry is to be used in conjunction with 'xPos' to give control over the lateral position of the table.
- 'width' => <number>, the exact width of the table, the cell widths will be adjusted to give the table this width.
- 'maxWidth' => <number>, the maximum width of the table, the cell widths will only be adjusted if the table width is going to be greater than this.
- 'cols' => array(<colname>=>array('justification'=>'left','width'=>100,'link'=><linkColName>,'bgcolor'=> (r,g,b)),<colname>=>....) ,allow the setting of other paramaters for the individual columns, each column can have its width and/or its justification set.
- 'innerLineThickness' => <number>, the thickness of the inner lines, defaults to 1
- 'outerLineThickness' => <number>, the thickness of the outer lines, defaults to 1
- 'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
-  'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
+'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 
+    2=> lines on each row, 3=> lines for only rows, 4=> row on head line only
+'showHeadings' => 0 or 1 (enable or disable head line)
+'shaded'=> 0,1,2, default is 1 (alternate lines are shaded)
+    0->no shading, 2->both sets are shaded
+'showBgCol'=> 0,1 default is 0 (no column background, no bgcolor setting is used in 'cols')
+    1->active bg color column setting and allow bgcolor attribute in 'cols'
+'shadeCol' => (r,g,b) array, defining the colour of the shading, default is (0.8,0.8,0.8)
+'shadeCol2' => (r,g,b) array, defining the colour of the shading of the second set, default is (0.7,0.7,0.7), used when 'shaded' is set to 2.
+'fontSize' => 10
+'textCol' => (r,g,b) array, text colour
+'titleFontSize' => 12
+'rowGap' => 2 , the space between the text and the row lines on each row
+'colGap' => 5 , the space between the text and the column lines in each column
+'lineCol' => (r,g,b) array, defining the colour of the lines, default, black.
+'xPos' => 'left','right','center','centre',or coordinate, reference coordinate in the x-direction
+'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'. This entry is to be used in conjunction with 'xPos' to give control over the lateral position of the table.
+'width' => <number>, the exact width of the table, the cell widths will be adjusted to give the table this width.
+'maxWidth' => <number>, the maximum width of the table, the cell widths will only be adjusted if the table width is going to be greater than this.
+'cols' => array(<colname>=> array('justification'=>'left', 'width'=>100, 'link'=><linkColName>, 'bgcolor'=> (r,g,b)), <colname>=>....) allow the setting of other paramaters for the individual columns, each column can have its width and/or its justification set.
+'innerLineThickness' => <number>, the thickness of the inner lines, defaults to 1
+'outerLineThickness' => <number>, the thickness of the outer lines, defaults to 1
+'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
+'nextPageY'=> true or false (eg. 0 or 1) Sets the same Y position of the table for all future pages
 
-Note that the user will have had to have made a font selection already or this will not produce a valid pdf file.
-
-Note that in version 009, with the introduction of colGap and rowGap, the defaults for these have changed slightly, so default tables may appear slightly different, it will pay to check your documents if this is likely to cause a formatting problem for you. Problems could also be caused by the new default behaviour to not allow rows to be split across page boundaries. Another possible problem is that 'titleGap' was removed, as it was felt that this functionality was replaced by rowGap and colGap.
+<b>0.12-rc9:</b>
+ 'shadeHeadingCol'=>(r,g,b) array, defining the backgound color of headings, default is empty
 
 A simple table example containing the following $data array:
 
@@ -581,7 +595,7 @@ $pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
 $pdf->selectFont('Helvetica');
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
               ,''
-              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>5));
+              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
 #x
 
 
@@ -640,6 +654,22 @@ $pdf->ezTable($data,array('type'=>'','name'=>'')
               ,array('showHeadings'=>0,'shaded'=>0,'width'=>400
               ,'cols'=>array('name'=>array('link'=>'url'))
               ));
+#x
+
+Example to show shaded headings <b>since 0.12-rc9</b>
+
+#C
+$pdf->ezTable($data,$cols,'',
+            array(
+                'shadeHeadingCol'=>array(0.4,0.6,0.6),
+                'width'=>400
+            )
+        );
+#c
+
+#X
+$cols = array('num'=>"<b>Number</b>",'name'=>'<b>Name</b>','type'=>'<b>Type</b>');
+$pdf->ezTable($data,$cols,'',array('shadeHeadingCol'=>array(0.4,0.6,0.6),'width'=>400));
 #x
 
 Another example with colored columns

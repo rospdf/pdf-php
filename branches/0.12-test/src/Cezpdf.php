@@ -23,7 +23,7 @@ include_once 'Cpdf.php';
  * </pre>
  * @category Documents
  * @package Cpdf
- * @version [0.12-rc5] $Id: Cezpdf.php 206 2013-11-19 09:27:51Z ole1986 $
+ * @version [0.12-rc9] $Id: Cezpdf.php 206 2013-11-19 09:27:51Z ole1986 $
  * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
@@ -803,8 +803,8 @@ class Cezpdf extends Cpdf {
         // begin the transaction
         $this->transaction('start');
         $ok=0;
-        $y-=$gap-$decender;
-        //$y-=$gap;
+        //$y-=$gap-$decender;
+        $y-=$gap;
         while ($ok==0){
             foreach ($cols as $colName=>$colHeading){
                 $this->ezSetY($y);
@@ -819,9 +819,9 @@ class Cezpdf extends Cpdf {
                     $mx=$dy;
                 }
             }
-            $y = $y - $mx - $gap + $decender;
-            //    $y -= $mx-$gap+$decender;
-
+            
+            $y = $y - $mx - $gap;
+            
             // now, if this has moved to a new page, then abort the transaction, move to a new page, and put it there
             // do not check on the second time around, to avoid an infinite loop
             if ($this->ezPageCount != $startPage && $secondGo==0){
@@ -890,6 +890,10 @@ class Cezpdf extends Cpdf {
      * 'splitRows'=>0, 0 or 1, whether or not to allow the rows to be split across page boundaries
      * 'protectRows'=>number, the number of rows to hold with the heading on page, ie, if there less than this number of rows on the page, then move the whole lot onto the next page, default=1
      * 'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
+     * 
+     * @since 0.12-rc9 added heading shade
+     * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
+     * 
      * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
      * </pre>
      * **Example**<br>
@@ -935,7 +939,8 @@ class Cezpdf extends Cpdf {
         $defaults = array('shaded'=>1,'showBgCol'=>0,'showLines'=>1,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
-        'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0
+        'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
+        'shadeHeadingCol'=>array()
         );
 
         foreach ($defaults as $key=>$value){
@@ -1185,16 +1190,23 @@ class Cezpdf extends Cpdf {
             // make the table
             $height = $this->getFontHeight($options['fontSize']);
             $decender = $this->getFontDecender($options['fontSize']);
-
-
-
+            
             $y0=$y+$decender;
             $dy=0;
             if ($options['showHeadings']){
+                // patch #9 start
+                if (isset($options['shadeHeadingCol']) && count($options['shadeHeadingCol']) == 3){
+                    $this->saveState();
+                    $textHeadingsObjectId = $this->openObject();
+                    $this->closeObject();
+                    $this->addObject($textHeadingsObjectId);
+                    $this->reopenObject($textHeadingsObjectId);
+                }
+                // patch #9 end
                 // this function will move the start of the table to a new page if it does not fit on this one
                 $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                $y0 = $y+$headingHeight;
-                $y1 = $y;
+                //$y0 = $y+$headingHeight;
+                $y1 = $y - $options['rowGap'];
 
                 $dm = $this->ez['leftMargin']-$baseLeftMargin;
                 foreach ($basePos as $k=>$v){
@@ -1202,6 +1214,16 @@ class Cezpdf extends Cpdf {
                 }
                 $x0=$baseX0+$dm;
                 $x1=$baseX1+$dm;
+                // patch #9 start
+                if (isset($options['shadeHeadingCol']) && count($options['shadeHeadingCol']) == 3){
+                    $this->closeObject();
+                    $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
+                    $this->filledRectangle($x0-$options['gap']/2,$y+$decender,$x1-$x0,($y0 - $y - $decender));
+                    $this->reopenObject($textHeadingsObjectId);
+                    $this->closeObject();
+                    $this->restoreState();
+                 }
+                // patch #9 end
             } else {
                 $y1 = $y0;
             }
@@ -1256,7 +1278,8 @@ class Cezpdf extends Cpdf {
                                 }
                                 if ($options['showLines'] > 3){
                                     $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                                    $this->line($x0,$y1,$x1,$y1);
+                                    // @since 0.12-rc9 corrected header row position
+                                    $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
                                 }else if ($options['showLines'] < 3){
                                     $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
                                 }
@@ -1272,8 +1295,7 @@ class Cezpdf extends Cpdf {
                             foreach ($basePos as $k=>$v){
                                 $pos[$k]=$v+$dm;
                             }
-                            // $x0=$x0+$dm;
-                            // $x1=$x1+$dm;
+                            
                             $x0=$baseX0+$dm;
                             $x1=$baseX1+$dm;
                             if ($options['shaded'] || $options['showBgCol']){
@@ -1288,8 +1310,24 @@ class Cezpdf extends Cpdf {
                             $y0=$y+$decender;
                             $mx=0;
                             if ($options['showHeadings']){
+                                // patch #9 start
+                                if (isset($options['shadeHeadingCol']) && count($options['shadeHeadingCol']) == 3){
+                                    $this->saveState();
+                                    $textHeadingsObjectId = $this->openObject();
+                                    $this->closeObject();
+                                    $this->addObject($textHeadingsObjectId);
+                                    $this->reopenObject($textHeadingsObjectId);
+                                    $this->closeObject();
+                                    $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
+                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight+$decender) );
+                                    $this->reopenObject($textHeadingsObjectId);
+                                    $this->closeObject();
+                                    $this->restoreState();
+                                }
+                                // patch #9 end
                                 $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                                $y1=$y;
+                                $y1=$y - $options['rowGap'];
+                                
                             } else {
                                 $y1=$y0;
                             }
@@ -1403,7 +1441,7 @@ class Cezpdf extends Cpdf {
                                 $this->setLineStyle($options['innerLineThickness']);
                             }
                             if ($options['showLines'] < 4){
-                                $this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
+                                $this->line($x0-$options['colGap'],$y+$decender+$height,$x1-$options['colGap'],$y+$decender+$height);
                             }
                             $this->restoreState();
                             // $this->reopenObject($textObjectId);
@@ -1463,7 +1501,8 @@ class Cezpdf extends Cpdf {
             }
             if ($options['showLines'] > 3){
                 $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                $this->line($x0,$y1,$x1,$y1);
+                // @since 0.12-rc9 corrected header row position
+                $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
             } else if ($options['showLines'] < 3){
                 $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
             }
@@ -1856,7 +1895,7 @@ class Cezpdf extends Cpdf {
                     $this->ez['links']=array();
                 }
                 $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'decender'=>$info['decender'],'height'=>$info['height'],'url'=>$info['p']);
+                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'descender'=>$info['descender'],'height'=>$info['height'],'url'=>$info['p']);
                 if ($internal==0){
                     $this->saveState();
                     $this->setColor(0,0,1);
@@ -1873,14 +1912,14 @@ class Cezpdf extends Cpdf {
                 $start = $this->ez['links'][$i];
                 // add underlining
                 if ($internal){
-                    $this->addInternalLink($start['url'],$start['x'],$start['y']+$start['decender'],$info['x'],$start['y']+$start['decender']+$start['height']);
+                    $this->addInternalLink($start['url'],$start['x'],$start['y']+$start['descender'],$info['x'],$start['y']+$start['descender']+$start['height']);
                 } else {
                     $a = deg2rad((float)$start['angle']-90.0);
                     $drop = $start['height']*$lineFactor*1.5;
                     $dropx = cos($a)*$drop;
                     $dropy = -sin($a)*$drop;
                     $this->line($start['x']-$dropx,$start['y']-$dropy,$info['x']-$dropx,$info['y']-$dropy);
-                    $this->addLink($start['url'],$start['x'],$start['y']+$start['decender'],$info['x'],$start['y']+$start['decender']+$start['height']);
+                    $this->addLink($start['url'],$start['x'],$start['y']+$start['descender'],$info['x'],$start['y']+$start['descender']+$start['height']);
                     $this->restoreState();
                 }
                 break;
@@ -1903,7 +1942,7 @@ class Cezpdf extends Cpdf {
                     $this->ez['links']=array();
                 }
                 $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'decender'=>$info['decender'],'height'=>$info['height']);
+                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'descender'=>$info['descender'],'height'=>$info['height']);
                 $this->saveState();
                 $thick = $info['height']*$lineFactor;
                 $this->setLineStyle($thick);
@@ -1933,7 +1972,6 @@ class Cezpdf extends Cpdf {
     public function comment(&$info){
         if(isset($info)){
             $offsetY = $info['y'] + $info['height'];
-            
             // split title and text content use '|' char
             $commentPart = preg_split("/\|/",$info['p']);
             if(is_array($commentPart) && count($commentPart) > 1){
@@ -1941,8 +1979,42 @@ class Cezpdf extends Cpdf {
             } else {
                 $this->addComment('Comment', $info['p'], $info['x'], $offsetY);
             }
-            
             $info['x'] += 15;
+        }
+    }
+    
+    /**
+     * another callback function to provide coloured text
+     * Usage: $pdf->ezText("<c:color:r,g,b>some coloured text</c:color>");
+     *
+     * Please make sure $pdf->allowedTags is set properly
+     */
+    public function color($info)
+    {
+        // a callback function to support the inline coloring of text
+
+        switch ($info['status']) {
+            case 'start':
+            case 'sol':
+
+                // the beginning of the color zone
+                if (!isset($this->ez['links'])) {
+                    $this->ez['links'] = array();
+                }
+                $i = $info['nCallback'];
+                $this->ez['links'][$i] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'color' => $info['p']);
+                $this->saveState();
+                $colAry = explode(",", $info['p']);
+                $this->setColor($colAry[0], $colAry[1], $colAry[2]);
+                break;
+            case 'end':
+            case 'eol':
+                // the end of the link
+                // assume that it is the most recent opening which has closed
+                $i = $info['nCallback'];
+                $this->setColor(0, 0, 0);
+                $this->restoreState();
+                break;
         }
     }
 }
