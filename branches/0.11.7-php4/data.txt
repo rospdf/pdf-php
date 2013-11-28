@@ -31,89 +31,18 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.11.7a-php4>
+
+- fixed bug for empty columns in ezTable
+- applied patch #9 ezTable: permit coloured background for headings 
+
 2<version 0.11.7-php4>
 
 - some php4 compatibility changes
 
-2<version 0.11.7>
-
-- fixed issue with compressed pdf and png image (known as bug #62)
-- added pdf to email example
-
-2<version 0.11.6>
-
-- possibility to use unicode - thanks to Fabien Ménager (dompdf) and Nicola Asuni (tcpdf)
-- added support for *.ufm files to provide UNICODE - use ttf2ufm to generate such files
-- improved reading and caching for fonts
-- allow options['compression'] to set compression level
-
-Please download FreeSerif.ttf font yourself - http://www.fonts2u.com/free-serif.font
-
-Details: http://www.sf.net/p/pdf-php/blog/2013/01/all-about-fonts---unicode-arabic-support-and-freeserif/
-
-2<version 0.11.5>
-
-- fixed bug #60 - Encryption problems
-- fixed bug #61 - pdf as attachment
-
-2<version 0.11.4>
-
-- ready to receive extensions (extensions folder added)
-- new extension to show images in table cells - thank you Kristian Herpel
-- added dummy extension to support extension developers with a standard
-
-2<version 0.11.3>
-
-- fixed bug #58 JPEG images not shown when using Backgrounds
-- RC4 128bit uses the correct encryption key length
-- added image <c:ilink:toc17>repeat function</c:ilink> for backgrounds - demo available in examples/image.php
-- fixed an issue with grayscaled PNG images containing alpha channel
-
-2<version 0.11.2>
-
-- $DEBUG and $DEBUGLEVEL property to control the debug output
-- RC4 128 bit encryption implemented by setting the $mode to 2 in setEncryption method
-
-Details: http://www.sf.net/p/pdf-php/blog/2012/12/debugging-and-encryption/
-
-
-2<version 0.11.1>
-
-- serveral patches implemented
-- bug fixes
-
-
-2<version 0.11.0>
-
-- object hashing using md5 method to free pdf from redundant images
-- PDF output optimization
-- image support for transparent PNG - examples/image.php
-- removed deprecated function "set_magic_qoutes_runtime" from code lines
-
-2<version 0.10.1>
-
-- ezTable supports new different line modes (showLines), new params: 3 and 4
-- BUGFIX: ID 847597 - ezImage on align 'right' did not fix
-- sprintf output fixed for different locales by doint a uppercase 'F'
-- comments in ezTable changed / added
-- background color for ezTable columns supported
-- background for Cezpdf constructor
-- fixed tempnam method which uses sys_get_temp_dir() as temporary folder
-
-2<version 009>
-
-- support for underlining in the ezPdf class (but only in the base class functions using the callback function directly).
-- improvements to the underlining of the links, so that it is sized and positioned better, will work with angled text now.
-- automatic column support.
-- some improvements to the table functions. Can set row and column gaps. The table will not now split rows across pages by default.
-- addition of transaction control support to the base class (this is quite useful, recommend advanced users take special note).
-- numerous small bug fixes, including notably some bugs relating to the inclusion of fonts, especially when using the differences array to take care of characters normally outside the default set.
-
-
 2<previous versions>
 
-all previous versions are still available thru download but we highly recommend to always use the latest version.
-If you need to know what has been changed in version 008 and earlier, please download the complete zip archive to find the README.pdf
+please download an older version to see all previous changes made in R&OS pdf class
 
 #NP
 
@@ -432,7 +361,10 @@ The other options are described here:
  'outerLineThickness' => <number>, the thickness of the outer lines, defaults to 1
  'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
   'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
- 
+
+<b>0.11.7a-php:</b>
+ 'shadeHeadingCol'=>(r,g,b) array, defining the backgound color of headings, default is empty
+  
 Note that the user will have had to have made a font selection already or this will not produce a valid pdf file.
 
 Note that in version 009, with the introduction of colGap and rowGap, the defaults for these have changed slightly, so default tables may appear slightly different, it will pay to check your documents if this is likely to cause a formatting problem for you. Problems could also be caused by the new default behaviour to not allow rows to be split across page boundaries. Another possible problem is that 'titleGap' was removed, as it was felt that this functionality was replaced by rowGap and colGap.
@@ -576,6 +508,22 @@ $pdf->ezTable($data,array('type'=>'','name'=>'')
               ,array('showHeadings'=>0,'shaded'=>0,'width'=>400
               ,'cols'=>array('name'=>array('link'=>'url'))
               ));
+#x
+
+Example to show shaded headings <b>since 0.11.7a-php4</b>
+
+#C
+$pdf->ezTable($data,$cols,'',
+            array(
+                'shadeHeadingCol'=>array(0.4,0.6,0.6),
+                'width'=>400
+            )
+        );
+#c
+
+#X
+$cols = array('num'=>"<b>Number</b>",'name'=>'<b>Name</b>','type'=>'<b>Type</b>');
+$pdf->ezTable($data,$cols,'',array('shadeHeadingCol'=>array(0.4,0.6,0.6),'width'=>400));
 #x
 
 Another example with colored columns
