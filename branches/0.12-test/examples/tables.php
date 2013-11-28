@@ -5,7 +5,7 @@ if(!file_exists($ext)){
 }
 
 include $ext;
-$pdf = new Cezpdf("a4");
+$pdf = new CezTableImage("a4");
 
 $pdf->selectFont('Helvetica');
 

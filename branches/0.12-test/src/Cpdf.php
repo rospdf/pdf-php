@@ -775,7 +775,7 @@ class Cpdf
                         // find font program id for TTF fonts (FontFile2)
                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
                         // if subsetting is set
-                        if($this->fonts[$fontFileName]['isSubset'] && !empty($this->fonts[$fontFileName]['subset']) && $this->fonts[$fontFileName]['isUnicode']){
+                        if($this->fonts[$fontFileName]['isSubset'] && $this->fonts[$fontFileName]['isUnicode']){
                             $this->debug('subset font for ' . $fontFileName, E_USER_NOTICE);
                             $subsetFontName = "AAAAAD+" . $o['info']['name'];
                             $o['info']['name'] = $subsetFontName;

@@ -18,7 +18,6 @@ $data = array(
 				array('num'=>4,'name'=>'saruman','type'=>'baddude','url'=>'http://sourceforge.net/projects/pdf-php'),
 				array('num'=>5,'name'=>'sauron','type'=>'<C:showimage:'.urlencode($image).' 90>'),
 				array('num'=>6,'name'=>'sauron','type'=>'<C:showimage:'.$image.'><C:showimage:'.$image.' 90>'."\nadadd"),
-				array('num'=>7,'name'=>'sauron','type'=>'<C:showimage:NOIMAGE.jpg 90>'),
 				array('num'=>8,'name'=>'sauron','type'=>'<C:showimage:'.$image.' 90>'),
                 array('num'=>10,'name'=>'sauron','type'=>'<C:showimage:'.$image.' 50>'),
                 array('num'=>11,'name'=>'sauron','type'=>'<C:showimage:'.$image.'>'),
