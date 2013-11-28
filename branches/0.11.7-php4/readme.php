@@ -26,7 +26,7 @@ class Creport extends Cezpdf {
 var $reportContents = array();
 
 function Creport($p,$o,$t,$op){
-  parent::__construct($p,$o,$t,$op);
+  parent::Cezpdf($p,$o,$t,$op);
 }
 
 function rf($info){
