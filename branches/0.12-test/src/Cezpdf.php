@@ -23,7 +23,7 @@ include_once 'Cpdf.php';
  * </pre>
  * @category Documents
  * @package Cpdf
- * @version [0.12-rc9] $Id: Cezpdf.php 206 2013-11-19 09:27:51Z ole1986 $
+ * @version [0.12-rc11] $Id: Cezpdf.php 206 2013-11-19 09:27:51Z ole1986 $
  * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
@@ -808,7 +808,9 @@ class Cezpdf extends Cpdf {
         while ($ok==0){
             foreach ($cols as $colName=>$colHeading){
                 $this->ezSetY($y);
-                if (isset($options[$colName]) && isset($options[$colName]['justification'])){
+                if (!empty($optionsAll['alignHeadings'])) {
+ 					$justification = $optionsAll['alignHeadings'];
+                } else if (isset($options[$colName]) && isset($options[$colName]['justification'])){
                     $justification = $options[$colName]['justification'];
                 } else {
                     $justification = 'left';
@@ -893,6 +895,9 @@ class Cezpdf extends Cpdf {
      * 
      * @since 0.12-rc9 added heading shade
      * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
+     *
+     * @since 0.12-rc11 applied patch #19 align all header columns at once 
+     * 'alignHeadings' => 'left','right','center'
      * 
      * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
      * </pre>
@@ -1123,7 +1128,8 @@ class Cezpdf extends Cpdf {
                 $dx = $xref-$t/2;
                 break;
         }
-
+        // applied patch #18 alignment fixes for tables and images | thank you Emil Totev
+        $dx += $options['colGap'];
 
         foreach ($pos as $k=>$v){
             $pos[$k]=$v+$dx;
@@ -1730,14 +1736,14 @@ class Cezpdf extends Cpdf {
         //call appropriate function
         switch ($imageInfo[2]) {
             case IMAGETYPE_JPEG:
-                $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+                $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             case IMAGETYPE_PNG:
-                $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+                $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             case IMAGETYPE_GIF:
                 // use GD to convert the GIF image to PNG and allow transparency
-                $this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+                $this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             default:
                 $this->debug("ezImage: Unsupported image type".$imageInfo[2], E_USER_WARNING);
