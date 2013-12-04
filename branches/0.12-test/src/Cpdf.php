@@ -45,7 +45,7 @@
  * @license  GNU General Public License v3
  * @link http://pdf-php.sf.net
  */ 
-class Cpdf
+ class Cpdf
 {
     /**
      * PDF version 

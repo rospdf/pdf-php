@@ -2,6 +2,39 @@
 include_once 'Cpdf.php';
 
 /**
+ * draw all lines to ezTable output
+ */
+define('EZ_GRIDLINE_ALL', 31);
+/**
+ * draw default set of lines to ezTable output, so EZ_GRIDLINE_TABLE, EZ_GRIDLINE_HEADERONLY and EZ_GRIDLINE_COLUMNS
+ */
+define('EZ_GRIDLINE_DEFAULT', 29); // same as EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS
+/**
+ * draw the outer lines of the ezTable
+ */
+define('EZ_GRIDLINE_TABLE', 24);
+/**
+ * draw the outer horizontal lines of the ezTable
+ */
+define('EZ_GRIDLINE_TABLE_H', 16);
+/**
+ * draw the outer vertical lines of the ezTable
+ */
+define('EZ_GRIDLINE_TABLE_V', 8);
+/**
+ * draw a horizontal line between header and first data row
+ */
+define('EZ_GRIDLINE_HEADERONLY', 4);
+/**
+ * draw a horizontal line for each row
+ */
+define('EZ_GRIDLINE_ROWS', 2);
+/**
+ * draw a vertical line for each column
+ */
+define('EZ_GRIDLINE_COLUMNS', 1);
+
+/**
  * Helper class to create pdf documents via ROS PDF class called 'Cpdf'
  *
  * This class will take the basic interaction facilities of the Cpdf class
@@ -31,16 +64,7 @@ include_once 'Cpdf.php';
  * @license GNU General Public License v3
  * @link http://pdf-php.sf.net
  */
-define('EZ_GRIDLINE_ALL', 31);
-define('EZ_GRIDLINE_DEFAULT', 29); // same as EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS
-define('EZ_GRIDLINE_TABLE', 24);
-define('EZ_GRIDLINE_TABLE_H', 16);
-define('EZ_GRIDLINE_TABLE_V', 8);
-define('EZ_GRIDLINE_HEADERONLY', 4);
-define('EZ_GRIDLINE_ROWS', 2);
-define('EZ_GRIDLINE_COLUMNS', 1);
-
-class Cezpdf extends Cpdf {
+ class Cezpdf extends Cpdf {
 
     /**
      * used to store most of the page configuration parameters
@@ -600,7 +624,6 @@ class Cezpdf extends Cpdf {
      * @param $stopTotal
      * @param $next
      * @param $i
-     * @return unknown_type
      */
     public function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
         // if stopTotal=1 then the totalling of pages for this number will stop too
@@ -736,7 +759,8 @@ class Cezpdf extends Cpdf {
      * called by ezTable() method
      * 
      * @param array $pos start position of each column
-     * @param float $gap gap used from ezTable()
+     * @param float $gap column gap defined in ezTable()
+     * @param float $rowGap row gap defined in ezTable()
      * @param float $x0 some coordinates
      * @param $x1 some X coordinates
      * @param $y0 some Y coordinates 
@@ -866,7 +890,7 @@ class Cezpdf extends Cpdf {
      *
      * @param $size
      * @param $text
-     * @return unknown_type
+     * @return float text width
      */
     public function ezGetTextWidth($size,$text){
         $mx=0;
@@ -884,9 +908,8 @@ class Cezpdf extends Cpdf {
     /**
      *  add a table of information to the pdf document
      *
-     *  **$options**
+     * **$options**
      * <pre>
-     * <b>deprecated</b> 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
      * 'showHeadings' => 0 or 1
      * 'shaded'=> 0,1,2,3 default is 1 (1->alternate lines are shaded, 0->no shading, 2-> both shaded, second uses shadeCol2)
      * 'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)
@@ -909,26 +932,35 @@ class Cezpdf extends Cpdf {
      * 'splitRows'=>0, 0 or 1, whether or not to allow the rows to be split across page boundaries
      * 'protectRows'=>number, the number of rows to hold with the heading on page, ie, if there less than this number of rows on the page, then move the whole lot onto the next page, default=1
      * 'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
-     * 
-     * @since 0.12-rc9 added heading shade
-     * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
+     * </pre>
      *
-     * @since 0.12-rc11 applied patch #19 align all header columns at once 
+     * **since 0.12-rc9** added heading shade.
+     * <pre>
+     * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
+     * </pre>
+     * 
+     * **since 0.12-rc11** applied patch #19 align all header columns at once
+     * <pre>
      * 'gridlines'=> EZ_GRIDLINE_* default is EZ_GRIDLINE_DEFAULT, overrides 'showLines' to provide finer control
      * 'alignHeadings' => 'left','right','center'
-     * 
-     * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
      * </pre>
-     * **Example**<br>
+     *
+     * **deprecated in 0.12-rc11** 
+     * <pre>'showLines' in $options - use 'gridline' instead</pre>
+     *
+     * Note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
+     *
+     * **Example**
+     *
      * <pre>
      * $data = array(
-     *    array('num'=>1,'name'=>'gandalf','type'=>'wizard')<br>
-     *   ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')<br>
-     *   ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')<br>
-     *   ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')<br>
-     *   ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')<br>
-     *   );<br>
-     * $pdf->ezTable($data);<br>
+     *    array('num'=>1,'name'=>'gandalf','type'=>'wizard')
+     *   ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
+     *   ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
+     *   ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
+     *   ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
+     *   );
+     * $pdf->ezTable($data);
      * </pre>
      *
      * @param array $data the data to fill the table cells as a two dimensional array
@@ -1683,7 +1715,6 @@ class Cezpdf extends Cpdf {
      * @param $resize
      * @param string $just justification of the image ('left', 'right', 'center')
      * @param array $border border array - see example 
-     * @return unknown_type
      */
     public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
         $temp = false;
@@ -1835,7 +1866,7 @@ class Cezpdf extends Cpdf {
      * SECURITY NOTICE: php function 'eval' is used in execTemplate
      * 
      * @param string $templateFile php script to be execupte
-     * @return unknown_type
+     * @return int object number?!
      * @deprecated method deprecated in 0.12.0
      */
     public function loadTemplate($templateFile){
@@ -1993,7 +2024,7 @@ class Cezpdf extends Cpdf {
     /**
      * a callback function to support comment annotation
      *
-     * @param $info
+     * @param $info callback info array
      */
     public function comment(&$info){
         if(isset($info)){
@@ -2014,6 +2045,8 @@ class Cezpdf extends Cpdf {
      * Usage: $pdf->ezText("<c:color:r,g,b>some coloured text</c:color>");
      *
      * Please make sure $pdf->allowedTags is set properly
+     *
+     * @param $info callback info array
      */
     public function color($info)
     {
