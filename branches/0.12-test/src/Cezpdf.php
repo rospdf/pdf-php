@@ -1,6 +1,6 @@
 <?php
-
 include_once 'Cpdf.php';
+
 /**
  * Helper class to create pdf documents via ROS PDF class called 'Cpdf'
  *
@@ -31,6 +31,15 @@ include_once 'Cpdf.php';
  * @license GNU General Public License v3
  * @link http://pdf-php.sf.net
  */
+define('EZ_GRIDLINE_ALL', 31);
+define('EZ_GRIDLINE_DEFAULT', 29); // same as EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS
+define('EZ_GRIDLINE_TABLE', 24);
+define('EZ_GRIDLINE_TABLE_H', 16);
+define('EZ_GRIDLINE_TABLE_V', 8);
+define('EZ_GRIDLINE_HEADERONLY', 4);
+define('EZ_GRIDLINE_ROWS', 2);
+define('EZ_GRIDLINE_COLUMNS', 1);
+
 class Cezpdf extends Cpdf {
 
     /**
@@ -725,7 +734,7 @@ class Cezpdf extends Cpdf {
     /**
      * internal method to draw different table lines
      * called by ezTable() method
-     *
+     * 
      * @param array $pos start position of each column
      * @param float $gap gap used from ezTable()
      * @param float $x0 some coordinates
@@ -736,33 +745,41 @@ class Cezpdf extends Cpdf {
      * @param array $col line color as array
      * @param float $inner inner line thickness
      * @param float $outer outer line thickness
-     * @param int $opt what lines to display
+     * @param int $gridlines - what gridlines to display
      */
-    protected function ezTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
+    protected function ezTableDrawLines($pos,$gap, $rowGap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$gridlines){
         $x0=1000;
         $x1=0;
         $this->setStrokeColor($col[0],$col[1],$col[2]);
+
+// Vertical gridlines (including outline)		
         $cnt=0;
         $n = count($pos);
         foreach ($pos as $x){
-            $cnt++;
-            if ($cnt==1 || $cnt==$n)
-            $this->setLineStyle($outer);
-            else
-            $this->setLineStyle($inner);
-
-            if ($opt != 3) $this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
             if ($x>$x1) $x1=$x;
             if ($x<$x0) $x0=$x;
+            $cnt++;
+            if ($cnt==1 || $cnt==$n) {
+				if (! ($gridlines & EZ_GRIDLINE_TABLE_V)) continue;
+            $this->setLineStyle($outer);
+            } else {
+				if (! ($gridlines & EZ_GRIDLINE_COLUMNS)) continue;
+            $this->setLineStyle($inner);
         }
-        $this->setLineStyle($outer);
-        $this->line($x0-$gap/2 - $outer/2,$y0, $x1 - $gap/2+$outer/2,$y0);
-        // only do the second line if it is different to the first, AND each row does not have
-        // a line on it.
-        if ($y0!=$y1 && $opt<2)
-        $this->line($x0-$gap/2,$y1,$x1-$gap/2,$y1);
+			$this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
+        }
 
-        $this->line($x0-$gap/2 - $outer/2,$y2,$x1 - $gap/2+$outer/2,$y2);
+// Top and bottom outline		
+        $this->setLineStyle($outer);
+		if ($gridlines & EZ_GRIDLINE_TABLE_H) {
+			$this->line($x0-$gap/2 - $outer/2,$y0, $x1 - $gap/2+$outer/2,$y0);
+			$this->line($x0-$gap/2 - $outer/2,$y2, $x1 - $gap/2+$outer/2,$y2);
+		}
+
+// Header / data separator
+        if ($y0!=$y1 && ($gridlines & EZ_GRIDLINE_HEADERONLY))
+            $this->line($x0-$gap/2,$y1+$rowGap*2,$x1-$gap/2,$y1+$rowGap*2);
+
     }
 
     /**
@@ -803,7 +820,7 @@ class Cezpdf extends Cpdf {
         // begin the transaction
         $this->transaction('start');
         $ok=0;
-        //$y-=$gap-$decender;
+        //$y-=$gap+$decender;
         $y-=$gap;
         while ($ok==0){
             foreach ($cols as $colName=>$colHeading){
@@ -841,7 +858,7 @@ class Cezpdf extends Cpdf {
             }
         }
 
-        return $mx+$gap*2-$decender;
+        return $mx+$gap+$decender;
     }
 
     /**
@@ -869,7 +886,7 @@ class Cezpdf extends Cpdf {
      *
      *  **$options**
      * <pre>
-     * 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
+     * <b>deprecated</b> 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
      * 'showHeadings' => 0 or 1
      * 'shaded'=> 0,1,2,3 default is 1 (1->alternate lines are shaded, 0->no shading, 2-> both shaded, second uses shadeCol2)
      * 'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)
@@ -897,6 +914,7 @@ class Cezpdf extends Cpdf {
      * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
      *
      * @since 0.12-rc11 applied patch #19 align all header columns at once 
+     * 'gridlines'=> EZ_GRIDLINE_* default is EZ_GRIDLINE_DEFAULT, overrides 'showLines' to provide finer control
      * 'alignHeadings' => 'left','right','center'
      * 
      * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
@@ -941,11 +959,11 @@ class Cezpdf extends Cpdf {
             $options=array();
         }
 
-        $defaults = array('shaded'=>1,'showBgCol'=>0,'showLines'=>1,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
+        $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
         'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
-        'shadeHeadingCol'=>array()
+        'shadeHeadingCol'=>array(), 'gridlines' => EZ_GRIDLINE_DEFAULT
         );
 
         foreach ($defaults as $key=>$value){
@@ -959,6 +977,20 @@ class Cezpdf extends Cpdf {
                 }
             }
         }
+        
+        // @deprecated Compatibility with 'showLines' option
+        if(isset($options['showLines'])){
+            switch ($options['showLines']) {
+				case 0:	$options['gridlines'] = 0; break;
+				case 1:	$options['gridlines'] = EZ_GRIDLINE_DEFAULT; break;
+				case 2:	$options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS; break;
+				case 3:	$options['gridlines'] = EZ_GRIDLINE_ROWS; break; 
+				case 4:	$options['gridlines'] = EZ_GRIDLINE_HEADERONLY; break;
+				default: 	$options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
+			}
+            unset($options['showLines']);
+        }
+		
         $options['gap']=2*$options['colGap'];
         // Use Y Position of Current Page position in Table
         if ($options['nextPageY']) $nextPageY = $this->y;
@@ -1211,8 +1243,8 @@ class Cezpdf extends Cpdf {
                 // patch #9 end
                 // this function will move the start of the table to a new page if it does not fit on this one
                 $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                //$y0 = $y+$headingHeight;
-                $y1 = $y - $options['rowGap'];
+                $y0 = $y+$headingHeight+$options['rowGap'];
+                $y1 = $y - $options['rowGap']*2;
 
                 $dm = $this->ez['leftMargin']-$baseLeftMargin;
                 foreach ($basePos as $k=>$v){
@@ -1278,17 +1310,12 @@ class Cezpdf extends Cpdf {
                             }
 
                             $y2=$y-$mx+2*$height+$decender-$newRow*$height;
-                            if ($options['showLines']){
+                            if ($options['gridlines']){
+                                $y1+=$decender;
                                 if (!$options['showHeadings']){
                                     $y0=$y1;
                                 }
-                                if ($options['showLines'] > 3){
-                                    $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                                    // @since 0.12-rc9 corrected header row position
-                                    $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
-                                }else if ($options['showLines'] < 3){
-                                    $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
-                                }
+                              $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
                             }
                             if ($options['shaded'] || $options['showBgCol']){
                                 $this->closeObject();
@@ -1325,14 +1352,14 @@ class Cezpdf extends Cpdf {
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight+$decender) );
+                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$decender+$options['rowGap']) );
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->restoreState();
                                 }
                                 // patch #9 end
                                 $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                                $y1=$y - $options['rowGap'];
+                                $y1 = $y - $options['rowGap']*2;
                                 
                             } else {
                                 $y1=$y0;
@@ -1434,21 +1461,19 @@ class Cezpdf extends Cpdf {
                                 }
                             }
                         }
-                        if ($options['showLines']>1){
+                        if ($options['gridlines'] & EZ_GRIDLINE_ROWS){
                             // then draw a line on the top of each block
                             // $this->closeObject();
                             $this->saveState();
                             $this->setStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
                             // $this->line($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
                             if ($firstLine){
-                                $this->setLineStyle($options['outerLineThickness']);
                                 $firstLine=0;
                             } else {
                                 $this->setLineStyle($options['innerLineThickness']);
+                                $this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
                             }
-                            if ($options['showLines'] < 4){
-                                $this->line($x0-$options['colGap'],$y+$decender+$height,$x1-$options['colGap'],$y+$decender+$height);
-                            }
+
                             $this->restoreState();
                             // $this->reopenObject($textObjectId);
                         }
@@ -1501,17 +1526,12 @@ class Cezpdf extends Cpdf {
         $this->transaction('commit');
 
         $y2=$y+$decender;
-        if ($options['showLines']){
+        if ($options['gridlines']){
+            $y1+=$decender;
             if (!$options['showHeadings']){
                 $y0=$y1;
             }
-            if ($options['showLines'] > 3){
-                $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                // @since 0.12-rc9 corrected header row position
-                $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
-            } else if ($options['showLines'] < 3){
-                $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
-            }
+             $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
         }
         // close the object for drawing the text on top
         if ($options['shaded'] || $options['showBgCol']){

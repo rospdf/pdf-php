@@ -1,15 +1,10 @@
 <?php
-$ext = '../extensions/CezTableImage.php';
-if(!file_exists($ext)){
-	die('This example requires the CezTableImage.php extension');
-}
-
-include $ext;
-$pdf = new CezTableImage("a4");
+include_once '../src/Cezpdf.php';
+$pdf = new CezPDF("a4");
 
 $pdf->selectFont('Helvetica');
 
-// table data
+// some general data used for table output
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
 ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
@@ -18,28 +13,76 @@ $data = array(
 ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
 );
 
-$cols = array('type'=>'Type','name'=>'<i>Alias</i>');
+$cols = array('num'=>'No', 'type'=>'Type','name'=>'<i>Alias</i>');
+$coloptions = array('num'=> array('justification'=>'right'), 'name'=> array('justification'=>'left'),'type'=> array('justification'=>'center'));
 
+$pdf->ezText("<b>GRIDLINE</b>", 12);
 
-$pdf->ezText("Simple data output\n");
-$pdf->ezTable($data);
+$pdf->ezText("<b>using 'showLines' option - DEPRECATED</b>\n", 10);
 
-$pdf->ezText("\nAn example defining the columns and a title\n");
-$pdf->ezTable($data,$cols,'This table as a title');
+$pdf->ezText("\nDefault: showLines = 1\n", 10);
+$pdf->ezTable($data, $cols);
 
-$pdf->ezText("\nNo headings or shading, or lines\n");
+$pdf->ezText("\nDisabled showLines = 0\n", 10);
 $pdf->ezTable($data, $cols, '', array('showHeadings'=>0,'shaded'=>0,'showLines'=>0));
 
-$pdf->ezText("\nAnother example with <b>showLines</b> option set to 3 for horizontal lines\n");
+
+$pdf->ezText("\nHorizontal lines (per row) - showLines = 3\n");
 $pdf->ezTable($data, $cols,'', array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
 
-$pdf->ezText("\nAnother example with <b>showLines</b> option set to 4 , only head line\n");
+$pdf->ezText("\nHeader line only - showLines = 4\n");
 $pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>'),'' ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
-              
-$pdf->ezText("\nExample to show shaded headings <b>since 0.12-rc9</b>\n");
+
+
+// get all user defined constants starting with 'EZ_GRIDLINE'
+$all_constants = get_defined_constants();
+$userConstants = array();
+foreach($all_constants as $k=>$v){
+    if(substr($k, 0, 11) == "EZ_GRIDLINE"){
+        $userConstants[$k] = $v;
+    }
+}
+
+$pdf->ezNewPage();
+// title for advanced grid line output
+$pdf->ezText("\n<b>GRIDLINE options</b>", 12);
+$pdf->ezText("<b>using 'gridline' option - available in version >= 0.12-rc11</b>", 10);
+
+$j = 0;
+for ($i=EZ_GRIDLINE_ALL; $i>=0; $i--) {
+    if(!($j % 5) && $j != 0){
+        $pdf->ezNewPage();
+    }
+    
+    $constName = "";
+    if(($m=array_search($i, $userConstants))){
+        $constName = $m;
+    }
+    
+    $title = sprintf('Bitmask: %05b | Integer: %d %s', $i, $i, $constName);
+    
+	$pdf->ezText("\n".$title."\n");
+	$pdf->ezTable($data, $cols,'', array('showHeadings'=>1,'shaded'=>1,'gridlines'=>$i,'cols'=>$coloptions, 'innerLineThickness' => 0.5,'outerLineThickness' =>3));
+    $j++;
+}
+
+
+$pdf->ezText("\n<b>SHADING options</b>", 12);
+
+$pdf->ezText("\nColumn shading\n", 10);
+$pdf->ezTable($data,array('type'=>'','name'=>'')
+        ,''
+        ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
+        ,'cols'=> array(
+                    'name'=>array('bgcolor'=>array(0.2,0.2,0.4))
+                   ,'type'=>array('bgcolor'=>array(0.4,0.6,0.6))
+                  )
+        ));
+
+$pdf->ezText("\nHeader shading <b>since 0.12-rc9</b>\n");
 $pdf->ezTable($data,$cols,'',array('shadeHeadingCol'=>array(0.4,0.6,0.6),'width'=>400));
 
-$pdf->ezText("\nAnother example with colored columns and a colored header\n");
+$pdf->ezText("\nColored columns and a header\n");
 $pdf->ezTable($data, $cols, ''
         ,array('showHeadings'=>1,'showBgCol'=>1,'width'=>400, 
         'shadeHeadingCol'=>array(0.6,0.6,0.5)
@@ -49,8 +92,8 @@ $pdf->ezTable($data, $cols, ''
                   )
         ));
         
-$pdf->ezText("\nJustified table and columns <b>and almost forgot: row shading</b>\n");
-$pdf->ezTable($data,$cols,'',array('xPos'=>90,'xOrientation'=>'right','width'=>300,
+$pdf->ezText("\nJustified table and columns and row shading\n");
+$pdf->ezTable($data,$cols,'',array('width'=>300,
          'shaded'=>2,
          'shadeCol'=> array(0.9,0.9,0.7),
          'shadeCol2'=> array(0.6,0.4,0.2),

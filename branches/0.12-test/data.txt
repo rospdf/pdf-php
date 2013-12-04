@@ -30,10 +30,16 @@ Note that this document was generated using the demo script 'readme.php' which c
 1<Changes>
 
 
-2<version 0.12-rc10>
+2<version 0.12-rc11>
 
-- applied patch #18 Alignment fixes for tables and images
+NOTE: A new option 'gridlines' in ezTable is available to allow additional line modes
+NOTE: A new option 'alignHeadings' in ezTable is available to align the complete header row
+NOTE: The option 'showLines' is DEPRECATED in ezTable option
+
+- applied path #20 ezTable advanced grid lines (see examples/tables.php)
+- fixed bug #75 Alignment fixes for tables and images
 - applied patch #19 Table heading alignment
+- fixed an old bug related to vertical lines in ezTable when page break occurs
 
 2<version 0.12-rc10>
 
@@ -429,8 +435,6 @@ The other options are described here:
 <b>$title</b> (optional) is the title to be put on the top of the table
 
 <b>$options</b> is an associative array which can contain:
-'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 
-    2=> lines on each row, 3=> lines for only rows, 4=> row on head line only
 'showHeadings' => 0 or 1 (enable or disable head line)
 'shaded'=> 0,1,2, default is 1 (alternate lines are shaded)
     0->no shading, 2->both sets are shaded
@@ -457,7 +461,11 @@ The other options are described here:
 <b>0.12-rc9:</b>
  'shadeHeadingCol'=>(r,g,b) array, defining the backgound color of headings, default is empty
 
-A simple table example containing the following $data array:
+<b>0.12-rc11:</b>
+ 'gridlines'=> EZ_GRIDLINE_* default is EZ_GRIDLINE_DEFAULT, overrides 'showLines' to provide finer control
+ 'alignHeadings' => 'left','right','center'
+ 
+Below is an example output of ezTable containing the following $data
 
 #C
 $data = array(
@@ -467,12 +475,22 @@ $data = array(
 ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
 ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
 );
+#c
 
-$pdf->ezTable($data);
+#C
+$pdf->ezTable($data,$cols,'',array(
+    'gridlines'=> EZ_GRIDLINE_DEFAULT,
+    'shadeHeadingCol'=>array(0.6,0.6,0.5),
+    'showBgCol'=>1,
+    'width'=>400,
+    'cols'=> array(
+        'name'=>array('bgcolor'=>array(0.9,0.9,0.7)),
+        'type'=>array('bgcolor'=>array(0.6,0.4,0.2))
+    )
+));
 #c
 
 #X
-$pdf->selectFont('Helvetica');
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
 ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
@@ -480,164 +498,21 @@ $data = array(
 ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
 ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
 );
-$pdf->ezTable($data);
-#x
-
-For a slightly more complex example, print that table again, but only the second and third columns, and in the other order, also have column headings and a table heading.
-
-#C
-$pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
-          ,'Some LOTR Characters');
-#c
-
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
-              ,'Some LOTR Characters');
-#x
-
-and the same, but with no headings or shading, or lines:
-
-#C
-$pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
-              ,'Some LOTR Characters'
-              ,array('showHeadings'=>0,'shaded'=>0,'showLines'=>0));
-#c
-
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
-              ,''
-              ,array('showHeadings'=>0,'shaded'=>0,'showLines'=>0));
-#x
-
-
-Another example with <b>showLines</b> option set to 3 for horizontal lines
-
-#C
-$pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
-              ,'Some LOTR Characters'
-              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
-#c
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
-              ,''
-              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>3));
-#x
-
-Another example with <b>showLines</b> option set to 4 , only head line
-
-#C
-$pdf->ezTable($data,array('type'=>'Type','name'=>'&lt;i>Alias&lt;/i>')
-              ,'Some LOTR Characters'
-              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
-#c
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'Type','name'=>'<i>Alias</i>')
-              ,''
-              ,array('showHeadings'=>1,'shaded'=>0,'showLines'=>4));
-#x
-
-
-Now a version with the width specified to be too small, so that the content has to wrap, and the table oriented over the the right.
-
-#C
-$pdf->ezTable($data,array('type'=>'','name'=>''),''
-          ,array('showHeadings'=>0,'shaded'=>0,'xPos'=>'right'
-                ,'xOrientation'=>'left','width'=>100));
-#c
-
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'','name'=>'')
-              ,''
-              ,array('showHeadings'=>0,'shaded'=>0,'xPos'=>'right','xOrientation'=>'left','width'=>100));
-#x
-
-Now the column headings have been changed, one to a long name which wraps, and also have a return code in it. The 'num' column has been right justified, and the 'name' column fixed to a width of 100. The entire table is fixed to a width of 300. The x position of the table is also fixed to 90, and the table is set to be on the right of this point.
-
-#C
-$cols = array('num'=>"number a a a a a a a a a a a a a a a\nmore"
-             ,'name'=>'Name','type'=>'Type');
-
-$pdf->ezTable($data,$cols,'',
-        array('xPos'=>90,'xOrientation'=>'right','width'=>300
-             ,'cols'=>array(
-                 'num'=>array('justification'=>'right')
-                ,'name'=>array('width'=>100))
-             ));
-#c
-
-#X
-$pdf->selectFont('Helvetica');
-$cols = array('num'=>"number a a a a a a a a a a a a a a a\nmore",'name'=>'Name','type'=>'Type');
-
-$pdf->ezTable($data,$cols,'',array('xPos'=>90,'xOrientation'=>'right','width'=>300
-         ,'cols'=>array('num'=>array('justification'=>'right'),'name'=>array('width'=>100))
-         ));
-#x
-
-A simple example, showing the table expanding to fit the specified width, and having links on one of the table columns.
-
-#C
-$pdf->ezTable($data,array('type'=>'','name'=>''),''
-              ,array('showHeadings'=>0
-                    ,'shaded'=>0
-                    ,'width'=>400
-                    ,'cols'=>array('name'=>array('link'=>'url')) ));
-#c
-
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'','name'=>'')
-              ,''
-              ,array('showHeadings'=>0,'shaded'=>0,'width'=>400
-              ,'cols'=>array('name'=>array('link'=>'url'))
-              ));
-#x
-
-Example to show shaded headings <b>since 0.12-rc9</b>
-
-#C
-$pdf->ezTable($data,$cols,'',
-            array(
-                'shadeHeadingCol'=>array(0.4,0.6,0.6),
-                'width'=>400
-            )
-        );
-#c
-
-#X
 $cols = array('num'=>"<b>Number</b>",'name'=>'<b>Name</b>','type'=>'<b>Type</b>');
-$pdf->ezTable($data,$cols,'',array('shadeHeadingCol'=>array(0.4,0.6,0.6),'width'=>400));
+$pdf->ezTable($data,$cols,'',array(
+    'gridlines'=> EZ_GRIDLINE_DEFAULT,
+    'shadeHeadingCol'=>array(0.6,0.6,0.5),
+    'alignHeadings'=>'center',
+    'showBgCol'=>1,
+    'width'=>400,
+    'cols'=> array(
+        'name'=>array('bgcolor'=>array(0.9,0.9,0.7)),
+        'type'=>array('bgcolor'=>array(0.6,0.4,0.2))
+    )
+));
 #x
 
-Another example with colored columns
-
-#C
-$pdf->ezTable($data,array('type'=>'','name'=>'')
-        ,''
-        ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
-        ,'cols'=> array(
-                    'name'=>array('bgcolor'=>array(0.2,0.2,0.4))
-                   ,'type'=>array('bgcolor'=>array(0.4,0.6,0.6))
-                  )
-        ));
-#c
-
-#X
-$pdf->selectFont('Helvetica');
-$pdf->ezTable($data,array('type'=>'','name'=>'')
-        ,''
-        ,array('showHeadings'=>0,'showBgCol'=>1,'width'=>400
-        ,'cols'=> array(
-                    'name'=>array('bgcolor'=>array(0.2,0.2,0.4))
-                   ,'type'=>array('bgcolor'=>array(0.4,0.6,0.6))
-                  )
-        ));
-#x
+<b>Please refer to examples/tables.php for more demos</b>
 
 2<ezText>
 
