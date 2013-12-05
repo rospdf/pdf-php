@@ -31,6 +31,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.11.7b-php4>
+
+- fixed bug #75 Alignment fixes for tables and images
+
 2<version 0.11.7a-php4>
 
 - fixed bug for empty columns in ezTable

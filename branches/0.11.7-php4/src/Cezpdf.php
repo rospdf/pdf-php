@@ -10,7 +10,7 @@
  * there is no warranty, implied or otherwise with this software.
  *
  * @package Cpdf
- * @version 0.11.7a
+ * @version 0.11.7b
  * @license released under a public domain licence.
  * @link http://www.sourceforge.net/p/pdf-php/
  * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
@@ -1100,7 +1100,8 @@ class Cezpdf extends Cpdf {
                 $dx = $xref-$t/2;
                 break;
         }
-
+        
+        $dx += $options['colGap'];
 
         foreach ($pos as $k=>$v){
             $pos[$k]=$v+$dx;
@@ -1697,14 +1698,14 @@ class Cezpdf extends Cpdf {
         //call appropriate function
         switch ($imageInfo[2]) {
             case IMAGETYPE_JPEG:
-            	$this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+            	$this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             case IMAGETYPE_PNG:
-            	$this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+            	$this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             case IMAGETYPE_GIF:
             	// use GD to convert the GIF image to PNG and allow transparency
-            	$this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y + $this->getFontHeight($this->ez['fontSize']) - $pad - $height, $width);
+            	$this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
             	break;
             default:
             	$this->debug("ezImage: Unsupported image type".$imageInfo[2], E_USER_WARNING);
