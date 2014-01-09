@@ -56,7 +56,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
  * </pre>
  * @category Documents
  * @package Cpdf
- * @version [0.12-rc11] $Id: Cezpdf.php 206 2013-11-19 09:27:51Z ole1986 $
+ * @version [0.12-rc12] $Id: Cezpdf.php 206 2013-11-19 09:27:51Z ole1986 $
  * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
  * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
