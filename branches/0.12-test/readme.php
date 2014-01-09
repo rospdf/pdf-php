@@ -74,7 +74,7 @@ function dots($info){
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12-rc11";
+$project_version = "0.12-rc12";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
@@ -95,7 +95,7 @@ $pdf->setStrokeColor(0,0,0,1);
 $pdf->line(20,40,578,40);
 $pdf->line(20,822,578,822);
 $pdf->addText(20,30,8,$project_url);
-$pdf->addText(519,30,8,'Version ' . $project_version);
+$pdf->addText(515,30,8,'Version ' . $project_version);
 $pdf->restoreState();
 $pdf->closeObject();
 // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'

@@ -36,12 +36,12 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version [0.12-rc11] $Id: Cpdf.php 207 2013-11-19 16:18:14Z ole1986 $
+ * @version [0.12-rc12] $Id: Cpdf.php 207 2013-11-19 16:18:14Z ole1986 $
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
  * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
- * @copyright 2007 - 2013 The authors
+ * @copyright 2007 - 2014 The authors
  * @license  GNU General Public License v3
  * @link http://pdf-php.sf.net
  */ 
@@ -193,7 +193,7 @@
      * used to ensure that a font is not loaded twice, among other things
      * @var array
      */
-    private $fonts = array();
+    protected $fonts = array();
     
     /**
      * font path location
@@ -205,19 +205,19 @@
       * a record of the current font
       * @var string
       */
-    private $currentFont='';
+    protected $currentFont='';
 
     /**
      * the current base font
      * @var string
      */
-    private $currentBaseFont='';
+    protected $currentBaseFont='';
 
     /**
       * the number of the current font within the font array
       * @var integer
       */
-    private $currentFontNum=0;
+    protected $currentFontNum=0;
 
     /**
      * no clue for what this is used
@@ -2317,7 +2317,7 @@
             // applied to it as well.
             $this->setCurrentFont();
         }
-        return $this->currentFontNum;
+        //return $this->currentFontNum;
     }
 
     /**
@@ -2360,6 +2360,19 @@
         }
     }
 
+	/**
+	 * get the current font name being used
+	 * @param bool withStyle force to receive the style font name, instead of the base font
+	 * @since 0.12-rc12
+	 * @return string current font name
+	 */
+	public function getCurrentFont($withStyle = false){
+		if($withStyle){
+			return $this->currentFont;
+		}
+		return $this->currentBaseFont;
+	}
+	
     /**
      * function for the user to find out what the ID is of the first page that was created during
      * startup - useful if they wish to add something to it later.
