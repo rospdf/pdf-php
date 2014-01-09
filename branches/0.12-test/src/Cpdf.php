@@ -2362,8 +2362,8 @@
 
 	/**
 	 * get the current font name being used
-	 * @param bool withStyle force to receive the style font name, instead of the base font
 	 * @since 0.12-rc12
+	 * @param bool $withStyle force to receive the style font name, instead of the base font
 	 * @return string current font name
 	 */
 	public function getCurrentFont($withStyle = false){
