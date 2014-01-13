@@ -347,7 +347,7 @@
     /**
      * the file identifier, used to uniquely identify a pdf document
      */
-    public $fileIdentifier='';
+    public $fileIdentifier;
 
     /**
      * Set the encryption mode
@@ -1774,54 +1774,6 @@
     }
 
     /**
-     * return the pdf stream as a string returned from the function
-     * This method is protect to force user to use ezOutput from Cezpdf.php
-     */
-    function output($debug=0){
-        if ($debug){
-            // turn compression off
-            $this->options['compression']=0;
-        }
-
-        if ($this->arc4_objnum){
-            $this->ARC4_init($this->encryptionKey);
-        }
-        
-        if($this->valid){
-            $this->debug('The output method has been executed again', E_USER_WARNING);
-        }
-
-        $this->checkAllHere();
-
-        $xref=array();
-        // set the pdf version dynamically, depended on the objects being used
-        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%\xe2\xe3\xcf\xd3";
-        $pos=strlen($content);
-        foreach($this->objects as $k=>$v){
-            $tmp='o_'.$v['t'];
-            $cont=$this->$tmp($k,'out');
-            $content.=$cont;
-            $xref[]=$pos;
-            $pos+=strlen($cont);
-        }
-        ++$pos;
-        $content.="\nxref\n0 ".(count($xref)+1)."\n0000000000 65535 f \n";
-        foreach($xref as $p){
-            $content.=substr('0000000000',0,10-strlen($p+1)).($p+1)." 00000 n \n";
-        }
-        $content.="trailer\n<< /Size ".(count($xref)+1)." /Root 1 0 R /Info ".$this->infoObject." 0 R";
-        // if encryption has been applied to this document then add the marker for this dictionary
-        if ($this->arc4_objnum > 0){
-            $content .= " /Encrypt ".$this->arc4_objnum." 0 R";
-        }
-        if (strlen($this->fileIdentifier)){
-            $content .= " /ID [<".$this->fileIdentifier."><".$this->fileIdentifier.">]";
-        }
-        $content .= " >>\nstartxref\n".$pos."\n%%EOF\n";
-        return $content;
-    }
-
-    /**
      * intialize a new document
      * if this is called on an existing document results may be unpredictable, but the existing document would be lost at minimum
      * this function is called automatically by the constructor function
@@ -2097,8 +2049,8 @@
      *
      * @param string  $fontName Name of the font incl. path
      * @param string  $encoding Which encoding to use
-     * @param integer $set      What is this
-     *
+     * @param integer $set used to force set the selected font
+     * @param bool $subsetFont allow font subsetting
      * @return void
      */
     public function selectFont($fontName, $encoding = '', $set = 1, $subsetFont = false)
@@ -2631,6 +2583,54 @@
         return $this->currentContents;
     }
 
+	/**
+     * return the pdf stream as a string returned from the function
+     * This method is protect to force user to use ezOutput from Cezpdf.php
+     */
+    function output($debug=0){
+        if ($debug){
+            // turn compression off
+            $this->options['compression']=0;
+        }
+
+        if ($this->arc4_objnum){
+            $this->ARC4_init($this->encryptionKey);
+        }
+        
+        if($this->valid){
+            $this->debug('The output method has been executed again', E_USER_WARNING);
+        }
+
+        $this->checkAllHere();
+
+        $xref=array();
+        // set the pdf version dynamically, depended on the objects being used
+        $content="%PDF-".sprintf('%.1F', $this->pdfversion)."\n%\xe2\xe3\xcf\xd3";
+        $pos=strlen($content);
+        foreach($this->objects as $k=>$v){
+            $tmp='o_'.$v['t'];
+            $cont=$this->$tmp($k,'out');
+            $content.=$cont;
+            $xref[]=$pos;
+            $pos+=strlen($cont);
+        }
+        ++$pos;
+        $content.="\nxref\n0 ".(count($xref)+1)."\n0000000000 65535 f \n";
+        foreach($xref as $p){
+            $content.=substr('0000000000',0,10-strlen($p+1)).($p+1)." 00000 n \n";
+        }
+        $content.="trailer\n<< /Size ".(count($xref)+1)." /Root 1 0 R /Info ".$this->infoObject." 0 R";
+        // if encryption has been applied to this document then add the marker for this dictionary
+        if ($this->arc4_objnum > 0){
+            $content .= " /Encrypt ".$this->arc4_objnum." 0 R";
+        }
+        if ($this->fileIdentifier){
+            $content .= " /ID [<".$this->fileIdentifier."><".$this->fileIdentifier.">]";
+        }
+        $content .= " >>\nstartxref\n".$pos."\n%%EOF\n";
+        return $content;
+    }
+
     /**
      * output the pdf code, streaming it to the browser
      * the relevant headers are set so that hopefully the browser will recognise it
@@ -2654,8 +2654,14 @@
         } else {
             $tmp = $this->output();
         }
-        header("Content-Type: application/pdf");
-        header("Content-Length: ".strlen(ltrim($tmp)));
+		
+        ob_start();
+        echo $tmp;
+		
+		$length = ob_get_length();
+		
+		header("Content-Type: application/pdf");
+        header("Content-Length: ".$length);
         $fileName = (isset($options['Content-Disposition'])?$options['Content-Disposition']:'file.pdf');
         if(isset($options['download']) && $options['download'] == 1)
             $attached = 'attachment';
@@ -2663,9 +2669,10 @@
             $attached = 'inline';
         header("Content-Disposition: $attached; filename=".$fileName);
         if (isset($options['Accept-Ranges']) && $options['Accept-Ranges']==1){
-            header("Accept-Ranges: ".strlen(ltrim($tmp)));
+            header("Accept-Ranges: ".$length);
         }
-        echo ltrim($tmp);
+		
+		ob_end_flush();
     }
 
     /**

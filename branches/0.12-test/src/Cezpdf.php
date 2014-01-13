@@ -1843,14 +1843,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * pdf output as string
+     * return the pdf output as string
      *
-     * @param $options
-     * @return string pdf content as string
+     * @param bool $debug uncompressed output for debugging purposes
+     * @return string pdf document
      */
-    public function ezOutput($options=0){
+    public function ezOutput($debug = FALSE){
         $this->cleanUp();
-        return $this->output($options);
+		return $this->output($debug);
     }
 
     /**
