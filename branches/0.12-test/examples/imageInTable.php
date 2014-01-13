@@ -29,11 +29,7 @@ $pdf->ezText("\nWithout table width:");
 $pdf->ezTable($data,'','',array('showLines'=>2));
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
   $pdf->ezStream();
 }

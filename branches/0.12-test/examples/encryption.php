@@ -5,13 +5,7 @@ set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
 
 include 'Cezpdf.php';
 
-class Creport extends Cezpdf{
-	function Creport($p,$o){
-  		parent::__construct($p,$o);
-	}
-}
-
-$pdf = new Creport('a4','portrait');
+$pdf = new Cezpdf('a4','portrait');
 // to test on windows xampp
 if(strpos(PHP_OS, 'WIN') !== false){
     $pdf->tempPath = 'E:/xampp/xampp/tmp';
@@ -44,12 +38,7 @@ $pdf->ezText("<b>Not encrypt</b> - nocrypt parameter found");
 
 
 if (isset($_GET['d']) && $_GET['d']){
-  echo $pdf->messages;
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
 	if($mode > 1)
 		$encMode = "128BIT";

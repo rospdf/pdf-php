@@ -42,11 +42,7 @@ $pdf->ezText("אבגדהוזחטיכלמנסעפצקרשת");
 // reusing the mainFont does not require to enable unicode with $this->isUnicode
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
   $pdf->ezStream();
 }

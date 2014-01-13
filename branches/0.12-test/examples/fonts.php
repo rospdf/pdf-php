@@ -29,11 +29,7 @@ $pdf->selectFont('ZapfDingbats');
 $pdf->ezText("Text in zapfdingbats");
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
   $pdf->ezStream(array('compress'=>0));
 }

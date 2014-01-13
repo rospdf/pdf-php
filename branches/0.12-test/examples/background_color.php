@@ -34,11 +34,7 @@ $pdf->ezText("PDF with some <c:color:1,0,0>blue</c:color> <c:color:0,1,0>red</c:
 //$pdf->ezImage('images/test_alpha2.png',0,0,'none','right');
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
   $pdf->ezStream(array('compress'=>0));
 }

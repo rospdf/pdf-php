@@ -33,11 +33,7 @@ $pdf->ezText("Followed by an <c:ilink:test001>internal</c:ilink> link which requ
 $pdf->ezText("More annotations soon...");
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
   $pdf->ezStream(array('compress'=>0));
 }

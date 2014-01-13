@@ -96,11 +96,7 @@ $pdf->ezText("<b>IMPORTANT: In version >= 0.12.0 it is required to allow custom 
 $pdf->ezTable($mydata,array('value'=>'Value','barcode'=>'Barcode'),'',array('showLines'=>3,'shaded'=>0,'rowGap'=>6,'showHeadings'=>1,'cols'=>array('barcode'=>array('width'=>$MAXcodeWidth + 10))));
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo $pdf->ezOutput(TRUE);
 } else {
   $pdf->ezStream();
 }
