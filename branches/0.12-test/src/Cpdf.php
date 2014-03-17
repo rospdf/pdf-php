@@ -2719,7 +2719,7 @@
                     $this->fonts[$cf]['subset'][mb_substr($text,$i, 1, 'UTF-16BE')] = true;
             }
         } else if(!$this->fonts[$cf]['isUnicode']) {
-            $text = mb_convert_encoding($text, $this->targetEncoding);
+            $text = mb_convert_encoding($text, $this->targetEncoding, 'UTF-8');
             // store all used characters if subset font is set to true
             if($this->fonts[$cf]['isSubset']){
                 for($i = 0; $i < strlen($text); $i++)
