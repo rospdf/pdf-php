@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc13>
+
+- fixed encoding conversation when using core fonts.
+
 2<version 0.12-rc12>
 
 NOTE: Some private properties have been changed in Cpdf.php

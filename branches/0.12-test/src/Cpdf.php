@@ -36,7 +36,7 @@
  *
  * @category Documents
  * @package	 Cpdf
- * @version [0.12-rc12] $Id$
+ * @version  $Id$
  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
  * @author   Lars Olesen <lars@legestue.net>
  * @author   Sune Jensen <sj@sunet.dk>
