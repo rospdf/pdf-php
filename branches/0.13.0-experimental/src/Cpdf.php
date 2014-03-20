@@ -1506,7 +1506,10 @@ class Cpdf extends Cpdf_Common {
 	 * @param array $cropbox
 	 * @param array $bleedbox
 	 */
-	public function NewPage($mediabox, $cropbox = null, $bleedbox = null){
+	public function NewPage($mediabox = null, $cropbox = null, $bleedbox = null){
+		if(!isset($mediabox) && is_object($this->CURPAGE))
+			$mediabox = $this->CURPAGE->Mediabox;
+		
 		$this->CURPAGE = new Cpdf_Page($this, $mediabox, $cropbox, $bleedbox);
 		$this->CURPAGE->PageNum = ++$this->PageNum;
 		
