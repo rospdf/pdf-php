@@ -13,12 +13,10 @@
  http://pdf-php.sf.net/pdf-php-testing/examples/
  
 ---------------------------------------------------
-    CURRENT RELEASE CANDIDATE version 0.12-rc7
+    CURRENT RELEASE CANDIDATE version 0.12-rc14
 ---------------------------------------------------
  Use SVN to checkout from 
- svn://svn.code.sf.net/p/pdf-php/code/tags/0.12-rc7
+ svn://svn.code.sf.net/p/pdf-php/code/trunk
  
  Manual and change log can be found here:
  http://pdf-php.sf.net/pdf-php-code/readme.php 
-
- Trunk is currently running on version 0.11.8
