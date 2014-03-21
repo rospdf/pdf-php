@@ -29,6 +29,12 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc14>
+
+- fixed ezTableDrawLines in CezTableImage.php extension
+- improved performance in openFont
+- use max 255 chars for font type TrueType if unicode is disabled
+
 2<version 0.12-rc13>
 
 - fixed encoding conversation when using core fonts.
