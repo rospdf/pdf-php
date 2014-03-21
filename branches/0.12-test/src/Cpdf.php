@@ -1937,9 +1937,11 @@
                         }
                     }
                 }
-                $cidtogid = str_pad('', 256*256*2, "\x00");
+				
+				if($this->isUnicode)
+					$cidtogid = str_pad('', 256*256*2, "\x00");
+				
                 $cachedFont['C'] = array();
-                
                 foreach($charToGlyph as $char => $glyphIndex){
                     if(!empty($char)){
                         $m = TTF::getHMetrics($hmetrics, $hhea['numberOfHMetrics'], $glyphIndex);
@@ -1959,7 +1961,8 @@
                 $this->debug('openFont: font file does not contain format 4 cmap', E_USER_WARNING);
             }
             
-            $cachedFont['CIDtoGID'] = base64_encode($cidtogid);
+			if(isset($cidtogid))
+            	$cachedFont['CIDtoGID'] = base64_encode($cidtogid);
             
         } else if(file_exists($fullFontPath.'.afm')){
             // use the core font program
@@ -2127,29 +2130,22 @@
                     $widths = array();
                     $cid_widths = array();
                     
-                    foreach ($font['C'] as $num => $d){
-                        if (intval($num) > 0 || $num == '0'){
-                            if(!$font['isUnicode']){
-                                if ($lastChar > 0 && $num > $lastChar + 1){
-                                    for($i = $lastChar + 1; $i < $num; $i++){
-                                        $widths[] = 0;
-                                    }
-                                }
-                            }
-                            $widths[] = $d;
-                            
-                            if ($font['isUnicode']) {
-                                $cid_widths[$num] = $d;
-                              }
-                            
-                            if ($firstChar == -1){
-                                $firstChar = $num;
-                            }
-                            $lastChar = $num;
-                        }
-                    }
+					if(!$font['isUnicode']){
+						for($i = 0; $i < 255; $i++){
+							if (isset($options['differences']) && isset($options['differences'][$i])){
+								// set the correct width of the diffence by using its name
+								$widths[] = $font['C'][$options['differences'][$i]];
+							} else if(isset($font['C'][$i]))
+								$widths[] = $font['C'][$i];
+							else
+								$widths[] = 0;
+						}
+						$firstChar = 0;
+						$lastChar = 255;
+					}
+					
                     // also need to adjust the widths for the differences array
-                    if (isset($options['differences'])){
+                    /*if (isset($options['differences'])){
                         foreach ($options['differences'] as $charNum => $charName){
                             if ($charNum>$lastChar){
                                 for($i = $lastChar + 1; $i <= $charNum; $i++) {
@@ -2164,10 +2160,10 @@
                                 }
                             }
                         }
-                    }
+                    }*/
                     
                     if($font['isUnicode']){
-                        $font['CIDWidths'] = $cid_widths;
+                        $font['CIDWidths'] = $font['C'];
                     }
                     $this->debug('selectFont: FirstChar='.$firstChar);
                     $this->debug('selectFont: LastChar='.$lastChar);
