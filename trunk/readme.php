@@ -37,7 +37,7 @@ function rf($info){
   $lbl = rawurldecode(substr($tmp,1));
   $num=$this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
   $this->reportContents[] = array($lbl,$num,$lvl );
-  $this->addDestination('toc'.(count($this->reportContents)-1),'FitH',$info['y']+$info['height']);
+  $this->addDestination('toc'.(count($this->reportContents)-1),'Fit',$info['y']+$info['height']);
 }
 
 function dots($info){
@@ -73,9 +73,19 @@ function dots($info){
 // (defaults to legal)
 // this code has been modified to use ezpdf.
 
-//$pdf = new Cezpdf('a4','portrait');
+$project_url = "http://pdf-php.sf.net";
+$project_version = "0.12-rc14";
+
 $pdf = new Creport('a4','portrait', 'none', null);
+// to test on windows xampp
+  if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+  }
 $start = microtime(true);
+
+// IMPORTANT: To allow custom callbacks being executed
+$pdf->allowedTags .= '|uline|rf:?.*?|dots:[0-9]+';
+
 $pdf -> ezSetMargins(50,70,50,50);
 
 // put a line top and bottom on all the pages
@@ -84,7 +94,8 @@ $pdf->saveState();
 $pdf->setStrokeColor(0,0,0,1);
 $pdf->line(20,40,578,40);
 $pdf->line(20,822,578,822);
-$pdf->addText(50,34,6,'http://www.sourceforge.net/p/pdf-php');
+$pdf->addText(20,30,8,$project_url);
+$pdf->addText(515,30,8,'Version ' . $project_version);
 $pdf->restoreState();
 $pdf->closeObject();
 // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'
@@ -102,7 +113,7 @@ $pdf->selectFont($mainFont);
 $pdf->ezText("PHP Pdf Creation\n",30,array('justification'=>'centre'));
 $pdf->ezText("Module-free creation of Pdf documents\nfrom within PHP\n",20,array('justification'=>'centre'));
 $pdf->ezText("developed by R&OS Ltd",18,array('justification'=>'centre'));
-$pdf->ezText("\n<c:alink:http://www.sourceforge.net/p/pdf-php>http://www.sourceforge.net/p/pdf-php</c:alink>\n\nversion 0.11",18,array('justification'=>'centre'));
+$pdf->ezText("\n<c:alink:$project_url>$project_url</c:alink>\n\nVersion $project_version",18,array('justification'=>'centre'));
 
 $pdf->ezSetDy(-100);
 // modified to use the local file if it can
@@ -125,7 +136,7 @@ function ros_logo(&$pdf,$x,$y,$height,$wl=0,$wr=0){
   $pdf->setColor(1,1,1);
   $pdf->addText($x,$y-$th-$td,$ts,$text);
   $pdf->setColor(0.6,0,0);
-  $pdf->addText($x,$y-$th-$td,$ts*0.1,'http://www.sourceforge.net/p/pdf-php');
+  $pdf->addText($x,$y-$th-$td,$ts*0.1,'http://pdf-php.sf.net/');
   $pdf->restoreState();
   return $height;
 }
@@ -143,7 +154,7 @@ $data=file('./data.txt');
 
 $pdf->ezNewPage();
 
-$pdf->ezStartPageNumbers(500,28,10,'','',1);
+$pdf->ezStartPageNumbers(intval($pdf->ez['pageWidth']/2) + 20 ,28,10,'','',1);
 
 $size=12;
 $height = $pdf->getFontHeight($size);
@@ -191,10 +202,11 @@ foreach ($data as $line){
       case '1':
         $tmp = substr($line,2,strlen($line)-3);
         $tmp2 = $tmp.'<C:rf:1'.rawurlencode($tmp).'>';
-        $pdf->ezText($tmp2,26,array('justification'=>'centre'));
+        $pdf->ezText($tmp2 ,26,array('justification'=>'centre'));
         break;
       default:
         $tmp = substr($line,2,strlen($line)-3);
+        
         // add a grey bar, highlighting the change
         $tmp2 = $tmp.'<C:rf:2'.rawurlencode($tmp).'>';
         $pdf->transaction('start');
@@ -255,6 +267,8 @@ if (isset($_GET['d']) && $_GET['d']){
 } else {
   $pdf->ezStream();
 }
+
 $end = microtime(true) - $start;
 error_log($end);
+
 ?>
