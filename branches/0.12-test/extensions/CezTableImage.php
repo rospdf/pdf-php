@@ -417,7 +417,7 @@ class CezTableImage extends Cezpdf {
                                     // @since 0.12-rc9 corrected header row position
                                     $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
                                 }else if ($options['showLines'] < 3){
-                                    $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
+                                    $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
                                 }
                             }
                             if ($options['shaded'] || $options['showBgCol']){
@@ -650,7 +650,7 @@ class CezTableImage extends Cezpdf {
                 // @since 0.12-rc9 corrected header row position
                 $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
             } else if ($options['showLines'] < 3){
-                $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
+                $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
             }
         }
         // close the object for drawing the text on top
