@@ -7,6 +7,8 @@ if(!file_exists($ext)){
 include $ext;
 $pdf = new CezTableImage("a4");
 
+$pdf->selectFont('Helvetica');
+
 $image = '../ros.jpg';
 // test gif file
 //$image = 'images/test_alpha.gif';
@@ -16,7 +18,6 @@ $data = array(
 				array('num'=>4,'name'=>'saruman','type'=>'baddude','url'=>'http://sourceforge.net/projects/pdf-php'),
 				array('num'=>5,'name'=>'sauron','type'=>'<C:showimage:'.urlencode($image).' 90>'),
 				array('num'=>6,'name'=>'sauron','type'=>'<C:showimage:'.$image.'><C:showimage:'.$image.' 90>'."\nadadd"),
-				array('num'=>7,'name'=>'sauron','type'=>'<C:showimage:NOIMAGE.jpg 90>'),
 				array('num'=>8,'name'=>'sauron','type'=>'<C:showimage:'.$image.' 90>'),
                 array('num'=>10,'name'=>'sauron','type'=>'<C:showimage:'.$image.' 50>'),
                 array('num'=>11,'name'=>'sauron','type'=>'<C:showimage:'.$image.'>'),
@@ -26,5 +27,10 @@ $data = array(
 $pdf->ezTable($data,'','',array('width'=>400,'showLines'=>2));
 $pdf->ezText("\nWithout table width:");
 $pdf->ezTable($data,'','',array('showLines'=>2));
-$pdf->ezStream();
+
+if (isset($_GET['d']) && $_GET['d']){
+  echo $pdf->ezOutput(TRUE);
+} else {
+  $pdf->ezStream();
+}
 ?>

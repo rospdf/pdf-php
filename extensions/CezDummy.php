@@ -23,6 +23,8 @@ class CezDummy extends Cezpdf {
 	 */
 	function CezDummy($p,$o = 'portrait',$t = 'none', $op = array()){
 		parent::__construct($p, $o,$t,$op);
+        
+        $this->allowedTags .= '|dummy:[0-9]+';
 	}
 	
 	/*

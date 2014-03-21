@@ -276,8 +276,8 @@ class TTFsubset {
 				     'format' => $format,
 				     'length' => 0,
 				     'version' => $version,
-				     'firstCode' => $firstCode,
-				     'entryCount' => $entryCount,
+				     'firstCode' => (isset($firstCode))? $firstCode : null,
+				     'entryCount' => (isset($entryCount))? $entryCount : null,
 				     'glyphIdArray' => $glyphIdArray);
 	    } else if ($format == '12.0') {
 		$startCharCodes = $table['startCharCodes'];
