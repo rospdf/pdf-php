@@ -3072,6 +3072,12 @@ EOT;
         }
     }
 
+	function uniord($u) { 
+		$k = mb_convert_encoding($u, 'UCS-2LE', 'UTF-8'); 
+		$k1 = ord(substr($k, 0, 1)); 
+		$k2 = ord(substr($k, 1, 1)); 
+		return $k2 * 256 + $k1; 
+	}
     /**
      * add text to the page, but ensure that it fits within a certain width
      * if it does not fit then put in as much as possible, splitting at word boundaries
@@ -3099,11 +3105,13 @@ EOT;
         $w=0;
         $break=0;
         $breakWidth=0;
-        $len=strlen($text);
+        $len=mb_strlen($text, 'UTF-8');
         $cf = $this->currentFont;
         $tw = $width/$size*1000;
         for ($i=0;$i<$len;$i++){
             $f=1;
+			$str = mb_substr($text, $i, 1, 'UTF-8');
+			
             $directive = $this->checkTextDirective($text,$i,$f);
             if ($directive){
                 if ($f){
@@ -3112,25 +3120,28 @@ EOT;
                 }
                 $i=$i+$directive-1;
             } else {
-                $cOrd = ord($text[$i]);
+				
+                $cOrd = $this->uniord($str);
+
                 if (isset($this->fonts[$cf]['differences'][$cOrd])){
                     // then this character is being replaced by another
                     $cOrd2 = $this->fonts[$cf]['differences'][$cOrd];
                 } else {
                     $cOrd2 = $cOrd;
                 }
-
+				
                 if (isset($this->fonts[$cf]['C'][$cOrd2])){
                     $w+=$this->fonts[$cf]['C'][$cOrd2];
                 }
                 if ($w>$tw){
+					//error_log("'$str' = $i / break: $break");
                     // then we need to truncate this line
                     if ($break>0){
                         // then we have somewhere that we can split :)
                         if ($text[$break]==' '){
-                            $tmp = substr($text,0,$break);
+                            $tmp = mb_substr($text,0,$break, 'UTF-8');
                         } else {
-                            $tmp = substr($text,0,$break+1);
+                            $tmp = mb_substr($text,0,$break+1, 'UTF-8');
                         }
                         $adjust=0;
                         $this->adjustWrapText($tmp,$breakWidth,$width,$x,$adjust,$justification);
@@ -3141,10 +3152,14 @@ EOT;
                         if (!$test){
                             $this->addText($x,$y,$size,$tmp,$angle,$adjust);
                         }
-                        return substr($text,$break+1);
+						
+                        return mb_substr($text,$break+1, $len, 'UTF-8');
                     } else {
+						$offset = 0;
+						if($str == ' ') $offset = 1;
                         // just split before the current character
-                        $tmp = substr($text,0,$i);
+                        $tmp = mb_substr($text,0,$i, 'UTF-8');
+						
                         $adjust=0;
                         $ctmp=ord($text[$i]);
                         if (isset($this->fonts[$cf]['differences'][$ctmp])){
@@ -3158,16 +3173,19 @@ EOT;
                         if (!$test){
                             $this->addText($x,$y,$size,$tmp,$angle,$adjust);
                         }
-                        return substr($text,$i);
+                        return mb_substr($text,$i + $offset, $len, 'UTF-8');
                     }
                 }
-                if ($text[$i]=='-'){
+				
+				
+				
+                if ($str=='-'){
                     $break=$i;
                     $breakWidth = $w*$size/1000;
                 }
-                if ($text[$i]==' '){
+                if ($str==' '){
                     $break=$i;
-                    $ctmp=ord($text[$i]);
+                    $ctmp=$this->uniord($str);
                     if (isset($this->fonts[$cf]['differences'][$ctmp])){
                         $ctmp=$this->fonts[$cf]['differences'][$ctmp];
                     }

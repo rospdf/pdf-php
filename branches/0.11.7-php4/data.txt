@@ -31,6 +31,11 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+
+2<version 0.11.7c-php4>
+
+- fixed text width for umlauts
+
 2<version 0.11.7b-php4>
 
 - fixed bug #75 Alignment fixes for tables and images
