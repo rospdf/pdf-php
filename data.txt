@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<version 0.12-rc15>
+
+- fixed PHP Notice "Undefined offset: -1" for unknown glyphs in TTFsubset.php
+
 2<version 0.12-rc14>
 
 - fixed ezTableDrawLines in CezTableImage.php extension
