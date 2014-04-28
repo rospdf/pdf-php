@@ -60,7 +60,7 @@ class TTFsubset {
 	// Initialize TTFchars array
 	$this->TTFchars = array();
 	// Push index 0 (missing character) anyhow
-	//$this->TTFchars[] = new TTFchar(null, 0, 0, $this->glyf[0]);
+	$this->TTFchars[] = new TTFchar(null, 0, 0, $this->glyf[0]);
 	// Push index 1 (null character) anyhow
 	//$this->TTFchars[] = new TTFchar(null, 1, 0, '');
 
@@ -397,7 +397,7 @@ class TTFsubset {
 	for ($i = 0; $i < strlen($chars); $i += 2) {
 	    $charCode = self::ORD(substr($chars, $i, 2));
 	    $orgIndex = TTF::characterToIndex($unicodeEncodingTable, $charCode);
-	    $description = $this->glyf[$orgIndex];
+	    $description = ($orgIndex>-1)?$this->glyf[$orgIndex]:null;
 	    if (!$this->orgIndexAlreadyExists($orgIndex)) {
 		$this->TTFchars[] = new TTFchar($charCode, $orgIndex, 0, $description);
 	    }
