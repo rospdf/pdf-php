@@ -29,21 +29,25 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<version 0.12-rc15>
+2<0.12-rc16>
+
+- fixed property $stack to be protected as a private property cause strange behaviours in PHP 5.1 and 5.2
+
+2<0.12-rc15>
 
 - fixed PHP Notice "Undefined offset: -1" for unknown glyphs in TTFsubset.php
 
-2<version 0.12-rc14>
+2<0.12-rc14>
 
 - fixed ezTableDrawLines in CezTableImage.php extension
 - improved performance in openFont
 - use max 255 chars for font type TrueType if unicode is disabled
 
-2<version 0.12-rc13>
+2<0.12-rc13>
 
 - fixed encoding conversation when using core fonts.
 
-2<version 0.12-rc12>
+2<0.12-rc12>
 
 NOTE: Some private properties have been changed in Cpdf.php
 NOTE: selectFont does not return $this->currentFontNum anymore
@@ -52,7 +56,7 @@ NOTE: selectFont does not return $this->currentFontNum anymore
 - added $pdf->getCurrentFont([$withStyle = false]) to get the font name currently in use
 - updated SVN version to 1.8
 
-2<version 0.12-rc11>
+2<0.12-rc11>
 
 NOTE: A new option 'gridlines' in ezTable is available to allow additional line modes
 NOTE: A new option 'alignHeadings' in ezTable is available to align the complete header row
@@ -63,13 +67,13 @@ NOTE: The option 'showLines' is DEPRECATED in ezTable option
 - applied patch #19 Table heading alignment
 - fixed an old bug related to vertical lines in ezTable when page break occurs
 
-2<version 0.12-rc10>
+2<0.12-rc10>
 
 - fixed bug #74 font subsetting ignored when no character is set | thank you Johannes
 - applied ezTable changes to extension class CezTableImage.php
 - added new example tables.php
 
-2<version 0.12-rc9>
+2<0.12-rc9>
 
 NOTE: callback function and ezText option 'justification'=>'full' can cause bad results
 NOTE: More info, see bug report #67 on https://sourceforge.net/p/pdf-php/bugs/67/
@@ -81,7 +85,7 @@ NOTE: More info, see bug report #67 on https://sourceforge.net/p/pdf-php/bugs/67
 - corrected ezTable 'showLine' option to display head line properly
 - some other slightly changes
 
-2<version 0.12-rc8>
+2<0.12-rc8>
 
 NOTE: Due to the fontPath change it is <b>recommend to only use the font name</b> in $pdf->selectFont().
 NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
@@ -89,22 +93,22 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - added "fontPath" property to define font folders outside the project root
 - fixed AAR search by setting unique fileIdentifiers
 
-2<version 0.12-rc7>
+2<0.12-rc7>
 
 - fixed bug #72 - directives cause wrong line alignment
 
-2<version 0.12-rc6>
+2<0.12-rc6>
 
 - fixed bug #71 - wrong fileIdentfier cause Adobe Reader to invalidate search
 - corrected table border on page break
 
-2<version 0.12-rc5>
+2<0.12-rc5>
 
 - fixed bug when table page breaks (changed some private declarations into protected)
 - font cache fixed by disabling subsets for non-unicode fonts (need improvement)
 - NEW PROPERTY cacheTimeout to allow setting the cache lifetime (default: 1 day)
 
-2<version 0.12-rc4>
+2<0.12-rc4>
 
 - indexed PNG fixed (but without alpha channel)
 - background color check simplified in Cezpdf.php which causes sporadic errors on line 219
@@ -112,7 +116,7 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - some fixes with text directives (E.g. &lt;b&gt;[new line]text[new line]text&lt;/b&gt;)
 - corrected getTextWidth by removing all directives set in $pdf->allowedTags
 
-2<version 0.12-rc3>
+2<0.12-rc3>
 
 - removed unused Begin Text - objects (BT ... ET) by checking empty text in addText method
 - fixed bug #66 Bug in specifying font size
@@ -122,25 +126,21 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - NEW FEATURE: new annotation called comments - demo in examples/annotations.php
 - applied patch no# 13 - 16
 
-2<version 0.12-rc2>
+2<0.12-rc2>
 
 - bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)
 - fixed bug with wrong calculation of the char "0" (zero) in $pdf->uniord($c)
 - code optimization
 
-2<version 0.12.2>
+2<0.12-rc1>
 
 - additional bug fixes for directive (especially for UTF-8 text)
 - slightly performance improvements
 - addTextWrap function is no more, use addText instead
 - added FreeSerif font from http://ftp.gnu.org/gnu/freefont/ 
 
-2<version 0.12.1>
-
 - use UTF-8 text input in addText and addTextWrap by default
 - fixed issue with directives when using unicode (underline, bold, ...)
-
-2<version 0.12.0>
 
 - fixed bug: wrong width is used when document is set to unicodee
 - optimized and simplified the methods for custom callbacks (checkTextDirective is no more)
@@ -149,18 +149,10 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - font subsetting completed
 - No ttf2afm or ttf2ufm is required - Thank goes to Thanos Efraimidis (4real.gr) for TTF.php and TTFsubset.php
 
-2<previous versions>
+2<other versions>
 
-README 0.11.8
-
-http://sourceforge.net/p/pdf-php/code/HEAD/tree/tags/0.11.8/readme.pdf?format=raw
-
-README 0.11-7a for PHP4
-
-http://sourceforge.net/p/pdf-php/code/HEAD/tree/tags/0.11.7a-php4/readme.pdf?format=raw
-
-
-
+<c:alink:http://sourceforge.net/p/pdf-php/code/HEAD/tree/tags/0.11.8/readme.pdf?format=raw>click here</c:alink> for version 0.11.8
+<c:alink:http://sourceforge.net/projects/pdf-php/files/v%20011%20with%20Fonts/0.11.7c-php4.zip/download>click here</c:alink> for PHP4 compatibility version 0.11-7c
 #NP
 
 1<Use>
