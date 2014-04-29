@@ -277,7 +277,7 @@
     /**
      * object Id storage stack
      */
-    private $stack=array();
+    protected $stack = array();
 
     /**
      * number of elements within the object Id storage stack
