@@ -82,7 +82,7 @@ class Cpdf
     var $catalogId;
 
 
-	var $targetEncoding = 'iso-8859-1';
+	var $targetEncoding = 'cp1252';
 	/**
 	 * @var boolean Whether the text passed in should be treated as Unicode or just local character set.
 	 */
@@ -3073,7 +3073,7 @@ EOT;
     }
 
 	function uniord($u) { 
-		$k = mb_convert_encoding($u, 'UCS-2LE', 'UTF-8'); 
+		$k = mb_convert_encoding($u, $this->targetEncoding, 'UTF-8'); 
 		$k1 = ord(substr($k, 0, 1)); 
 		$k2 = ord(substr($k, 1, 1)); 
 		return $k2 * 256 + $k1; 
@@ -3134,15 +3134,11 @@ EOT;
                     $w+=$this->fonts[$cf]['C'][$cOrd2];
                 }
                 if ($w>$tw){
-					//error_log("'$str' = $i / break: $break");
                     // then we need to truncate this line
                     if ($break>0){
                         // then we have somewhere that we can split :)
-                        if ($text[$break]==' '){
-                            $tmp = mb_substr($text,0,$break, 'UTF-8');
-                        } else {
-                            $tmp = mb_substr($text,0,$break+1, 'UTF-8');
-                        }
+						$tmp = mb_substr($text,0,$break, 'UTF-8');
+						
                         $adjust=0;
                         $this->adjustWrapText($tmp,$breakWidth,$width,$x,$adjust,$justification);
 
@@ -3161,11 +3157,9 @@ EOT;
                         $tmp = mb_substr($text,0,$i, 'UTF-8');
 						
                         $adjust=0;
-                        $ctmp=ord($text[$i]);
-                        if (isset($this->fonts[$cf]['differences'][$ctmp])){
-                            $ctmp=$this->fonts[$cf]['differences'][$ctmp];
-                        }
-                        $tmpw=($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
+						
+                        $tmpw=($w-$this->fonts[$cf]['C'][$cOrd2])*$size/1000;
+						
                         $this->adjustWrapText($tmp,$tmpw,$width,$x,$adjust,$justification);
                         // reset the text state
                         $this->currentTextState = $store_currentTextState;
@@ -3185,11 +3179,7 @@ EOT;
                 }
                 if ($str==' '){
                     $break=$i;
-                    $ctmp=$this->uniord($str);
-                    if (isset($this->fonts[$cf]['differences'][$ctmp])){
-                        $ctmp=$this->fonts[$cf]['differences'][$ctmp];
-                    }
-                    $breakWidth = ($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
+                    $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd2])*$size/1000;
                 }
             }
         }
