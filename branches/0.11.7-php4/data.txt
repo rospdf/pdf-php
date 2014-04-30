@@ -34,7 +34,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 2<version 0.11.7d-php4>
 
-- fixed conversation of $targetEncoding while checking unicode characters
+- fixed conversion of $targetEncoding while checking unicode characters
 - some slightly improvements
 
 2<version 0.11.7c-php4>
