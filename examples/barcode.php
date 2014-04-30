@@ -45,7 +45,7 @@ function code39($text,$barcodethinwidth=2,$barcodeheight=40,$xpos=0,$ypos=0)
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		parent::__construct($p,$o);
+  		parent::Cezpdf($p,$o);
 	}
 	// Rectangle Callback function for Text output
 	function rect($info){
@@ -61,12 +61,28 @@ class Creport extends Cezpdf{
 }
 
 $pdf = new Creport('a4','portrait');
-// IMPORTANT: In version >= 0.12.0 it is required to allow custom tags (by using $pdf->allowedTags) before using it
-$pdf->allowedTags .= "|rect:.*?";
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 $pdf -> ezSetMargins(50,70,50,50);
 
-$mainFont = 'Helvetica';
+// put a line top and bottom on all the pages
+$all = $pdf->openObject();
+$pdf->saveState();
+$pdf->setStrokeColor(0,0,0,1);
+$pdf->line(20,40,578,40);
+$pdf->line(20,822,578,822);
+$pdf->addText(50,34,6,'http://ros.co.nz/pdf - http://www.sourceforge.net/projects/pdf-php');
+$pdf->restoreState();
+$pdf->closeObject();
+// note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'
+// or 'even'.
+$pdf->addObject($all,'all');
+
+//$mainFont = './fonts/Helvetica.afm';
+$mainFont = '../src/fonts/Times-Roman.afm';
 // select a font
 $pdf->selectFont($mainFont);
 $size=12;
@@ -91,12 +107,15 @@ for($i=0;$i<7;$i++){
 	$mydata[$i]['value'] = $r;
 	$mydata[$i]['barcode'] = $const;
 }
-$pdf->ezText("This example shows you how to implement code39 barcodes in ROS PDF class. It uses the Callback function 'rect' which is defined in the custom class Creport (inhierted from Cezpdf)\n");
-$pdf->ezText("<b>IMPORTANT: In version >= 0.12.0 it is required to allow custom tags (by using \$pdf->allowedTags) before using it</b>");
+$pdf->ezText("This example shows you how to implement code39 barcodes in ROS PDF class. It uses the Callback function 'rect' which is defined in the custom class Creport (inhierted from Cezpdf)");
 $pdf->ezTable($mydata,array('value'=>'Value','barcode'=>'Barcode'),'',array('showLines'=>3,'shaded'=>0,'rowGap'=>6,'showHeadings'=>1,'cols'=>array('barcode'=>array('width'=>$MAXcodeWidth + 10))));
 
 if (isset($_GET['d']) && $_GET['d']){
-  echo $pdf->ezOutput(TRUE);
+  $pdfcode = $pdf->ezOutput(1);
+  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
+  echo '<html><body>';
+  echo trim($pdfcode);
+  echo '</body></html>';
 } else {
   $pdf->ezStream();
 }

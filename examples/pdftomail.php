@@ -7,14 +7,18 @@ include 'Cezpdf.php';
 require_once("Mail.php");
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o,'none');
+  		parent::Cezpdf($p, $o,'none');
 	}
 }
 $pdf = new Creport('a4','portrait');
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 $pdf -> ezSetMargins(20,20,20,20);
 
-$mainFont = 'Times-Roman';
+$mainFont = '../src/fonts/Times-Roman.afm';
 // select a font
 $pdf->selectFont($mainFont);
 $size=12;

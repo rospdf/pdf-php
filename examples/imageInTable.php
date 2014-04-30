@@ -6,8 +6,10 @@ if(!file_exists($ext)){
 
 include $ext;
 $pdf = new CezTableImage("a4");
-
-$pdf->selectFont('Helvetica');
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+}
 
 $image = '../ros.jpg';
 // test gif file
@@ -27,10 +29,5 @@ $data = array(
 $pdf->ezTable($data,'','',array('width'=>400,'showLines'=>2));
 $pdf->ezText("\nWithout table width:");
 $pdf->ezTable($data,'','',array('showLines'=>2));
-
-if (isset($_GET['d']) && $_GET['d']){
-  echo $pdf->ezOutput(TRUE);
-} else {
-  $pdf->ezStream();
-}
+$pdf->ezStream();
 ?>

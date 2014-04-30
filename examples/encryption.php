@@ -5,7 +5,13 @@ set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
 
 include 'Cezpdf.php';
 
-$pdf = new Cezpdf('a4','portrait');
+class Creport extends Cezpdf{
+	function Creport($p,$o){
+  		parent::Cezpdf($p,$o);
+	}
+}
+
+$pdf = new Creport('a4','portrait');
 // to test on windows xampp
 if(strpos(PHP_OS, 'WIN') !== false){
     $pdf->tempPath = 'E:/xampp/xampp/tmp';
@@ -21,7 +27,7 @@ if(!isset($_GET['nocrypt'])){
 }
 
 // select a font
-$pdf->selectFont('Times-Roman');
+$pdf->selectFont('../src/fonts/Times-Roman.afm');
 $pdf->openHere('Fit');
 
 $pdf->ezText("This example shows how to crypt the PDF document\n");
@@ -38,14 +44,17 @@ $pdf->ezText("<b>Not encrypt</b> - nocrypt parameter found");
 
 
 if (isset($_GET['d']) && $_GET['d']){
-  echo $pdf->ezOutput(TRUE);
+  echo $pdf->messages;
+  $pdfcode = $pdf->ezOutput(1);
+  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
+  echo '<html><body>';
+  echo trim($pdfcode);
+  echo '</body></html>';
 } else {
-	if($mode > 1)
+	if($mode == 2)
 		$encMode = "128BIT";
-	else if($mode > 0)
+	else
 		$encMode = "40BIT";
-    else
-        $encMode = "NONE";
   $pdf->ezStream(array('Content-Disposition'=>"encrypted_".$encMode.(isset($_GET['user'])?"_withUserPW":"").(isset($_GET['owner'])?"_withOwnerPW":""),'attached'=>0));
 }
 ?>

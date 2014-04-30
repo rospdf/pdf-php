@@ -1,93 +1,48 @@
 <?php
-include_once 'Cpdf.php';
-
 /**
- * draw all lines to ezTable output
- */
-define('EZ_GRIDLINE_ALL', 31);
-/**
- * draw default set of lines to ezTable output, so EZ_GRIDLINE_TABLE, EZ_GRIDLINE_HEADERONLY and EZ_GRIDLINE_COLUMNS
- */
-define('EZ_GRIDLINE_DEFAULT', 29); // same as EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS
-/**
- * draw the outer lines of the ezTable
- */
-define('EZ_GRIDLINE_TABLE', 24);
-/**
- * draw the outer horizontal lines of the ezTable
- */
-define('EZ_GRIDLINE_TABLE_H', 16);
-/**
- * draw the outer vertical lines of the ezTable
- */
-define('EZ_GRIDLINE_TABLE_V', 8);
-/**
- * draw a horizontal line between header and first data row
- */
-define('EZ_GRIDLINE_HEADERONLY', 4);
-/**
- * draw a horizontal line for each row
- */
-define('EZ_GRIDLINE_ROWS', 2);
-/**
- * draw a vertical line for each column
- */
-define('EZ_GRIDLINE_COLUMNS', 1);
-
-/**
- * Helper class to create pdf documents via ROS PDF class called 'Cpdf'
+ * Helper class to create pdf documents
  *
- * This class will take the basic interaction facilities of the Cpdf class
+ * this class will take the basic interaction facilities of the Cpdf class
  * and make more useful functions so that the user does not have to
  * know all the ins and outs of pdf presentation to produce something pretty.
- * <pre>
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ * IMPORTANT NOTE
+ * there is no warranty, implied or otherwise with this software.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see http://www.gnu.org/licenses/
- * </pre>
- * @category Documents
  * @package Cpdf
- * @version [0.12-rc12] $Id: Cezpdf.php 266 2014-01-13 08:13:42Z ole1986 $
- * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
- * @author Ole Koeckemann <ole1986@users.sourceforge.net>
- * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
- * @copyright 2007 - 2013 The authors
- * @license GNU General Public License v3
- * @link http://pdf-php.sf.net
+ * @version 0.11.7b
+ * @license released under a public domain licence.
+ * @link http://www.sourceforge.net/p/pdf-php/
+ * @author Wayne Munro, R&OS Ltd, http://www.ros.co.nz/pdf
+ * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
+ * @author Ole K <ole1986@users.sourceforge.net>
  */
- class Cezpdf extends Cpdf {
+include_once 'Cpdf.php';
 
-    /**
-     * used to store most of the page configuration parameters
-     */
-    public $ez=array('fontSize'=>10);
-    /**
-     * stores the actual vertical position on the page of the writing point, very important
-     */
-    public $y;
-    /**
-     * keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
-     */
-    public $ezPages=array();
-    /**
-     * stores the number of pages used in this document
-     */
-    public $ezPageCount=0;
+class Cezpdf extends Cpdf {
 
+    var $ez=array('fontSize'=>10); // used for storing most of the page configuration parameters
+    var $y; // this is the current vertical positon on the page of the writing point, very important
+    var $ezPages=array(); // keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
+    var $ezPageCount=0;
+
+    // Background color and image stuff added
+    var $ezBackground = array();
     /**
-     * background color/image information
-     */
-    protected $ezBackground = array();
-    /**
+     *   $type        : { 'none' | 'color' | 'colour' | 'image' }
+     *   $options     : if type == 'color' or 'colour':
+     *                    $options[0] = red-component   of backgroundcolour ( 0 <= r <= 1)
+     *                    $options[1] = green-component of backgroundcolour ( 0 <= g <= 1)
+     *                    $options[2] = blue-component  of backgroundcolour ( 0 <= b <= 1)
+ 	 *                   if type == 'image':
+     *                    $options['img']     = location of image file; URI's are allowed if allow_url_open is enabled in php.ini
+     *                    $options['width']   = width of background image; default is width of page
+     *                    $options['height']  = height of background image; default is height of page
+     *                    $options['xpos']    = horizontal position of background image; default is 0
+     *                    $options['ypos']    = vertical position of background image; default is 0
+     *           *new*    $options['repeat']  = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0
+     *                                          highly recommend to set this->hashed to true when using repeat function
+	 *
      * Assuming that people don't want to specify the paper size using the absolute coordinates
      * allow a couple of options:
      * orientation can be 'portrait' or 'landscape'
@@ -98,29 +53,15 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * Added new page formats (45 standard ISO paper formats and 4 american common formats)
      * paper cordinates are calculated in this way: (inches * 72) where 1 inch = 2.54 cm
      *
-     * **$options**<br>
-     * if $type equals to 'color'<br>
-     *   $options[0] = red-component   of backgroundcolour ( 0 <= r <= 1)<br>
-     *   $options[1] = green-component of backgroundcolour ( 0 <= g <= 1)<br>
-     *   $options[2] = blue-component  of backgroundcolour ( 0 <= b <= 1)<br>
-     * if $type equals to 'image':<br>
-     *   $options['img']     = location of image file; URI's are allowed if allow_url_open is enabled in php.ini<br>
-     *   $options['width']   = width of background image; default is width of page<br>
-     *   $options['height']  = height of background image; default is height of page<br>
-     *   $options['xpos']    = horizontal position of background image; default is 0<br>
-     *   $options['ypos']    = vertical position of background image; default is 0<br>
-     *   $options['repeat']  = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0<br>
+     * Now you may also pass a 2 values array containing the page width and height in centimeters
      *
-     * highly recommend to set this->hashed to true when using repeat function<br>
-     * 
-     * @since [0.11.3] added repeat option for images
-     *
-     * @param mixed $paper paper format as string ('A4', 'A5', 'B5', ...) or an array with two/four elements defining the size
-     * @param string $orientation either portrait or landscape
-     * @param string $type background type - 'none', 'image' or 'color'
-     * @param array $options see options from above
+     * @param $paper
+     * @param $orientation
+     * @param $type
+     * @param $options
+     * @return unknown_type
      */
-    public function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
+    function Cezpdf($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
         if (!is_array($paper)){
             switch (strtoupper($paper)){
                 case '4A0': {$size = array(0,0,4767.87,6740.79); break;}
@@ -192,7 +133,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 $size[3] = ( $paper[1] / 2.54 ) * 72;
             }
         }
-        parent::__construct($size);
+        parent::Cpdf($size);
         $this->ez['pageWidth']=$size[2];
         $this->ez['pageHeight']=$size[3];
 
@@ -211,37 +152,37 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         switch ($type) {
             case 'color'  :
             case 'colour' :
-                $this->ezBackground['type'] = 'color';
-                $this->ezBackground['color'] = $options;
+            	$this->ezBackground['type'] = 'color';
+            	$this->ezBackground['color'] = $options;
                 break;
             case 'image'  :
-                if(!isset($options['img']))
-                {
-                    $errormsg="Background Image not set.";
-                    break;
-                }
-                
+            	if(!isset($options['img']))
+            	{
+            		$errormsg="Background Image not set.";
+                	break;
+            	}
+            	
                 if (!file_exists($options['img']))
                 {
-                    $errormsg="Background Image does not exists: '".$options['img']."'";
-                    break;
-                }
-                
-                $im = getimagesize($options['img']);
-                if($im === false){
-                    $errormsg="Background Image is invalid: '".$options['img']."'";
-                    break;
-                }
-                
-                $this->ezBackground['type'] = 'image';
-                $this->ezBackground['image'] = $options['img'];
-                $this->ezBackground['format'] = $im[2];
-                $this->ezBackground['repeat'] = $options['repeat'];
-                
-                if (isset($options['width']) && is_numeric($options['width']))  $this->ezBackground['width'] = $options['width'];  else $this->ezBackground['width']  = $this->ez['pageWidth'];
-                if (isset($options['height']) && is_numeric($options['height'])) $this->ezBackground['height'] = $options['height']; else $this->ezBackground['height'] = $this->ez['pageHeight'];
-                if (isset($options['xpos']) && is_numeric($options['xpos']))   $this->ezBackground['xpos']  = $options['xpos'];   else $this->ezBackground['xpos'] = 0;
-                if (isset($options['ypos']) && is_numeric($options['ypos']))   $this->ezBackground['ypos']  = $options['ypos'];   else $this->ezBackground['ypos']   = 0;
+                	$errormsg="Background Image does not exists: '".$options['img']."'";
+                	break;
+            	}
+            	
+            	$im = getimagesize($options['img']);
+            	if($im === false){
+            		$errormsg="Background Image is invalid: '".$options['img']."'";
+            		break;
+            	}
+            	
+            	$this->ezBackground['type'] = 'image';
+            	$this->ezBackground['image'] = $options['img'];
+            	$this->ezBackground['format'] = $im[2];
+            	$this->ezBackground['repeat'] = $options['repeat'];
+            	
+            	if (isset($options['width']) && is_numeric($options['width']))  $this->ezBackground['width'] = $options['width'];  else $this->ezBackground['width']  = $this->ez['pageWidth'];
+            	if (isset($options['height']) && is_numeric($options['height'])) $this->ezBackground['height'] = $options['height']; else $this->ezBackground['height'] = $this->ez['pageHeight'];
+            	if (isset($options['xpos']) && is_numeric($options['xpos']))   $this->ezBackground['xpos']  = $options['xpos'];   else $this->ezBackground['xpos'] = 0;
+            	if (isset($options['ypos']) && is_numeric($options['ypos']))   $this->ezBackground['ypos']  = $options['ypos'];   else $this->ezBackground['ypos']   = 0;
                 break;
             case 'none':
             default:
@@ -253,105 +194,100 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
     
     /**
-     * set the background image or color on all pages
+     * Set the background image or color on all pages
      * gets executed in constructor and in ezNewPage
+     * @access protected
      */
-    protected function setBackground(){
-        if(isset($this->ezBackground['type'])){
-            switch ($this->ezBackground['type'])
-            {
-                case 'color':
-                    if (isset($this->ezBackground['color']) && is_array($this->ezBackground['color']) && count($this->ezBackground['color']) == 3)
-                    {
-                        $this->saveState();
-                        $this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
-                        $this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
-                        $this->restoreState();
-                    }
-                    break;
-                case 'image':
-                    $ypos = 0;
-                    if($this->ezBackground['repeat'] == 1){
-                        $ypos = $this->ezBackground['ypos'];
-                    }
-                    
-                    $xpos = 0;
-                    if($this->ezBackground['repeat'] == 2){
-                        $xpos = $this->ezBackground['xpos'];;
-                    }
-                    
-                    $this->addBackgroundImage($xpos, $ypos);
-                    
-                    if($this->ezBackground['repeat'] & 1){ // repeat-x
-                        $numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
-                        for($i = 1; $i <= $numX; $i++){
-                            $xpos = ($this->ezBackground['width'] * $i);
-                            $this->addBackgroundImage($xpos,$ypos);
-                        }
-                    }
-                    
-                    $xpos = 0;
-                    if($this->ezBackground['repeat'] & 2){ // repeat-y
-                        $numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
-                        for($i = 1; $i <= $numY; $i++){
-                            $ypos = ($this->ezBackground['height'] * $i);
-                            $this->addBackgroundImage($xpos,$ypos);
-                        }
-                    }
-                    
-                    if($this->ezBackground['repeat'] == 3){ // repeat all
-                        $numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
-                        $numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
-                        
-                        for($i = 1; $i <= $numX; $i++){
-                            $xpos = ($this->ezBackground['width'] * $i);
-                            for($j = 1; $j <= $numY; $j++){
-                                $ypos = ($this->ezBackground['height'] * $j);
-                                $this->addBackgroundImage($xpos,$ypos);
-                            }
-                        }
-                    }
-                    
-                    break;
-                case 'none':
-                default:
-                    break;
-            }
+	function setBackground(){
+		if(isset($this->ezBackground['type'])){
+	        switch ($this->ezBackground['type'])
+	        {
+	            case 'color':
+	            	if (isset($this->ezBackground['color']) && is_array($this->ezBackground['color']) && count($this->ezBackground['color']) == 3)
+	            	{
+	                	$this->saveState();
+	                	$this->setColor($this->ezBackground['color'][0], $this->ezBackground['color'][1], $this->ezBackground['color'][2], 1);
+	                	$this->filledRectangle(0, 0, $this->ez['pageWidth'], $this->ez['pageHeight']);
+	                	$this->restoreState();
+	            	}
+	                break;
+	            case 'image':
+	            	$ypos = 0;
+	            	if($this->ezBackground['repeat'] == 1){
+	            		$ypos = $this->ezBackground['ypos'];
+	            	}
+	        		
+	        		$xpos = 0;
+	            	if($this->ezBackground['repeat'] == 2){
+	            		$xpos = $this->ezBackground['xpos'];;
+	            	}
+	            	
+	            	$this->addBackgroundImage($xpos, $ypos);
+	            	
+	            	if($this->ezBackground['repeat'] & 1){ // repeat-x
+	            		$numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
+	            		for($i = 1; $i <= $numX; $i++){
+	            			$xpos = ($this->ezBackground['width'] * $i);
+	            			$this->addBackgroundImage($xpos,$ypos);
+	            		}
+	            	}
+	            	
+	            	$xpos = 0;
+	            	if($this->ezBackground['repeat'] & 2){ // repeat-y
+	            		$numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
+        				for($i = 1; $i <= $numY; $i++){
+        					$ypos = ($this->ezBackground['height'] * $i);
+        					$this->addBackgroundImage($xpos,$ypos);
+        				}
+        			}
+        			
+        			if($this->ezBackground['repeat'] == 3){ // repeat all
+	            		$numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
+	            		$numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
+	            		
+	            		for($i = 1; $i <= $numX; $i++){
+	            			$xpos = ($this->ezBackground['width'] * $i);
+	            			for($j = 1; $j <= $numY; $j++){
+	            				$ypos = ($this->ezBackground['height'] * $j);
+	            				$this->addBackgroundImage($xpos,$ypos);
+	            			}
+	            		}
+	            	}
+        			
+	                break;
+	            case 'none':
+	            default:
+	                break;
+	        }
         }
-    }
-    
-    /**
-     * add background image for JPEG and PNG file format
-     * Especially used for repeating function
-     * 
-     * @param float $xOffset horizontal offset
-     * @param float $yOffset vertical offset
-     */
-    private function addBackgroundImage($xOffset = 0, $yOffset = 0){
-        switch ($this->ezBackground['format']) {
+	}
+	
+	/**
+	 * adds background image for JPEG and PNG file format
+	 * Especially used for repeating function
+	 * @access private
+	 */
+	function addBackgroundImage($xOffset = 0, $yOffset = 0){
+		switch ($this->ezBackground['format']) {
             case IMAGETYPE_JPEG:
-                $this->addJpegFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
+            	$this->addJpegFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
             break;
             case IMAGETYPE_PNG:
-                $this->addPngFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
+            	$this->addPngFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
             break;
         }
-    }
+	}
 
     /**
-     * setup a margin on document page
-     * 
-     * **Example**<br>
-     * <pre>
-     * $pdf->ezSetMargins(50,50,50,50)
-     * </pre>
      *
-     * @param float $top top margin
-     * @param float $bottom botom margin
-     * @param float $left left margin
-     * @param float $right right margin
+     * @param $top
+     * @param $bottom
+     * @param $left
+     * @param $right
+     * @return unknown_type
+     * @access public
      */
-    public function ezSetMargins($top,$bottom,$left,$right){
+    function ezSetMargins($top,$bottom,$left,$right){
         // sets the margins to new values
         $this->ez['topMargin']=$top;
         $this->ez['bottomMargin']=$bottom;
@@ -370,15 +306,17 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * setup a margin on document page
-     * 
+     * Set Margins in centimeters
      * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
-     * @param float $top top margin in cm
-     * @param float $bottom botom margin in cm
-     * @param float $left left margin in cm
-     * @param float $right right margin in cm
+     *
+     * @param $top
+     * @param $bottom
+     * @param $left
+     * @param $right
+     * @return unknown_type
+     * @access public
      */
-    public function ezSetCmMargins($top,$bottom,$left,$right){
+    function ezSetCmMargins($top,$bottom,$left,$right){
         $top = ( $top / 2.54 ) * 72;
         $bottom = ( $bottom / 2.54 ) * 72;
         $left = ( $left / 2.54 ) * 72;
@@ -386,15 +324,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         $this->ezSetMargins($top,$bottom,$left,$right);
     }
 
-    /**
-     * create a new page
-     *
-     * **Example**<br>
-     * <pre>
-     * $pdf->ezNewPage()
-     * </pre>
+	/**
+     * creates a new Page
+     * @return unknown_type
+     * @access public
      */
-    public function ezNewPage(){
+    function ezNewPage(){
         $pageRequired=1;
         if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
             // check if this is just going to a new column
@@ -437,9 +372,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      * starts to flow text into columns
-     * @param $options array with option for gaps and number of columns - default: array('gap'=>10, 'num'=>2)
+     * @param $options array with option for gaps and no of columns
+     * @return unknown_type
+     * @access public
      */
-    public function ezColumnsStart($options=array()){
+    function ezColumnsStart($options=array()){
         // start from the current y-position, make the set number of columne
         if (isset($this->ez['columns']) && $this->ez['columns']==1){
             // if we are already in a column mode then just return.
@@ -474,8 +411,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      * stops the multi column mode
+     * @return unknown_type
+     * @access public
      */
-    public function ezColumnsStop(){
+    function ezColumnsStop(){
         if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
             $this->ez['columns']['on']=0;
             $this->ez['leftMargin']=$this->ez['columns']['margins'][0];
@@ -487,13 +426,15 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      * puts the document into insert mode. new pages are inserted until this is re-called with status=0
-     * by default pages will be inserted at the start of the document
+     * by default pages wil be inserted at the start of the document
      *
      * @param $status
      * @param $pageNum
      * @param $pos
+     * @return unknown_type
+     * @access public
      */
-    public function ezInsertMode($status=1,$pageNum=1,$pos='before'){
+    function ezInsertMode($status=1,$pageNum=1,$pos='before'){
         switch($status){
             case '1':
                 if (isset($this->ezPages[$pageNum])){
@@ -507,12 +448,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         }
     }
 
-    /**
-     * sets the Y position of the document.
-     * If Y reaches the bottom margin a new page is generated
-     * @param float $y Y position
+	/**
+     * sets the Y position of the document
+     * @param $y
+     * @return unknown_type
+     * @access public
      */
-    public function ezSetY($y){
+    function ezSetY($y){
         // used to change the vertical position of the writing point.
         $this->y = $y;
         if ( $this->y < $this->ez['bottomMargin']){
@@ -522,12 +464,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * changes the Y position of the document by writing positive or negative numbers.
-     * If Y reaches the bottom margin a new page is generated
+     * changes the Y position of the document by writing positive or negative numbers
      * @param $dy
      * @param $mod
+     * @return unknown_type
+     * @access public
      */
-    public function ezSetDy($dy,$mod=''){
+    function ezSetDy($dy,$mod=''){
         // used to change the vertical position of the writing point.
         // changes up by a positive increment, so enter a negative number to go
         // down the page
@@ -550,17 +493,19 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * as required.
      * Adjust this function so that each time you 'start' page numbers then you effectively start a different batch
      * return the number of the batch, so that they can be stopped in a different order if required.
-     *
-     * @param float $x X-coordinate
-     * @param float $y Y-coordinate
+	 *
+     * @param integer $x X-coordinate
+     * @param integer $y Y-coordinate
      * @param $size
-     * @param string $pos use either right or left
-     * @param string $pattern pattern where {PAGENUM} is the current page number and {TOTALPAGENUM} is the page count in total
-     * @param int $num optional. make the first page this number, the number of total pages will be adjusted to account for this.
+     * @param string $pos use right or left
+     * @param $pattern
+     * @param integer $num optional. make the first page this number, the number of total pages will
+     * be adjusted to account for this.
      *
-     * @return int count of ez['pageNumbering']
+     * @access public
+     * @return unknown_type
      */
-    public function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
+    function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
         if (!$pos || !strlen($pos)){
             $pos='left';
         }
@@ -579,9 +524,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * returns the number of a page within the specified page numbering system
      * @param $pageNum
      * @param $i
-     * @return int page number
+     * @access public
+     * @return integer page number
      */
-    public function ezWhatPageNumber($pageNum,$i=0){
+    function ezWhatPageNumber($pageNum,$i=0){
         // given a particular generic page number (ie, document numbered sequentially from beginning),
         // return the page number under a particular page numbering scheme ($i)
         $num=0;
@@ -610,11 +556,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         return $num;
     }
     
-    /**
-     * receive the current page number
-     * @return int page number
+	/**
+     * returns the current page number
+     * @access public
+     * @return integer page number
      */
-    public function ezGetCurrentPageNumber(){
+    function ezGetCurrentPageNumber(){
         // return the strict numbering (1,2,3,4..) number of the current page
         return $this->ezPageCount;
     }
@@ -624,8 +571,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param $stopTotal
      * @param $next
      * @param $i
+     * @access public
+     * @return unknown_type
      */
-    public function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
+    function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
         // if stopTotal=1 then the totalling of pages for this number will stop too
         // if $next=1, then do this page, but not the next, else do not do this page either
         // if $i is set, then stop that particular pagenumbering sequence.
@@ -653,13 +602,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * internal function to search the page number
-     * @see Cezpdf::ezStartPageNumbers()
+     *
      * @param $lbl
      * @param $tmp
-     * @return int page number
+     * @access private
+     * @return unknown_type
      */
-    private function ezPageNumberSearch($lbl,&$tmp){
+    function ezPageNumberSearch($lbl,&$tmp){
         foreach ($tmp as $i=>$v){
             if (is_array($v)){
                 if (isset($v[$lbl])){
@@ -675,10 +624,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * save page numbers for paging
-     * @see Cezpdf::ezStartPageNumbers()
+     * @access private
      */
-    private function addPageNumbers(){
+    function addPageNumbers(){
         // this will go through the pageNumbering array and add the page numbers are required
         if (isset($this->ez['pageNumbering'])){
             $totalPages1 = $this->ezPageCount;
@@ -729,7 +677,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                         $pat = str_replace('{TOTALPAGENUM}',$total,$pat);
                         $this->reopenObject($id);
                         switch($info['pos']){
-                            case 'left':
+                            case 'right':
                                 $this->addText($info['x'],$info['y'],$info['size'],$pat);
                                 break;
                             default:
@@ -748,79 +696,71 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * some clean up function (especially used after paging)
+     * @access private
+     * @return unknown_type
      */
-    private function cleanUp(){
+    function cleanUp(){
         $this->addPageNumbers();
     }
 
     /**
-     * internal method to draw different table lines
-     * called by ezTable() method
-     * 
-     * @param array $pos start position of each column
-     * @param float $gap column gap defined in ezTable()
-     * @param float $rowGap row gap defined in ezTable()
-     * @param float $x0 some coordinates
-     * @param $x1 some X coordinates
-     * @param $y0 some Y coordinates 
-     * @param $y1 some Y coordinates
-     * @param $y2 some Y coordinates
-     * @param array $col line color as array
-     * @param float $inner inner line thickness
-     * @param float $outer outer line thickness
-     * @param int $gridlines - what gridlines to display
+     *
+     * @param $pos
+     * @param $gap
+     * @param $x0
+     * @param $x1
+     * @param $y0
+     * @param $y1
+     * @param $y2
+     * @param $col
+     * @param $inner
+     * @param $outer
+     * @param $opt
+     * @access protected
+     * @return unknown_type
      */
-    protected function ezTableDrawLines($pos,$gap, $rowGap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$gridlines){
+    function ezTableDrawLines($pos,$gap,$x0,$x1,$y0,$y1,$y2,$col,$inner,$outer,$opt=1){
         $x0=1000;
         $x1=0;
         $this->setStrokeColor($col[0],$col[1],$col[2]);
-
-// Vertical gridlines (including outline)		
         $cnt=0;
         $n = count($pos);
         foreach ($pos as $x){
+            $cnt++;
+            if ($cnt==1 || $cnt==$n)
+            $this->setLineStyle($outer);
+            else
+            $this->setLineStyle($inner);
+
+            if ($opt != 3) $this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
             if ($x>$x1) $x1=$x;
             if ($x<$x0) $x0=$x;
-            $cnt++;
-            if ($cnt==1 || $cnt==$n) {
-				if (! ($gridlines & EZ_GRIDLINE_TABLE_V)) continue;
-            $this->setLineStyle($outer);
-            } else {
-				if (! ($gridlines & EZ_GRIDLINE_COLUMNS)) continue;
-            $this->setLineStyle($inner);
         }
-			$this->line($x-$gap/2,$y0,$x-$gap/2,$y2);
-        }
-
-// Top and bottom outline		
         $this->setLineStyle($outer);
-		if ($gridlines & EZ_GRIDLINE_TABLE_H) {
-			$this->line($x0-$gap/2 - $outer/2,$y0, $x1 - $gap/2+$outer/2,$y0);
-			$this->line($x0-$gap/2 - $outer/2,$y2, $x1 - $gap/2+$outer/2,$y2);
-		}
+        $this->line($x0-$gap/2 - $outer/2,$y0, $x1 - $gap/2+$outer/2,$y0);
+        // only do the second line if it is different to the first, AND each row does not have
+        // a line on it.
+        if ($y0!=$y1 && $opt<2)
+        $this->line($x0-$gap/2,$y1,$x1-$gap/2,$y1);
 
-// Header / data separator
-        if ($y0!=$y1 && ($gridlines & EZ_GRIDLINE_HEADERONLY))
-            $this->line($x0-$gap/2,$y1+$rowGap*2,$x1-$gap/2,$y1+$rowGap*2);
-
+        $this->line($x0-$gap/2 - $outer/2,$y2,$x1 - $gap/2+$outer/2,$y2);
     }
 
     /**
-     * used to display the headline of a table
-     * called by ezTable() method
-     * 
-     * @param array $cols column array from ezTable option parameter
+     *
+     * @param $cols
      * @param $pos
-     * @param float $maxWidth maximum width
-     * @param float $height height of the heading
+     * @param $maxWidth
+     * @param $height
      * @param $decender
-     * @param float $gap
-     * @param float $size font size
-     * @param float $y actual Y position
+     * @param $gap
+     * @param $size
+     * @param $y
      * @param $optionsAll
+     * @access protected
+     * @return unknown_type
      */
-    protected function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
+    function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
         // uses ezText to add the text, and returns the height taken by the largest heading
         // this page will move the headings to a new page if they will not fit completely on this one
         // transaction support will be used to implement this
@@ -844,14 +784,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         // begin the transaction
         $this->transaction('start');
         $ok=0;
-        //$y-=$gap+$decender;
+        //  $y-=$gap-$decender;
         $y-=$gap;
         while ($ok==0){
             foreach ($cols as $colName=>$colHeading){
                 $this->ezSetY($y);
-                if (!empty($optionsAll['alignHeadings'])) {
- 					$justification = $optionsAll['alignHeadings'];
-                } else if (isset($options[$colName]) && isset($options[$colName]['justification'])){
+                if (isset($options[$colName]) && isset($options[$colName]['justification'])){
                     $justification = $options[$colName]['justification'];
                 } else {
                     $justification = 'left';
@@ -862,9 +800,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                     $mx=$dy;
                 }
             }
-            
-            $y = $y - $mx - $gap;
-            
+            $y = $y - $mx - $gap + $decender;
+            //    $y -= $mx-$gap+$decender;
+
             // now, if this has moved to a new page, then abort the transaction, move to a new page, and put it there
             // do not check on the second time around, to avoid an infinite loop
             if ($this->ezPageCount != $startPage && $secondGo==0){
@@ -882,20 +820,21 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             }
         }
 
-        return $mx+$gap+$decender;
+        return $mx+$gap*2-$decender;
     }
 
     /**
-     * calculate the maximum width, taking into account until text may be broken
+     * will calculate the maximum width, taking into account that the text may be broken
+     * by line breaks.
      *
      * @param $size
      * @param $text
-     * @return float text width
+     * @access public
+     * @return unknown_type
      */
-    public function ezGetTextWidth($size,$text){
+    function ezGetTextWidth($size,$text){
         $mx=0;
-        //$lines = explode("\n",$text);
-        $lines = preg_split("[\r\n|\r|\n]",$text);
+        $lines = explode("\n",$text);
         foreach ($lines as $line){
             $w = $this->getTextWidth($size,$line);
             if ($w>$mx){
@@ -907,10 +846,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      *  add a table of information to the pdf document
+     *  $data is a two dimensional array
+     *  $cols (optional) is an associative array, the keys are the names of the columns from $data
+     *  to be presented (and in that order), the values are the titles to be given to the columns
+     *  $title (optional) is the title to be put on the top of the table
      *
-     * **$options**
-     * <pre>
-     * 'showHeadings' => 0 or 1
+     *  $options is an associative array which can contain:
+     * 'showLines'=> 0,1,2,3,4 default is 1 (show outside and top lines only), 2=> lines on each row, 3=> lines for only rowa (excl. headline), 4=> HEAD LINE only
+	 * 'showHeadings' => 0 or 1
      * 'shaded'=> 0,1,2,3 default is 1 (1->alternate lines are shaded, 0->no shading, 2-> both shaded, second uses shadeCol2)
      * 'showBgCol'=> 0,1 default is 0 (1->active bg color column setting. if is set to 1, bgcolor attribute ca be used in 'cols' 0->no active bg color columns setting)
      * 'shadeCol' => (r,g,b) array, defining the colour of the shading, default is (0.8,0.8,0.8)
@@ -923,53 +866,32 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * 'lineCol' => (r,g,b) array, defining the colour of the lines, default, black.
      * 'xPos' => 'left','right','center','centre',or coordinate, reference coordinate in the x-direction
      * 'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'
-     * 'width'=> <number> which will specify the width of the table, if it turns out to not be this wide, then it will stretch the table to fit, if it is wider then each cell will be made proportionalty smaller, and the content may have to wrap.
+     * 'width'=> <number> which will specify the width of the table, if it turns out to not be this
+     * wide, then it will stretch the table to fit, if it is wider then each cell will be made
+     * proportionalty smaller, and the content may have to wrap.
      * 'maxWidth'=> <number> similar to 'width', but will only make table smaller than it wants to be
      * 'cols' => array(<colname>=>array('justification'=>'left','width'=>100,'link'=>linkDataName,'bgcolor'=>array(r,g,b) ),<colname>=>....) allow the setting of other paramaters for the individual columns
-     * 'minRowSpace'=> the minimum space between the bottom of each row and the bottom margin, in which a new row will be started if it is less, then a new page would be started, default=-100
+     * 'minRowSpace'=> the minimum space between the bottom of each row and the bottom margin, in which a new row will be started
+     * if it is less, then a new page would be started, default=-100
      * 'innerLineThickness'=>1
      * 'outerLineThickness'=>1
      * 'splitRows'=>0, 0 or 1, whether or not to allow the rows to be split across page boundaries
      * 'protectRows'=>number, the number of rows to hold with the heading on page, ie, if there less than this number of rows on the page, then move the whole lot onto the next page, default=1
      * 'nextPageY'=> true or false (eg. 0 or 1) Sets the Y Postion of the Table of a newPage to current Table Postion
-     * </pre>
      *
-     * **since 0.12-rc9** added heading shade.
-     * <pre>
+     * @since 0.11.7a-php4 add heading shade for the php4 version
      * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
-     * </pre>
-     * 
-     * **since 0.12-rc11** applied patch #19 align all header columns at once
-     * <pre>
-     * 'gridlines'=> EZ_GRIDLINE_* default is EZ_GRIDLINE_DEFAULT, overrides 'showLines' to provide finer control
-     * 'alignHeadings' => 'left','right','center'
-     * </pre>
      *
-     * **deprecated in 0.12-rc11** 
-     * <pre>'showLines' in $options - use 'gridline' instead</pre>
-     *
-     * Note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
-     *
-     * **Example**
-     *
-     * <pre>
-     * $data = array(
-     *    array('num'=>1,'name'=>'gandalf','type'=>'wizard')
-     *   ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
-     *   ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
-     *   ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
-     *   ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
-     *   );
-     * $pdf->ezTable($data);
-     * </pre>
-     *
-     * @param array $data the data to fill the table cells as a two dimensional array
-     * @param array $cols (optional) is an associative array, the keys are the names of the columns from $data to be presented (and in that order), the values are the titles to be given to the columns
-     * @param string $title (optional) is the title to be put on the top of the table
-     * @param array $options all possible options, see description above
-     * @return float the actual y position
+     * note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
+  	 *
+     * @param $data
+     * @param $cols
+     * @param $title
+     * @param $options
+     * @access public
+     * @return unknown_type
      */
-    public function ezTable(&$data,$cols='',$title='',$options=''){
+    function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){
             return;
         }
@@ -991,11 +913,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $options=array();
         }
 
-        $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
+        $defaults = array('shaded'=>1,'showBgCol'=>0,'showLines'=>1,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
         'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
-        'shadeHeadingCol'=>array(), 'gridlines' => EZ_GRIDLINE_DEFAULT
+        'shadeHeadingCol'=>array()
         );
 
         foreach ($defaults as $key=>$value){
@@ -1009,20 +931,6 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 }
             }
         }
-        
-        // @deprecated Compatibility with 'showLines' option
-        if(isset($options['showLines'])){
-            switch ($options['showLines']) {
-				case 0:	$options['gridlines'] = 0; break;
-				case 1:	$options['gridlines'] = EZ_GRIDLINE_DEFAULT; break;
-				case 2:	$options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS; break;
-				case 3:	$options['gridlines'] = EZ_GRIDLINE_ROWS; break; 
-				case 4:	$options['gridlines'] = EZ_GRIDLINE_HEADERONLY; break;
-				default: 	$options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
-			}
-            unset($options['showLines']);
-        }
-		
         $options['gap']=2*$options['colGap'];
         // Use Y Position of Current Page position in Table
         if ($options['nextPageY']) $nextPageY = $this->y;
@@ -1036,7 +944,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         // find the maximum cell widths based on the data
         foreach ($data as $row){
             foreach ($cols as $colName=>$colHeading){
-                // BUGFIX #16 ignore empty columns | thanks jafjaf
+				// BUGFIX #16 ignore empty columns | thanks jafjaf
                 if (empty($row[$colName])) continue;
                 $w = $this->ezGetTextWidth($options['fontSize'],(string)$row[$colName])*1.01;
                 if ($w > $maxWidth[$colName]){
@@ -1192,7 +1100,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 $dx = $xref-$t/2;
                 break;
         }
-        // applied patch #18 alignment fixes for tables and images | thank you Emil Totev
+        
         $dx += $options['colGap'];
 
         foreach ($pos as $k=>$v){
@@ -1260,7 +1168,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             // make the table
             $height = $this->getFontHeight($options['fontSize']);
             $decender = $this->getFontDecender($options['fontSize']);
-            
+
+
+
             $y0=$y+$decender;
             $dy=0;
             if ($options['showHeadings']){
@@ -1275,8 +1185,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 // patch #9 end
                 // this function will move the start of the table to a new page if it does not fit on this one
                 $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                $y0 = $y+$headingHeight+$options['rowGap'];
-                $y1 = $y - $options['rowGap']*2;
+                //$y0 = $y+$headingHeight;
+                $y1 = $y - $options['rowGap'];
 
                 $dm = $this->ez['leftMargin']-$baseLeftMargin;
                 foreach ($basePos as $k=>$v){
@@ -1342,12 +1252,17 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                             }
 
                             $y2=$y-$mx+2*$height+$decender-$newRow*$height;
-                            if ($options['gridlines']){
-                                $y1+=$decender;
+                            if ($options['showLines']){
                                 if (!$options['showHeadings']){
                                     $y0=$y1;
                                 }
-                              $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
+                                if ($options['showLines'] > 3){
+                                    $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
+                                    // @since 0.11.7a-php4 corrected header row position
+                                    $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
+                                }else if ($options['showLines'] < 3){
+                                    $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
+                                }
                             }
                             if ($options['shaded'] || $options['showBgCol']){
                                 $this->closeObject();
@@ -1384,15 +1299,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$decender+$options['rowGap']) );
+                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight+$decender) );
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->restoreState();
                                 }
                                 // patch #9 end
                                 $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                                $y1 = $y - $options['rowGap']*2;
-                                
+                                $y1=$y - $options['rowGap'];
                             } else {
                                 $y1=$y0;
                             }
@@ -1412,16 +1326,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                             if (isset($row[$colName])){
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])){
 
-                                    //$lines = explode("\n",$row[$colName]);
-                                    $lines = preg_split("[\r\n|\r|\n]",$row[$colName]);
+                                    $lines = explode("\n",$row[$colName]);
                                     if (isset($row[$options['cols'][$colName]['link']]) && strlen($row[$options['cols'][$colName]['link']])){
                                         foreach ($lines as $k=>$v){
                                             $lines[$k]='<c:alink:'.$row[$options['cols'][$colName]['link']].'>'.$v.'</c:alink>';
                                         }
                                     }
                                 } else {
-                                    //$lines = explode("\n",$row[$colName]);
-                                    $lines = preg_split("[\r\n|\r|\n]",$row[$colName]);
+                                    $lines = explode("\n",$row[$colName]);
                                 }
                             } else {
                                 $lines = array();
@@ -1430,6 +1342,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                             foreach ($lines as $line){
                                 $line = $this->ezProcessText($line);
                                 $start=1;
+
                                 while (strlen($line) || $start){
                                     $start=0;
                                     if (!$colNewPage){
@@ -1454,7 +1367,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                             $just='left';
                                         }
 
-                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
+                                        $line=$this->addTextWrap($pos[$colName],$this->y,$maxWidth[$colName],$options['fontSize'],$line,$just);
                                     }
                                 }
                             }
@@ -1493,19 +1406,21 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                 }
                             }
                         }
-                        if ($options['gridlines'] & EZ_GRIDLINE_ROWS){
+                        if ($options['showLines']>1){
                             // then draw a line on the top of each block
                             // $this->closeObject();
                             $this->saveState();
                             $this->setStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
                             // $this->line($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
                             if ($firstLine){
+                                $this->setLineStyle($options['outerLineThickness']);
                                 $firstLine=0;
                             } else {
                                 $this->setLineStyle($options['innerLineThickness']);
-                                $this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
                             }
-
+                            if ($options['showLines'] < 4){
+                                $this->line($x0-$options['colGap'],$y+$decender+$height,$x1-$options['colGap'],$y+$decender+$height);
+                            }
                             $this->restoreState();
                             // $this->reopenObject($textObjectId);
                         }
@@ -1558,12 +1473,17 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         $this->transaction('commit');
 
         $y2=$y+$decender;
-        if ($options['gridlines']){
-            $y1+=$decender;
+        if ($options['showLines']){
             if (!$options['showHeadings']){
                 $y0=$y1;
             }
-             $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
+            if ($options['showLines'] > 3){
+                $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
+                // @since 0.11.7a-php4 corrected header row position
+                $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
+            } else if ($options['showLines'] < 3){
+                $this->ezTableDrawLines($pos,$options['gap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
+            }
         }
         // close the object for drawing the text on top
         if ($options['shaded'] || $options['showBgCol']){
@@ -1576,13 +1496,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * internal method to convert some text directives (like custom callbacks)
-     * @used-by ezTable()
-     * @used-by ezText()
-     * @param string $text text to be parsed
-     * @return string customized text
+     *
+     * @param $text
+     * @access protected
+     * @return unknown_type
      */
-    protected function ezProcessText($text){
+    function ezProcessText($text){
         // this function will intially be used to implement underlining support, but could be used for a range of other
         // purposes
         $search = array('<u>','<U>','</u>','</U>');
@@ -1593,36 +1512,32 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     /**
      * this will add a string of text to the document, starting at the current drawing
      * position.
-     * it will wrap to keep within the margins, including optional offsets from the left
+	 * it will wrap to keep within the margins, including optional offsets from the left
      * and the right, if $size is not specified, then it will be the last one used, or
      * the default value (12 I think).
      * the text will go to the start of the next line when a return code "\n" is found.
      * possible options are:
-     *
-     * 'left'=> number, gap to leave from the left margin<br>
-     * 'right'=> number, gap to leave from the right margin<br>
-     * 'aleft'=> number, absolute left position (overrides 'left')<br>
-     * 'aright'=> number, absolute right position (overrides 'right')<br>
-     * 'justification' => 'left','right','center','centre','full'<br>
-     *
-     * only set one of the next two items (leading overrides spacing)<br>
-     * 'leading' => number, defines the total height taken by the line, independent of the font height.<br>
-     * 'spacing' => a real number, though usually set to one of 1, 1.5, 2 (line spacing as used in word processing)<br>
-     *
+     * 'left'=> number, gap to leave from the left margin
+     * 'right'=> number, gap to leave from the right margin
+     * 'aleft'=> number, absolute left position (overrides 'left')
+     * 'aright'=> number, absolute right position (overrides 'right')
+     * 'justification' => 'left','right','center','centre','full'
+	 *
+     * only set one of the next two items (leading overrides spacing)
+     * 'leading' => number, defines the total height taken by the line, independent of the font height.
+     * 'spacing' => a real number, though usually set to one of 1, 1.5, 2 (line spacing as used in word processing)
+	 *
      * if $test is set then this should just check if the text is going to flow onto a new page or not, returning true or false
+	 *
      *
-     * **Example**<br>
-     * <pre>
-     * $pdf->ezText('This is a text string\nplus next line', 12, array('justification'=> 'center'));
-     * </pre>
-     * 
-     * @param string $text text string
-     * @param float $size font size
-     * @param array $options options from above
-     * @param bool $test is this test output only (to check if it fit to the page for instance)
-     * @return float|bool Y position or true/false if $test parameter is set
+     * @param $text
+     * @param $size
+     * @param $options
+     * @param $test
+     * @access public
+     * @return unknown_type
      */
-    public function ezText($text,$size=0,$options=array(),$test=0){
+    function ezText($text,$size=0,$options=array(),$test=0){
         // apply the filtering which will make the underlining function.
         $text = $this->ezProcessText($text);
 
@@ -1660,7 +1575,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $height = $this->getFontHeight($size);
         }
 
-        $lines = preg_split("[\r\n|\r|\n]",$text);
+        $lines = explode("\n",$text);
         foreach ($lines as $line){
             $start=1;
             while (strlen($line) || $start){
@@ -1685,7 +1600,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 } else {
                     $right = $this->ez['pageWidth'] - $this->ez['rightMargin'] - ((is_array($options) && isset($options['right']))?$options['right']:0);
                 }
-                $line=$this->addText($left,$this->y,$size,$line,$right-$left,$just,0,0, $test);
+                $line=$this->addTextWrap($left,$this->y,$right-$left,$size,$line,$just,0,$test);
             }
         }
 
@@ -1698,30 +1613,26 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * Used to display images
+     * Used to display image
      * supported images are:
      *  - JPEG
      *  - PNG (transparent)
      *  - GIF (but internally converted into JPEG)
-     *
-     * **Example**<br>
-     * <pre>
-     * $pdf->ezImage('file.jpg', 5, 100, 'full', 'right', array('color'=> array(0.2, 0.4, 0.4), 'width'=> 2, 'cap'=>'round'));
-     * </pre>
-     * 
-     * @param string $image image file or url path
-     * @param float $pad image padding
-     * @param float $width max width
+     * @param $image
+     * @param $pad
+     * @param $width
      * @param $resize
-     * @param string $just justification of the image ('left', 'right', 'center')
-     * @param array $border border array - see example 
+     * @param $just
+     * @param $border
+     * @access public
+     * @return unknown_type
      */
-    public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
-        $temp = false;
+    function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
+    	$temp = false;
         //beta ezimage function
         if (stristr($image, '://')) { //copy to temp file
-            $cont = file_get_contents($image);
-            
+        	$cont = file_get_contents($image);
+        	
             $image = tempnam($this->tempPath, "ezImg");
             $fp2 = @ fopen($image, "w");
             fwrite($fp2, $cont);
@@ -1729,9 +1640,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $temp = true;
         }
 
-        
+		
         if (!(file_exists($image))){
-            $this->debug("ezImage: Could not find image '$image'", E_USER_WARNING);
+        	$this->debug("ezImage: Could not find image '$image'", E_USER_WARNING);
             return false; //return immediately if image file does not exist
         }
         
@@ -1739,7 +1650,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         
         
         if($imageInfo === false){
-            $this->debug("ezImage: Could not get image info for '$image'", E_USER_ERROR);
+        	$this->debug("ezImage: Could not get image info for '$image'", E_USER_ERROR);
         }
         
         if ($width == 0)
@@ -1787,17 +1698,17 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         //call appropriate function
         switch ($imageInfo[2]) {
             case IMAGETYPE_JPEG:
-                $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
+            	$this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             case IMAGETYPE_PNG:
-                $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
+            	$this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
                 break;
             case IMAGETYPE_GIF:
-                // use GD to convert the GIF image to PNG and allow transparency
-                $this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
-                break;
+            	// use GD to convert the GIF image to PNG and allow transparency
+            	$this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
+            	break;
             default:
-                $this->debug("ezImage: Unsupported image type".$imageInfo[2], E_USER_WARNING);
+            	$this->debug("ezImage: Unsupported image type".$imageInfo[2], E_USER_WARNING);
                 return false; //return if file is not jpg or png
         }
         
@@ -1828,29 +1739,29 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     }
 
     /**
-     * Output the PDF content as stream
-     * 
+     * Outputs the PDF content as stream
      * $options
-     *
-     * 'compress' => 0/1 to enable compression. For compression level please use $this->options['compression'] = <level> at the very first point. Default: 1<br>
-     * 'download' => 0/1 to display inline (in browser) or as download. Default: 0<br>
-     *
-     * @param array $options options array from above
+     * 	'compress' => 0/1 to enable compression. For compression level please use $this->options['compression'] = <level> at the very first point. Default: 1 
+     *  'download' => 0/1 to display inline (in browser) or as download. Default: 0
+     * 
+     * @param $options
+     * @access public
+     * @return unknown_type
      */
-    public function ezStream($options=''){
+    function ezStream($options=''){
         $this->cleanUp();
         $this->stream($options);
     }
 
     /**
-     * return the pdf output as string
-     *
-     * @param bool $debug uncompressed output for debugging purposes
-     * @return string pdf document
+     * returns the PDF as "string"
+     * @param $options
+     * @access public
+     * @return unknown_type
      */
-    public function ezOutput($debug = FALSE){
+    function ezOutput($options=0){
         $this->cleanUp();
-		return $this->output($debug);
+        return $this->output($options);
     }
 
     /**
@@ -1863,13 +1774,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      *
      * The id of the template will be returned for the user to operate on it later
      *
-     * SECURITY NOTICE: php function 'eval' is used in execTemplate
-     * 
-     * @param string $templateFile php script to be execupte
-     * @return int object number?!
+     * @param $templateFile
+     * @access public
+     * @return unknown_type
      * @deprecated method deprecated in 0.12.0
      */
-    public function loadTemplate($templateFile){
+    function loadTemplate($templateFile){
         if (!file_exists($templateFile)){
             return -1;
         }
@@ -1902,13 +1812,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      * executes the template
-     *
      * @param $id
      * @param $data
      * @param $options
+     * @access public
+     * @return unknown_type
      * @deprecated method deprecated in 0.12.0
      */
-    public function execTemplate($id,$data=array(),$options=array()){
+    function execTemplate($id,$data=array(),$options=array()){
         // execute the given template on the current document.
         if (!isset($this->ez['templates'][$id])){
             return;
@@ -1918,29 +1829,22 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      * callback function for internal links
-     *
-     * **Example**<br>
-     * <pre>
-     * $pdf->ezText('<c:ilink:destName>Internal Link</c:ilink>');
-     * </pre>
-     *
      * @param $info
+     * @access public
+     * @return unknown_type
      */
-    public function ilink($info){
+    function ilink($info){
         $this->alink($info,1);
     }
 
     /**
      * callback function for external links 
-     *
-     * **Example**<br>
-     * <pre>
-     * $pdf->ezText('&lt;c:alink:www.google.de&gt;Hello google&lt;/c:alink&gt;');<br>
-     * </pre>
-     * @param array $info callback info array
+     * @param $info
      * @param $internal
+     * @access public
+     * @return unknown_type
      */
-    public function alink($info,$internal=0){
+    function alink($info,$internal=0){
         // a callback function to support the formation of clickable links within the document
         $lineFactor=0.05; // the thickness of the line as a proportion of the height. also the drop of the line.
         switch($info['status']){
@@ -1952,7 +1856,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                     $this->ez['links']=array();
                 }
                 $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'descender'=>$info['descender'],'height'=>$info['height'],'url'=>$info['p']);
+                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'decender'=>$info['decender'],'height'=>$info['height'],'url'=>$info['p']);
                 if ($internal==0){
                     $this->saveState();
                     $this->setColor(0,0,1);
@@ -1969,14 +1873,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 $start = $this->ez['links'][$i];
                 // add underlining
                 if ($internal){
-                    $this->addInternalLink($start['url'],$start['x'],$start['y']+$start['descender'],$info['x'],$start['y']+$start['descender']+$start['height']);
+                    $this->addInternalLink($start['url'],$start['x'],$start['y']+$start['decender'],$info['x'],$start['y']+$start['decender']+$start['height']);
                 } else {
                     $a = deg2rad((float)$start['angle']-90.0);
                     $drop = $start['height']*$lineFactor*1.5;
                     $dropx = cos($a)*$drop;
                     $dropy = -sin($a)*$drop;
                     $this->line($start['x']-$dropx,$start['y']-$dropy,$info['x']-$dropx,$info['y']-$dropy);
-                    $this->addLink($start['url'],$start['x'],$start['y']+$start['descender'],$info['x'],$start['y']+$start['descender']+$start['height']);
+                    $this->addLink($start['url'],$start['x'],$start['y']+$start['decender'],$info['x'],$start['y']+$start['decender']+$start['height']);
                     $this->restoreState();
                 }
                 break;
@@ -1985,10 +1889,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
     /**
      * a callback function to support underlining
-     *
-     * @param array $info callback info array
+     * @param $info
+     * @access public
+     * @return unknown_type
      */
-    public function uline($info){
+    function uline($info){
         $lineFactor=0.05; // the thickness of the line as a proportion of the height. also the drop of the line.
         switch($info['status']){
             case 'start':
@@ -1999,7 +1904,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                     $this->ez['links']=array();
                 }
                 $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'descender'=>$info['descender'],'height'=>$info['height']);
+                $this->ez['links'][$i] = array('x'=>$info['x'],'y'=>$info['y'],'angle'=>$info['angle'],'decender'=>$info['decender'],'height'=>$info['height']);
                 $this->saveState();
                 $thick = $info['height']*$lineFactor;
                 $this->setLineStyle($thick);
@@ -2016,62 +1921,6 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 $dropx = cos($a)*$drop;
                 $dropy = -sin($a)*$drop;
                 $this->line($start['x']-$dropx,$start['y']-$dropy,$info['x']-$dropx,$info['y']-$dropy);
-                $this->restoreState();
-                break;
-        }
-    }
-    
-    /**
-     * a callback function to support comment annotation
-     *
-     * @param $info callback info array
-     */
-    public function comment(&$info){
-        if(isset($info)){
-            $offsetY = $info['y'] + $info['height'];
-            // split title and text content use '|' char
-            $commentPart = preg_split("/\|/",$info['p']);
-            if(is_array($commentPart) && count($commentPart) > 1){
-                $this->addComment($commentPart[0], $commentPart[1], $info['x'], $offsetY);
-            } else {
-                $this->addComment('Comment', $info['p'], $info['x'], $offsetY);
-            }
-            $info['x'] += 15;
-        }
-    }
-    
-    /**
-     * another callback function to provide coloured text
-     * Usage: $pdf->ezText("<c:color:r,g,b>some coloured text</c:color>");
-     *
-     * Please make sure $pdf->allowedTags is set properly
-     *
-     * @param $info callback info array
-     */
-    public function color($info)
-    {
-        // a callback function to support the inline coloring of text
-
-        switch ($info['status']) {
-            case 'start':
-            case 'sol':
-
-                // the beginning of the color zone
-                if (!isset($this->ez['links'])) {
-                    $this->ez['links'] = array();
-                }
-                $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'color' => $info['p']);
-                $this->saveState();
-                $colAry = explode(",", $info['p']);
-                $this->setColor($colAry[0], $colAry[1], $colAry[2]);
-                break;
-            case 'end':
-            case 'eol':
-                // the end of the link
-                // assume that it is the most recent opening which has closed
-                $i = $info['nCallback'];
-                $this->setColor(0, 0, 0);
                 $this->restoreState();
                 break;
         }

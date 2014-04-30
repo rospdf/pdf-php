@@ -22,9 +22,7 @@ class CezDummy extends Cezpdf {
 	 * @param Cezpdf $ezpdf current cezpdf object
 	 */
 	function CezDummy($p,$o = 'portrait',$t = 'none', $op = array()){
-		parent::__construct($p, $o,$t,$op);
-        
-        $this->allowedTags .= '|dummy:[0-9]+';
+		parent::Cezpdf($p, $o,$t,$op);
 	}
 	
 	/*
@@ -43,7 +41,7 @@ class CDummyItem {
 	
 	var $fullName;
 	
-	function __construct($param, &$data) {
+	function CDummyItem($param, &$data) {
 		error_log('CDummyItem:'.$param);
 		$this->_parseName($data,$param);
 	}
