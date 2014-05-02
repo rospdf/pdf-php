@@ -1105,7 +1105,7 @@
         switch ($action){
         case 'new':
             $this->infoObject=$id;
-            $date='D:'.date('Ymd');
+            $date='D:'.date('YmdHis')."-00'00";
             $this->objects[$id]=array('t'=>'info','info'=>array('Creator'=>'R&OS php pdf class, http://pdf-php.sf.net/','CreationDate'=>$date));
             break;
         case 'Title':
