@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<0.12-rc17>
+
+- fixed reported bug #76 Invalid creation date
+
 2<0.12-rc16>
 
 - fixed property $stack to be protected as a private property cause strange behaviours in PHP 5.1 and 5.2
