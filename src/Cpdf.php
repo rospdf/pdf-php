@@ -2936,7 +2936,6 @@
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
-
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0){ 
             for ($i = $this->nCallback; $i > 0; $i--){
@@ -2970,13 +2969,24 @@
           $this->wordSpaceAdjust = $wordSpaceAdjust;
           $this->addContent(sprintf(" %.3F Tw", $wordSpaceAdjust));
         }
-
+		
         $start=0;
         foreach($directives as  $pos => $directive){
             if($pos > $start){
                 $part = mb_substr($text,$start,$pos-$start, 'UTF-8');
                 $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1F',$size).' Tf ');
-                $this->addContent(' ('.$this->filterText($part, false).') Tj');
+                
+                $place_text = $this->filterText($part, false);
+                
+                if ($this->fonts[$cf]['isUnicode'] && $wordSpaceAdjust != 0) {
+					$s = $this->fonts[$this->currentFont]['C'][32];
+                	$space_scale = (1000 / $size) * $wordSpaceAdjust + $s;
+                	$place_text = str_replace("\x00\x20", ') '.(-round($space_scale)).' (', $place_text);
+                
+                	$this->addContent(" [(".$place_text.")] TJ");
+                } else {
+                	$this->addContent(' ('.$place_text.') Tj');
+                }
             }
             
             $func = $directive['f'];
@@ -3184,7 +3194,7 @@
             case 'full':
                 // count the number of words
                 $words = explode(' ',$text);
-                $nspaces=count($words)-1;
+                $nspaces=count($words) - 1;
                 if ($nspaces>0){
                     $adjust = ($width-$actual)/$nspaces;
                 } else {
