@@ -2771,7 +2771,7 @@
                     if($nx > $x){
                         $tmpw = ($width - $restWidth) + $tmp[0];
                         // force word wrap when something already written
-                        $lbpos -= $tmp[2];
+                        /*$lbpos -= $tmp[2];
                         if($prevEndTagIndex == $lbpos){
                             $lastCallback = array_pop($cb);
                             
@@ -2781,11 +2781,10 @@
                                 if(isset($lastCallback['nCallback']))
                                     $this->nCallback--;
                             }
-                        }
+                        }*/
                     } else{
                         $tmpw = $tmp[0];
                     }
-                    
                     $this->adjustWrapText($tmpstr, $tmpw, $width, $x, $wordSpaceAdjust, $justification);
                     // set position array by using the current break position minus offset
                     $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
@@ -2799,6 +2798,7 @@
                 $prevEndTagIndex = $endTagIndex;
                 $restWidth -= $tmp[0];
                 $nx += $tmp[0];
+                
                 $ny += $tmp[1];
                 
                 if(!empty($regs[1][$k][0])){
@@ -2956,7 +2956,7 @@
         $len=mb_strlen($text,'UTF-8');
         
         $directives = $this->getDirectives($text, $x, $y, $width, $size, $justification, $angle, $wordSpaceAdjust);
-        
+        //print_r($directives);
         if ($angle == 0) {
           $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
         } else {
