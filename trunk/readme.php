@@ -74,7 +74,7 @@ function dots($info){
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12-rc17";
+$project_version = "0.12-rc18";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
