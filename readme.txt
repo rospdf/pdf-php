@@ -1,4 +1,4 @@
---- CURRENT RELEASE CANDIDATE version 0.12-rc16
+--- CURRENT RELEASE CANDIDATE
 
  Use SVN to checkout from 
  svn://svn.code.sf.net/p/pdf-php/code/trunk
