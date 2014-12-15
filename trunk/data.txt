@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<0.12-rc19>
+
+- applied patch "updated extension CezTableImage" from Code Snippets forum - thanks Sigurd Nes
+
 2<0.12-rc18>
 
 - fixed reported bug #77 ezText html bold tag problem
