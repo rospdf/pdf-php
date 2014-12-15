@@ -46,11 +46,11 @@ class CezTableImage extends Cezpdf {
 	
 	/**
 	 * Modification to this function from Cezpdf
-	 * line 447-447: added parseImages function
-	 * line 470-477: added some condition to calculate cell height
-	 * line 481    : modified to set the new cell height
+	 * line 495-495: added parseImages function
+	 * line 518-524: added some condition to calculate cell height
+	 * line 528-528: modified to set the new cell height
 	 */
-	public function ezTable(&$data,$cols='',$title='',$options=''){
+    public function ezTable(&$data,$cols='',$title='',$options=''){
         if (!is_array($data)){
             return;
         }
@@ -72,11 +72,11 @@ class CezTableImage extends Cezpdf {
             $options=array();
         }
 
-        $defaults = array('shaded'=>1,'showBgCol'=>0,'showLines'=>1,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
+        $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
         'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
-        'shadeHeadingCol'=>array()
+        'shadeHeadingCol'=>array(), 'gridlines' => EZ_GRIDLINE_DEFAULT
         );
 
         foreach ($defaults as $key=>$value){
@@ -90,6 +90,20 @@ class CezTableImage extends Cezpdf {
                 }
             }
         }
+
+        // @deprecated Compatibility with 'showLines' option
+        if(isset($options['showLines'])){
+            switch ($options['showLines']) {
+				case 0:	$options['gridlines'] = 0; break;
+				case 1:	$options['gridlines'] = EZ_GRIDLINE_DEFAULT; break;
+				case 2:	$options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS; break;
+				case 3:	$options['gridlines'] = EZ_GRIDLINE_ROWS; break;
+				case 4:	$options['gridlines'] = EZ_GRIDLINE_HEADERONLY; break;
+				default: 	$options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
+			}
+            unset($options['showLines']);
+        }
+
         $options['gap']=2*$options['colGap'];
         // Use Y Position of Current Page position in Table
         if ($options['nextPageY']) $nextPageY = $this->y;
@@ -259,7 +273,8 @@ class CezTableImage extends Cezpdf {
                 $dx = $xref-$t/2;
                 break;
         }
-
+        // applied patch #18 alignment fixes for tables and images | thank you Emil Totev
+        $dx += $options['colGap'];
 
         foreach ($pos as $k=>$v){
             $pos[$k]=$v+$dx;
@@ -326,7 +341,7 @@ class CezTableImage extends Cezpdf {
             // make the table
             $height = $this->getFontHeight($options['fontSize']);
             $decender = $this->getFontDecender($options['fontSize']);
-            
+
             $y0=$y+$decender;
             $dy=0;
             if ($options['showHeadings']){
@@ -341,8 +356,8 @@ class CezTableImage extends Cezpdf {
                 // patch #9 end
                 // this function will move the start of the table to a new page if it does not fit on this one
                 $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                //$y0 = $y+$headingHeight;
-                $y1 = $y - $options['rowGap'];
+                $y0 = $y+$headingHeight+$options['rowGap'];
+                $y1 = $y - $options['rowGap']*2;
 
                 $dm = $this->ez['leftMargin']-$baseLeftMargin;
                 foreach ($basePos as $k=>$v){
@@ -408,17 +423,12 @@ class CezTableImage extends Cezpdf {
                             }
 
                             $y2=$y-$mx+2*$height+$decender-$newRow*$height;
-                            if ($options['showLines']){
+                            if ($options['gridlines']){
+                                $y1+=$decender;
                                 if (!$options['showHeadings']){
                                     $y0=$y1;
                                 }
-                                if ($options['showLines'] > 3){
-                                    $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                                    // @since 0.12-rc9 corrected header row position
-                                    $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
-                                }else if ($options['showLines'] < 3){
-                                    $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
-                                }
+                              $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
                             }
                             if ($options['shaded'] || $options['showBgCol']){
                                 $this->closeObject();
@@ -431,7 +441,7 @@ class CezTableImage extends Cezpdf {
                             foreach ($basePos as $k=>$v){
                                 $pos[$k]=$v+$dm;
                             }
-                            
+
                             $x0=$baseX0+$dm;
                             $x1=$baseX1+$dm;
                             if ($options['shaded'] || $options['showBgCol']){
@@ -455,15 +465,15 @@ class CezTableImage extends Cezpdf {
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight+$decender) );
+                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$decender+$options['rowGap']) );
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->restoreState();
                                 }
                                 // patch #9 end
                                 $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
-                                $y1=$y - $options['rowGap'];
-                                
+                                $y1 = $y - $options['rowGap']*2;
+
                             } else {
                                 $y1=$y0;
                             }
@@ -481,7 +491,7 @@ class CezTableImage extends Cezpdf {
                             $this->ezSetY($y+$height);
                             $colNewPage=0;
                             if (isset($row[$colName])){
-                                // KH: parse image tags and calculate the position and size for the images
+                                 // KH: parse image tags and calculate the position and size for the images
         						$this->parseImages($row[$colName],$maxWidth[$colName],0,($this->y - $options['rowGap'] - 2 * abs($decender)));
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])){
 
@@ -508,12 +518,13 @@ class CezTableImage extends Cezpdf {
                                     $_image = $this->checkForImage($line);
                                     if ($_image>0) {
                                         // TODO: Bildbreite anpassen, wenn Bild breiter ist als die Spalte
-                                        $_lineheight = $_image + 2 * abs($decender); 
+                                        $_lineheight = $_image + 2 * abs($decender);
                                     } else {
                                         $_lineheight = $height;
                                     }
-                                    $start=0;
+                                   $start=0;
                                     if (!$colNewPage){
+                                    // KH: modified to set the new cell height
                                         $this->y=$this->y-$_lineheight;
                                     }
                                     if ($this->y < $this->ez['bottomMargin']){
@@ -574,21 +585,19 @@ class CezTableImage extends Cezpdf {
                                 }
                             }
                         }
-                        if ($options['showLines']>1){
+                        if ($options['gridlines'] & EZ_GRIDLINE_ROWS){
                             // then draw a line on the top of each block
                             // $this->closeObject();
                             $this->saveState();
                             $this->setStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
                             // $this->line($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
                             if ($firstLine){
-                                $this->setLineStyle($options['outerLineThickness']);
                                 $firstLine=0;
                             } else {
                                 $this->setLineStyle($options['innerLineThickness']);
+                                $this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
                             }
-                            if ($options['showLines'] < 4){
-                                $this->line($x0-$options['colGap'],$y+$decender+$height,$x1-$options['colGap'],$y+$decender+$height);
-                            }
+
                             $this->restoreState();
                             // $this->reopenObject($textObjectId);
                         }
@@ -607,7 +616,7 @@ class CezTableImage extends Cezpdf {
                             $y0 = $y0_orig;
                             $y1 = $y1_orig;
                             $ok=0;
-                            
+
                             $dm = $this->ez['leftMargin']-$baseLeftMargin;
                             foreach ($basePos as $k=>$v){
                                 $pos[$k]=$v+$dm;
@@ -641,17 +650,12 @@ class CezTableImage extends Cezpdf {
         $this->transaction('commit');
 
         $y2=$y+$decender;
-        if ($options['showLines']){
+        if ($options['gridlines']){
+            $y1+=$decender;
             if (!$options['showHeadings']){
                 $y0=$y1;
             }
-            if ($options['showLines'] > 3){
-                $this->SetStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                // @since 0.12-rc9 corrected header row position
-                $this->line($x0-$options['colGap'],$y1,$x1-$options['colGap'],$y1);
-            } else if ($options['showLines'] < 3){
-                $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'],$options['showLines']);
-            }
+             $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
         }
         // close the object for drawing the text on top
         if ($options['shaded'] || $options['showBgCol']){
@@ -686,7 +690,8 @@ class CezTableImage extends Cezpdf {
 		$height = 0;
 		$matches = $this->getImagesFromText($text);
 		for ($key=0; $key<count($matches[0]); $key++) {
-	  		$params = & CezShowimageParameter::create($matches[1][$key]);
+			$CezShowimageParameter = new CezShowimageParameter();
+			$params = $CezShowimageParameter->create($matches[1][$key]);
 			if ($params->getHeight()>0) {
 				$height = $height + $params->getHeight();
 			} else {
@@ -702,9 +707,12 @@ class CezTableImage extends Cezpdf {
 	 * @param CezShowimageParameter $params image parameter
 	 * @param float $x horizontal position
 	 * @param float $y vertical position
+     * @param $w width
+     * @param $h height
+     * @param $quality image quality
 	 * @access protected
 	 */
-	function addImage(& $params, $x = 0, $y = 0) {
+	function addImage(& $params, $x = 0, $y = 0, $w=0,$h=0,$quality=75) {
 		if ($params->isUrl()) {
 			if (function_exists('imagecreatefrompng')) { 
 				switch($params->getImageType()) {
@@ -748,7 +756,8 @@ class CezTableImage extends Cezpdf {
 	 */
 	function showimage($info) {
 		if ($info['status']=='start') {
-			$params = & CezShowimageParameter::create($info['p']);
+			$CezShowimageParameter = new CezShowimageParameter();
+			$params =  $CezShowimageParameter->create($info['p']);
 			if ($params->isReadable()) {
 				$y = ($params->getPositionY()>0) ? $params->getPositionY() : $info['y'];
 				$this->addImage($params, $info['x'], $y);
@@ -771,7 +780,9 @@ class CezTableImage extends Cezpdf {
 	function parseImages(&$text, $maxwidth = 0, $maxheight = 0, $currenty = 0) {
 		$matches = $this->getImagesFromText($text);
 		for ($key=0; $key<count($matches[0]); $key++) {
-			$params = & CezShowimageParameter::create($matches[1][$key]);
+			$CezShowimageParameter = new CezShowimageParameter();
+			$params =  $CezShowimageParameter->create($matches[1][$key]);
+
 			if ($params->isReadable()) {
 				$width = $params->getWidth();
 				$height = $params->getHeight();
@@ -814,7 +825,8 @@ class CezTableImage extends Cezpdf {
 		$mx = 0;
 		$matches = $this->getImagesFromText($text);
 		for ($key=0; $key<count($matches[0]); $key++) {
-			$params = & CezShowimageParameter::create($matches[1][$key]);
+			$CezShowimageParameter = new CezShowimageParameter();
+			$params =  $CezShowimageParameter->create($matches[1][$key]);
 	    	if ($params->getWidth()>$mx) {
 	    		$mx = $params->getWidth();
 	    	} elseif ($params->getOriginalWidth()>$mx) {
@@ -963,9 +975,9 @@ class CezShowimageParameter {
 	 * @return CezShowimageParameter parameter object
 	 * @access public
 	 */
-	function & create($param = '') {
+	function  create($param = '') {
 		
-		$obj = & new CezShowimageParameter();
+		$obj = new CezShowimageParameter();
 		$obj->_parse($param);
 		return $obj;
 		
