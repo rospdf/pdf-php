@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<0.12-rc20>
+
+- fixed reported issue with Typo "decender" in Cpdf.php and Cezpdf.php
+
 2<0.12-rc19>
 
 - applied patch "updated extension CezTableImage" from Code Snippets forum - thanks Sigurd Nes

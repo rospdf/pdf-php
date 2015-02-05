@@ -2686,11 +2686,11 @@
     }
 
     /**
-     * return the font decender, this will normally return a negative number
+     * return the font descender, this will normally return a negative number
      * if you add this number to the baseline, you get the level of the bottom of the font
      * it is in the pdf user units
      */
-    public function getFontDecender($size){
+    public function getFontDescender($size){
         // note that this will most likely return a negative value
         if (!$this->numFonts){
             $this->selectFont('./fonts/Helvetica');
@@ -2824,7 +2824,7 @@
                         }
                     } else {
                         $noClose = ($regs[1][$k][0] == 'C:')? true: false;
-                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDecender($size), 
+                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDescender($size), 
                                             'startTag' => $curTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
                         if(!$noCB){
                             if(!$noClose){
@@ -2940,7 +2940,7 @@
         if ($this->nCallback > 0){ 
             for ($i = $this->nCallback; $i > 0; $i--){
                 // call each function
-                $info = array('x'=>$x,'y'=>$y,'angle'=>$angle,'status'=>'sol','p'=>$this->callback[$i]['p'],'nCallback'=>$this->callback[$i]['nCallback'],'height'=>$this->callback[$i]['height'],'decender'=>$this->callback[$i]['decender']);
+                $info = array('x'=>$x,'y'=>$y,'angle'=>$angle,'status'=>'sol','p'=>$this->callback[$i]['p'],'nCallback'=>$this->callback[$i]['nCallback'],'height'=>$this->callback[$i]['height'],'descender'=>$this->callback[$i]['descender']);
                 $func = $this->callback[$i]['f'];
                 $this->$func($info);
             }
