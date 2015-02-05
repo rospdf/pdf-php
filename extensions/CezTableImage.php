@@ -340,9 +340,9 @@ class CezTableImage extends Cezpdf {
 
             // make the table
             $height = $this->getFontHeight($options['fontSize']);
-            $decender = $this->getFontDecender($options['fontSize']);
+            $descender = $this->getFontDescender($options['fontSize']);
 
-            $y0=$y+$decender;
+            $y0=$y+$descender;
             $dy=0;
             if ($options['showHeadings']){
                 // patch #9 start
@@ -355,7 +355,7 @@ class CezTableImage extends Cezpdf {
                 }
                 // patch #9 end
                 // this function will move the start of the table to a new page if it does not fit on this one
-                $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
+                $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$descender,$options['rowGap'],$options['fontSize'],$y,$options);
                 $y0 = $y+$headingHeight+$options['rowGap'];
                 $y1 = $y - $options['rowGap']*2;
 
@@ -369,7 +369,7 @@ class CezTableImage extends Cezpdf {
                 if (isset($options['shadeHeadingCol']) && count($options['shadeHeadingCol']) == 3){
                     $this->closeObject();
                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                    $this->filledRectangle($x0-$options['gap']/2,$y+$decender,$x1-$x0,($y0 - $y - $decender));
+                    $this->filledRectangle($x0-$options['gap']/2,$y+$descender,$x1-$x0,($y0 - $y - $descender));
                     $this->reopenObject($textHeadingsObjectId);
                     $this->closeObject();
                     $this->restoreState();
@@ -422,9 +422,9 @@ class CezTableImage extends Cezpdf {
                                 $abortTable = 1;
                             }
 
-                            $y2=$y-$mx+2*$height+$decender-$newRow*$height;
+                            $y2=$y-$mx+2*$height+$descender-$newRow*$height;
                             if ($options['gridlines']){
-                                $y1+=$decender;
+                                $y1+=$descender;
                                 if (!$options['showHeadings']){
                                     $y0=$y1;
                                 }
@@ -453,7 +453,7 @@ class CezTableImage extends Cezpdf {
                             }
                             $this->setColor($options['textCol'][0],$options['textCol'][1],$options['textCol'][2],1);
                             $y = ($options['nextPageY'])?$nextPageY:($this->ez['pageHeight']-$this->ez['topMargin']);
-                            $y0=$y+$decender;
+                            $y0=$y+$descender;
                             $mx=0;
                             if ($options['showHeadings']){
                                 // patch #9 start
@@ -465,13 +465,13 @@ class CezTableImage extends Cezpdf {
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$decender+$options['rowGap']) );
+                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$descender+$options['rowGap']) );
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->restoreState();
                                 }
                                 // patch #9 end
-                                $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
+                                $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$descender,$options['rowGap'],$options['fontSize'],$y,$options);
                                 $y1 = $y - $options['rowGap']*2;
 
                             } else {
@@ -492,7 +492,7 @@ class CezTableImage extends Cezpdf {
                             $colNewPage=0;
                             if (isset($row[$colName])){
                                  // KH: parse image tags and calculate the position and size for the images
-        						$this->parseImages($row[$colName],$maxWidth[$colName],0,($this->y - $options['rowGap'] - 2 * abs($decender)));
+        						$this->parseImages($row[$colName],$maxWidth[$colName],0,($this->y - $options['rowGap'] - 2 * abs($descender)));
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])){
 
                                     //$lines = explode("\n",$row[$colName]);
@@ -518,7 +518,7 @@ class CezTableImage extends Cezpdf {
                                     $_image = $this->checkForImage($line);
                                     if ($_image>0) {
                                         // TODO: Bildbreite anpassen, wenn Bild breiter ist als die Spalte
-                                        $_lineheight = $_image + 2 * abs($decender);
+                                        $_lineheight = $_image + 2 * abs($descender);
                                     } else {
                                         $_lineheight = $height;
                                     }
@@ -562,14 +562,14 @@ class CezTableImage extends Cezpdf {
                         if ($options['shaded'] && $cnt%2==0){
                             $this->closeObject();
                             $this->setColor($options['shadeCol'][0],$options['shadeCol'][1],$options['shadeCol'][2],1);
-                            $this->filledRectangle($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
+                            $this->filledRectangle($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
                             $this->reopenObject($textObjectId);
                         }
 
                         if ($options['shaded']==2 && $cnt%2==1){
                             $this->closeObject();
                             $this->setColor($options['shadeCol2'][0],$options['shadeCol2'][1],$options['shadeCol2'][2],1);
-                            $this->filledRectangle($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
+                            $this->filledRectangle($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
                             $this->reopenObject($textObjectId);
                         }
 
@@ -580,7 +580,7 @@ class CezTableImage extends Cezpdf {
                                     $arrColColor = $options['cols'][$colName]['bgcolor'];
                                     $this->closeObject();
                                     $this->setColor($arrColColor[0],$arrColColor[1],$arrColColor[2],1);
-                                    $this->filledRectangle($pos[$colName]-$options['gap']/2,$y+$decender+$height-$mx,$maxWidth[$colName]+$options['gap'],$mx);
+                                    $this->filledRectangle($pos[$colName]-$options['gap']/2,$y+$descender+$height-$mx,$maxWidth[$colName]+$options['gap'],$mx);
                                     $this->reopenObject($textObjectId);
                                 }
                             }
@@ -590,12 +590,12 @@ class CezTableImage extends Cezpdf {
                             // $this->closeObject();
                             $this->saveState();
                             $this->setStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                            // $this->line($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
+                            // $this->line($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
                             if ($firstLine){
                                 $firstLine=0;
                             } else {
                                 $this->setLineStyle($options['innerLineThickness']);
-                                $this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
+                                $this->line($x0-$options['gap']/2,$y+$descender+$height,$x1-$options['gap']/2,$y+$descender+$height);
                             }
 
                             $this->restoreState();
@@ -649,9 +649,9 @@ class CezTableImage extends Cezpdf {
         // table has been put on the page, the rows guarded as required, commit.
         $this->transaction('commit');
 
-        $y2=$y+$decender;
+        $y2=$y+$descender;
         if ($options['gridlines']){
-            $y1+=$decender;
+            $y1+=$descender;
             if (!$options['showHeadings']){
                 $y0=$y1;
             }
