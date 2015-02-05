@@ -814,13 +814,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param $pos
      * @param float $maxWidth maximum width
      * @param float $height height of the heading
-     * @param $decender
+     * @param $descender
      * @param float $gap
      * @param float $size font size
      * @param float $y actual Y position
      * @param $optionsAll
      */
-    protected function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$gap,$size,&$y,$optionsAll=array()){
+    protected function ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$descender,$gap,$size,&$y,$optionsAll=array()){
         // uses ezText to add the text, and returns the height taken by the largest heading
         // this page will move the headings to a new page if they will not fit completely on this one
         // transaction support will be used to implement this
@@ -836,7 +836,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         $secondGo=0;
 
         // $y is the position at which the top of the table should start, so the base
-        // of the first text, is $y-$height-$gap-$decender, but ezText starts by dropping $height
+        // of the first text, is $y-$height-$gap-$descender, but ezText starts by dropping $height
 
         // the return from this function is the total cell height, including gaps, and $y is adjusted
         // to be the postion of the bottom line
@@ -844,7 +844,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         // begin the transaction
         $this->transaction('start');
         $ok=0;
-        //$y-=$gap+$decender;
+        //$y-=$gap+$descender;
         $y-=$gap;
         while ($ok==0){
             foreach ($cols as $colName=>$colHeading){
@@ -870,7 +870,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             if ($this->ezPageCount != $startPage && $secondGo==0){
                 $this->transaction('rewind');
                 $this->ezNewPage();
-                $y = $this->y - $gap-$decender;
+                $y = $this->y - $gap-$descender;
                 $ok=0;
                 $secondGo=1;
                 //      $y = $store_y;
@@ -882,7 +882,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             }
         }
 
-        return $mx+$gap+$decender;
+        return $mx+$gap+$descender;
     }
 
     /**
@@ -1259,9 +1259,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
             // make the table
             $height = $this->getFontHeight($options['fontSize']);
-            $decender = $this->getFontDecender($options['fontSize']);
+            $descender = $this->getFontDescender($options['fontSize']);
             
-            $y0=$y+$decender;
+            $y0=$y+$descender;
             $dy=0;
             if ($options['showHeadings']){
                 // patch #9 start
@@ -1274,7 +1274,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 }
                 // patch #9 end
                 // this function will move the start of the table to a new page if it does not fit on this one
-                $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
+                $headingHeight = $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$descender,$options['rowGap'],$options['fontSize'],$y,$options);
                 $y0 = $y+$headingHeight+$options['rowGap'];
                 $y1 = $y - $options['rowGap']*2;
 
@@ -1288,7 +1288,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 if (isset($options['shadeHeadingCol']) && count($options['shadeHeadingCol']) == 3){
                     $this->closeObject();
                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                    $this->filledRectangle($x0-$options['gap']/2,$y+$decender,$x1-$x0,($y0 - $y - $decender));
+                    $this->filledRectangle($x0-$options['gap']/2,$y+$descender,$x1-$x0,($y0 - $y - $descender));
                     $this->reopenObject($textHeadingsObjectId);
                     $this->closeObject();
                     $this->restoreState();
@@ -1341,9 +1341,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                 $abortTable = 1;
                             }
 
-                            $y2=$y-$mx+2*$height+$decender-$newRow*$height;
+                            $y2=$y-$mx+2*$height+$descender-$newRow*$height;
                             if ($options['gridlines']){
-                                $y1+=$decender;
+                                $y1+=$descender;
                                 if (!$options['showHeadings']){
                                     $y0=$y1;
                                 }
@@ -1372,7 +1372,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                             }
                             $this->setColor($options['textCol'][0],$options['textCol'][1],$options['textCol'][2],1);
                             $y = ($options['nextPageY'])?$nextPageY:($this->ez['pageHeight']-$this->ez['topMargin']);
-                            $y0=$y+$decender;
+                            $y0=$y+$descender;
                             $mx=0;
                             if ($options['showHeadings']){
                                 // patch #9 start
@@ -1384,13 +1384,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->setColor($options['shadeHeadingCol'][0],$options['shadeHeadingCol'][1],$options['shadeHeadingCol'][2],1);
-                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$decender+$options['rowGap']) );
+                                    $this->filledRectangle($x0-$options['gap']/2,$y0,$x1-$x0,-($headingHeight-$descender+$options['rowGap']) );
                                     $this->reopenObject($textHeadingsObjectId);
                                     $this->closeObject();
                                     $this->restoreState();
                                 }
                                 // patch #9 end
-                                $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$decender,$options['rowGap'],$options['fontSize'],$y,$options);
+                                $this->ezTableColumnHeadings($cols,$pos,$maxWidth,$height,$descender,$options['rowGap'],$options['fontSize'],$y,$options);
                                 $y1 = $y - $options['rowGap']*2;
                                 
                             } else {
@@ -1470,14 +1470,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                         if ($options['shaded'] && $cnt%2==0){
                             $this->closeObject();
                             $this->setColor($options['shadeCol'][0],$options['shadeCol'][1],$options['shadeCol'][2],1);
-                            $this->filledRectangle($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
+                            $this->filledRectangle($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
                             $this->reopenObject($textObjectId);
                         }
 
                         if ($options['shaded']==2 && $cnt%2==1){
                             $this->closeObject();
                             $this->setColor($options['shadeCol2'][0],$options['shadeCol2'][1],$options['shadeCol2'][2],1);
-                            $this->filledRectangle($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
+                            $this->filledRectangle($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
                             $this->reopenObject($textObjectId);
                         }
 
@@ -1488,7 +1488,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                     $arrColColor = $options['cols'][$colName]['bgcolor'];
                                     $this->closeObject();
                                     $this->setColor($arrColColor[0],$arrColColor[1],$arrColColor[2],1);
-                                    $this->filledRectangle($pos[$colName]-$options['gap']/2,$y+$decender+$height-$mx,$maxWidth[$colName]+$options['gap'],$mx);
+                                    $this->filledRectangle($pos[$colName]-$options['gap']/2,$y+$descender+$height-$mx,$maxWidth[$colName]+$options['gap'],$mx);
                                     $this->reopenObject($textObjectId);
                                 }
                             }
@@ -1498,12 +1498,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                             // $this->closeObject();
                             $this->saveState();
                             $this->setStrokeColor($options['lineCol'][0],$options['lineCol'][1],$options['lineCol'][2],1);
-                            // $this->line($x0-$options['gap']/2,$y+$decender+$height-$mx,$x1-$x0,$mx);
+                            // $this->line($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
                             if ($firstLine){
                                 $firstLine=0;
                             } else {
                                 $this->setLineStyle($options['innerLineThickness']);
-                                $this->line($x0-$options['gap']/2,$y+$decender+$height,$x1-$options['gap']/2,$y+$decender+$height);
+                                $this->line($x0-$options['gap']/2,$y+$descender+$height,$x1-$options['gap']/2,$y+$descender+$height);
                             }
 
                             $this->restoreState();
@@ -1557,9 +1557,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         // table has been put on the page, the rows guarded as required, commit.
         $this->transaction('commit');
 
-        $y2=$y+$decender;
+        $y2=$y+$descender;
         if ($options['gridlines']){
-            $y1+=$decender;
+            $y1+=$descender;
             if (!$options['showHeadings']){
                 $y0=$y1;
             }
