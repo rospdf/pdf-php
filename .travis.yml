@@ -12,7 +12,7 @@ php:
 install: travis_retry composer install --no-interaction --prefer-source
 
 script:
-  - vendor/bin/phpcs --standard=phpcs.xml src
+  - vendor/bin/phpcs --standard=phpcs.xml src -s
 
 matrix:
   allow_failures:
