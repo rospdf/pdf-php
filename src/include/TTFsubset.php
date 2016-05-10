@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-include_once('TTF.php');
+include_once 'TTF.php';
 
 class TTFsubset {
     const VERBOSE = false; // For debugging
@@ -531,5 +531,4 @@ class TTFchar {
 	$this->description = $description;
     }
 }
-
 ?>

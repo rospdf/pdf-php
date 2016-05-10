@@ -143,8 +143,10 @@ class TTF {
             $name['nameRecords'][$i]['nameID'] = self::getUshort($b, $off);
             $name['nameRecords'][$i]['length'] = self::getUshort($b, $off);
             $name['nameRecords'][$i]['offset'] = self::getUshort($b, $off);
-            $name['nameRecords'][$i]['value'] = self::getRaw($b, $tmp, $name['nameRecords'][$i]['length'] * 2);
-            $tmp += $name['nameRecords'][$i]['length'] + 3;
+            $name['nameRecords'][$i]['value'] = self::getRaw($b, $tmp, $name['nameRecords'][$i]['length']);
+            //$tmp += $name['nameRecords'][$i]['length'];
+			
+			//$name['nameRecords'][$i]['value2'] = $tmp;
         }
         return $name;
     }
@@ -1032,7 +1034,7 @@ class TTF {
 	return array('SearchRange' => $searchRange, 'EntrySelector' => $entrySelector, 'RangeShift' => $rangeShift);
     }
 
-    private function calculateTableChecksum($data) {
+    private static function calculateTableChecksum($data) {
 	$ret = '0';
 
 	// "Right" pad with zeros
@@ -1249,5 +1251,4 @@ class TTF {
 	return $ret;
     }
 }
-
 ?>
