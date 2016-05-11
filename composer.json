@@ -28,10 +28,16 @@
             "src/Cezpdf.php"
         ]
     },
+    "autoload-dev": {
+        "psr-4": {
+          "Cpdf\\Tests\\": "tests"
+        }
+    },
     "require": {
         "php": ">=5.4.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "2.*"
+        "squizlabs/php_codesniffer": "2.*",
+        "phpunit/phpunit": "4.8.*"
     }
 }
