@@ -99,7 +99,7 @@ class Cezpdf extends Cpdf_Extension
      * stores the actual vertical position on the page of the writing point, very important
      */
     public $y;
-    
+
     public $ezPage;
     /**
      * keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
@@ -112,7 +112,7 @@ class Cezpdf extends Cpdf_Extension
 
 
     protected $ezTable;
-    
+
     protected $ezAppearance;
     /**
      * background color/image information
@@ -155,7 +155,7 @@ class Cezpdf extends Cpdf_Extension
     {
         if (!is_array($paper)) {
             $size = Cpdf_Common::$Layout[strtoupper($paper)];
-            
+
             switch (strtolower($orientation)) {
                 case 'landscape':
                     $a=$size[3];
@@ -174,12 +174,12 @@ class Cezpdf extends Cpdf_Extension
                 $size[3] = ( $paper[1] / 2.54 ) * 72;
             }
         }
-        
+
         $this->ez['pageWidth']=$size[2];
         $this->ez['pageHeight']=$size[3];
 
         $bleedbox = $this->calcBleedbox($size, 30, 30, 30, 30);
-    
+
         parent::__construct($size, null, $bleedbox);
 
         // set the current writing position to the top of the first page
@@ -198,31 +198,31 @@ class Cezpdf extends Cpdf_Extension
                 break;
         }
     }
-    
+
     private function calcBleedbox($mediabox, $leftMargin, $bottomMargin, $rightMargin, $topMargin)
     {
         if (!is_array($mediabox)) {
             Cpdf::DEBUG("Mediabox is not an array", Cpdf::DEBUG_MSG_WARN, $this->DEBUG);
             return;
         }
-        
+
         if (count($mediabox) != 4) {
             Cpdf::DEBUG("Mediabox array is does not contain exact four elements", Cpdf::DEBUG_MSG_WARN, $this->DEBUG);
             return;
         }
-        
+
         // XXX: Backward compability
         $this->ez['leftMargin'] = $leftMargin;
         $this->ez['bottomMargin'] = $bottomMargin;
         $this->ez['rightMargin'] = $rightMargin;
         $this->ez['topMargin'] = $topMargin;
-        
+
         return array(   $mediabox[0] + $leftMargin,
                         $mediabox[1] + $bottomMargin,
                         $mediabox[2] - $rightMargin,
                         $mediabox[3] - $topMargin );
     }
-    
+
     /**
      * setup a margin on document page
      *
@@ -242,7 +242,7 @@ class Cezpdf extends Cpdf_Extension
             Cpdf::DEBUG("Current page not found", Cpdf::DEBUG_MSG_ERR, $this->DEBUG);
             return;
         }
-        
+
         $this->CURPAGE->Bleedbox = $this->calcBleedbox($this->CURPAGE->Mediabox, $leftMargin, $bottomMargin, $rightMargin, $topMargin);
     }
 
@@ -278,11 +278,11 @@ class Cezpdf extends Cpdf_Extension
             Cpdf::DEBUG("Current page not found", Cpdf::DEBUG_MSG_ERR, $this->DEBUG);
             return;
         }
-        
+
         $tmpBackground = $this->CURPAGE->Background;
-        
+
         $this->ezPage = &$this->NewPage(null, null, $this->CURPAGE->Bleedbox);
-        
+
         // set the same background as before
         $newPage->Background = $tmpBackground;
     }
@@ -464,7 +464,7 @@ class Cezpdf extends Cpdf_Extension
       }
       return $num;
     }*/
-    
+
     /**
      * receive the current page number
      * @return int page number
@@ -596,7 +596,7 @@ class Cezpdf extends Cpdf_Extension
         if (!is_array($data)) {
             return;
         }
-        
+
         $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
@@ -615,10 +615,10 @@ class Cezpdf extends Cpdf_Extension
                 }
             }
         }
-        
+
         reset($data);
         $numColumns = 1;
-        
+
         if (is_array($cols) && count($cols) > 0) {
             $numColumns = count($cols);
         } else {
@@ -627,20 +627,20 @@ class Cezpdf extends Cpdf_Extension
             foreach ($firstRow as $k => $v) {
                 $cols[$k] = $k;
             }
-            
+
             $numColumns = count($firstRow);
         }
-        
+
         $bbox = $this->CURPAGE->Bleedbox;
         $width = $bbox[2] - $bbox[0];
-        
+
         if ($options['width'] > 0 && $options['width'] <= $width) {
             $changeBBox = array();
-            
+
             //$width = $options['width'];
-            
+
             $changeBBox['ux'] = $options['width'] + $bbox[0];
-            
+
             // only set orientation when smaller width is set
             switch ($options['xOrientation']) {
                 case 'right':
@@ -655,24 +655,22 @@ class Cezpdf extends Cpdf_Extension
             }
             Cpdf_Common::SetBBox($changeBBox, $bbox);
         }
-        
+
         if (!empty($title)) {
             $this->ezText($title, $options['titleFontSize'], array('justification' => 'center'));
             $h = $this->ezAppearance->GetFontHeight();
             Cpdf_Common::SetBBox(array('adduy' => -$h), $bbox);
         }
-        
+
         $ls = new Cpdf_LineStyle(1, 'butt', 'miter');
         $this->ezTable = $this->NewTable($bbox, $numColumns, null, $ls, $options['gridlines']);
-        
-        
-        
+
         if ($options['fontSize'] > 0) {
             $font = (empty($this->ez['fontName']))?'Helvetica':$this->ez['fontName'];
             $this->ezTable->SetFont($font, $options['fontSize']);
             $this->ez['fontSize'] = $options['fontSize'];
         }
-            
+
         // apply header row
         if ($options['showHeadings']) {
             foreach ($cols as $k => $v) {
@@ -680,20 +678,19 @@ class Cezpdf extends Cpdf_Extension
                 $justify = null;
                 if (isset($options['cols'][$k])) {
                     $coption = &$options['cols'][$k];
-                    
+
                     $bg = (isset($coption['bgcolor']))?$coption['bgcolor']:null;
                     $justify =  (isset($coption['justification']))?$coption['justification']:null;
                 }
-                
+
                 if (isset($options['showBgCol']) && $options['showBgCol'] > 0) {
                     $bg = $options['shadeHeadingCol'];
                 }
-                    
-                
+
                 $this->ezTable->AddCell($v, $justify, $bg);
             }
         }
-        
+
         $i = 1;
         foreach ($data as $field) {
             foreach ($field as $k => $v) {
@@ -701,16 +698,16 @@ class Cezpdf extends Cpdf_Extension
                 if (isset($cols) && !isset($cols[$k])) {
                     continue;
                 }
-                
+
                 $bg = null;
                 $justify = null;
                 if (isset($options['cols'][$k])) {
                     $coption = &$options['cols'][$k];
-                    
+
                     $bg = (isset($coption['bgcolor']))?$coption['bgcolor']:null;
                     $justify =  (isset($coption['justification']))?$coption['justification']:null;
                 }
-                
+
                 if (!$bg && $options['shaded'] > 0) {
                     if (!($i % 2)) {
                         $bg = $options['shadeCol'];
@@ -723,10 +720,10 @@ class Cezpdf extends Cpdf_Extension
             }
             $i++;
         }
-        
+
         // required to display table border and background color
         $this->ezTable->EndTable();
-        
+
         return;
     }
 
@@ -740,24 +737,22 @@ class Cezpdf extends Cpdf_Extension
     {
         $this->ez['fontName'] = $fontName;
     }
-    
+
     public function getFontHeight()
     {
         return $this->ezAppearance->GetFontHeight();
     }
-    
+
     public function getFontDecender()
     {
         return $this->ezAppearance->GetFontDescender();
     }
-    
+
     public function getTextWidth($size, $text)
     {
         return $this->ezAppearance->GetTextWidth($text, $size);
     }
-    
-    
-    
+
 
     /**
      * this will add a string of text to the document, starting at the current drawing
@@ -796,7 +791,7 @@ class Cezpdf extends Cpdf_Extension
         if (!isset($this->ezAppearance) || $this->ezAppearance->page !== $this->CURPAGE) {
             $this->ezAppearance = $this->NewAppearance();
         }
-        
+
         $margin = array();
         if (isset($options['left'])) {
             $margin['addlx'] = $options['left'];
@@ -804,42 +799,42 @@ class Cezpdf extends Cpdf_Extension
         if (isset($options['right'])) {
             $margin['addux'] = $options['right'];
         }
-        
+
         if (isset($options['aleft'])) {
             $margin['lx'] = $options['aleft'];
         }
         if (isset($options['aright'])) {
             $margin['ux'] = $options['aright'];
         }
-        
+
         $tmp = $this->ezAppearance->GetBBox();
-        
+
         $this->ezAppearance->UpdateBBox($margin);
-        
+
         if (!isset($options['justification'])) {
             $options['justification'] = 'left';
         }
-        
+
         if ($options['justification'] == 'centre') {
             $options['justification'] = 'center';
         }
-        
+
         if (!isset($options['spacing'])) {
             $options['spacing'] = 0;
         }
-        
+
         if (isset($this->ezTable) && $this->ezTable->y <= $this->ezTable->y) {
             $this->ezAppearance->y = $this->ezTable->y - $this->ezAppearance->GetFontDescender();
             $this->ezAppearance->y -= $this->ezAppearance->GetFontHeight();
         }
-        
+
         if ($size <= 0) {
             $size = 10;
         }
-        
+
         $this->ezAppearance->SetFont($this->ez['fontName'], $size);
         $this->ez['fontSize'] = $size;
-            
+
         $this->ezAppearance->AddText($text, 0, $options['justification'], $options['spacing']);
         $this->ezAppearance->UpdateBBox($tmp);
     }
@@ -869,7 +864,7 @@ class Cezpdf extends Cpdf_Extension
         if ($resize == 'full') {
             $w = '15%';
         }
-        
+
         $this->ezAppearance->AddImage($just, $this->ezAppearance->y, $image, $w);
     }
 
@@ -889,7 +884,7 @@ class Cezpdf extends Cpdf_Extension
         if (isset($options['compress'])) {
             $this->Compression = $options['compress'];
         }
-        
+
         if (!isset($options['filename'])) {
             $options['filename'] = "ezoutput.pdf";
         }

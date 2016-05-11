@@ -33,12 +33,12 @@ class TTF
 
     // For debugging
     const VERBOSE = false;
-    
+
     private $b; // Array of bytes
     private $tables; // Tables
 
     // Constructor: parses the table directory
-    function __construct($b)
+    public function __construct($b)
     {
         $this->b = $b;
 
@@ -67,7 +67,7 @@ class TTF
     }
 
     // Get raw bytes of table, or null if table does not exist
-    function getTableRaw($name)
+    public function getTableRaw($name)
     {
         if (isset($this->tables[$name])) {
             $entry = $this->tables[$name];
@@ -79,7 +79,7 @@ class TTF
     ////////////////////////////////////////////////////////////////////////////////
     // Unmarshal - marshal functions follow
     ////////////////////////////////////////////////////////////////////////////////
-    function unmarshalHead()
+    public function unmarshalHead()
     {
         $head = array(); // To return
         $b = $this->getTableRaw('head'); // Get raw bytes for 'head' table
@@ -104,7 +104,7 @@ class TTF
         return $head;
     }
 
-    static function marshalHead($head)
+    public static function marshalHead($head)
     {
         $b = str_repeat(chr(0), 54); // Size of 'head' is 54 bytes
         $off = 0;
@@ -127,8 +127,8 @@ class TTF
         self::setShort($b, $off, $head['glyphDataFormat']);
         return $b;
     }
-    
-    function unmarshalName()
+
+    public function unmarshalName()
     {
         $name = array();
         $b = $this->getTableRaw('name');
@@ -137,7 +137,7 @@ class TTF
         $name['count'] = self::getUshort($b, $off);
         $name['offset'] = self::getUshort($b, $off);
         $name['nameRecords'] = array();
-        
+
         $tmp = $name['offset'];
         for ($i = 0; $i < $name['count']; $i++) {
             $name['nameRecords'][$i] = array();
@@ -149,13 +149,13 @@ class TTF
             $name['nameRecords'][$i]['offset'] = self::getUshort($b, $off);
             $name['nameRecords'][$i]['value'] = self::getRaw($b, $tmp, $name['nameRecords'][$i]['length']);
             //$tmp += $name['nameRecords'][$i]['length'];
-            
+
             //$name['nameRecords'][$i]['value2'] = $tmp;
         }
         return $name;
     }
 
-    function unmarshalHhea()
+    public function unmarshalHhea()
     {
         $hhea = array(); // To return
         $b = $this->getTableRaw('hhea'); // Get raw bytes for 'hhea' table
@@ -176,7 +176,7 @@ class TTF
         return $hhea;
     }
 
-    static function marshalHhea($hhea)
+    public static function marshalHhea($hhea)
     {
         $b = str_repeat(chr(0), 36); // Size of 'hhea' is 36 bytes
         $off = 0;
@@ -196,7 +196,7 @@ class TTF
         return $b;
     }
 
-    function unmarshalMaxp()
+    public function unmarshalMaxp()
     {
         $maxp = array(); // To return
         $b = $this->getTableRaw('maxp'); // Get raw bytes for 'maxp' table
@@ -219,7 +219,7 @@ class TTF
         return $maxp;
     }
 
-    static function marshalMaxp($maxp)
+    public static function marshalMaxp($maxp)
     {
         $b = str_repeat(chr(0), 32); // Size of 'maxp' is 32 bytes
         $off = 0;
@@ -241,7 +241,7 @@ class TTF
         return $b;
     }
 
-    function unmarshalLoca($indexToLocFormat, $numGlyphs)
+    public function unmarshalLoca($indexToLocFormat, $numGlyphs)
     {
         $loca = array(); // To return
         $b = $this->getTableRaw('loca'); // Get raw bytes for 'loca' table
@@ -258,7 +258,7 @@ class TTF
         return $loca;
     }
 
-    static function marshalLoca($loca)
+    public static function marshalLoca($loca)
     {
         $cnt = count($loca);
         if ($loca[$cnt - 1] <= 0x20000) {
@@ -279,7 +279,7 @@ class TTF
         return $b;
     }
 
-    function unmarshalHmtx($numberOfHMetrics, $numGlyphs)
+    public function unmarshalHmtx($numberOfHMetrics, $numGlyphs)
     {
         $metrics = array(); // To return
         $lsbs = array(); // To return
@@ -297,7 +297,7 @@ class TTF
         return array('metrics' => $metrics, 'lsbs' => $lsbs);
     }
 
-    static function marshalHmtx($metrics, $lsbs)
+    public static function marshalHmtx($metrics, $lsbs)
     {
         $cntMetrics = count($metrics);
         $cntLsbs = count($lsbs);
@@ -316,7 +316,7 @@ class TTF
         return $b;
     }
 
-    function unmarshalGlyf($loca)
+    public function unmarshalGlyf($loca)
     {
         $glyf = array(); // To return
         $b = $this->getTableRaw('glyf'); // Get raw bytes for 'glyf' table
@@ -328,7 +328,7 @@ class TTF
         return $glyf;
     }
 
-    static function marshalGlyf($glyf)
+    public static function marshalGlyf($glyf)
     {
         $b = '';
         $num = count($glyf);
@@ -338,7 +338,7 @@ class TTF
         return $b;
     }
 
-    function unmarshalCmap()
+    public function unmarshalCmap()
     {
         $cmap = array(); // To return
         $b = $this->getTableRaw('cmap'); // Get raw bytes for 'cmap' table
@@ -462,10 +462,10 @@ class TTF
         return $cmap;
     }
 
-    static function marshalCmap($cmap)
+    public static function marshalCmap($cmap)
     {
         $lengths = array(); // To hold the length of each table
-    
+
         $sz = 4 + 8 * count($cmap['tables']);
         foreach ($cmap['tables'] as $table) {
             $format = $table['format'];
@@ -492,7 +492,7 @@ class TTF
         $off = 0;
         self::setUshort($b, $off, $cmap['version']);
         self::setUshort($b, $off, $cmap['numTables']);
-    
+
         $offset = 4 + 8 * count($cmap['tables']);
         $i = 0;
         foreach ($cmap['tables'] as $table) {
@@ -505,7 +505,7 @@ class TTF
         $offset = 4 + 8 * count($cmap['tables']);
         foreach ($cmap['tables'] as $table) {
             $off = $offset;
-        
+
             $format = $table['format'];
             $length = $lengths[$i];
             $version = $table['version'];
@@ -524,7 +524,7 @@ class TTF
                 $idDeltaArray = $table['idDeltaArray'];
                 $idRangeOffsetArray = $table['idRangeOffsetArray'];
                 $glyphIdArray = $table['glyphIdArray'];
-        
+
                 // Calculate searchRange, entrySelector and rangeShift
                 $binarySearchRegisters = self::calculateBinarySearchRegisters($segCount, 2, 1);
 
@@ -583,7 +583,7 @@ class TTF
         return $b;
     }
 
-    function unmarshalPost($headOnly = false)
+    public function unmarshalPost($headOnly = false)
     {
         $post = array(); // To return
         $b = $this->getTableRaw('post'); // Get raw bytes for 'post' table
@@ -598,7 +598,7 @@ class TTF
         $post['maxMemType42'] = self::getUlong($b, $off);
         $post['minMemType1'] = self::getUlong($b, $off);
         $post['maxMemType1'] = self::getUlong($b, $off);
-    
+
         if (!$headOnly) {
             if ($post['formatType'] == '1.0') {
                 ; // Nothing more
@@ -639,9 +639,9 @@ class TTF
         return $post;
     }
 
-    static function marshalPost($post)
+    public static function marshalPost($post)
     {
-    // Calculate size
+        // Calculate size
         $sz = 32; // Standard header for all formatTypes
         if ($post['formatType'] == '1.0') {
             ; // Nothing more
@@ -704,17 +704,17 @@ class TTF
     ('head', 'hhea', 'maxp', 'OS/2', 'hmtx', 'LTSH', 'VDMX', 'hdmx', 'cmap', 'fpgm',
      'prep', 'cvt ', 'loca', 'glyf', 'kern', 'name', 'post', 'gasp', 'PCLT', 'GDEF',
      'GPOS', 'GSUB', 'JSTF', 'DSIG');
-    
+
     private static $tableNamesOrderedByName = array
     ('DSIG', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'LTSH', 'OS/2', 'PCLT', 'VDMX', 'cmap',
      'cvt ', 'fpgm', 'gasp', 'glyf', 'hdmx', 'head', 'hhea', 'hmtx', 'kern', 'loca',
      'maxp', 'name', 'post', 'prep');
 
-    static function marshalAll($tables)
+    public static function marshalAll($tables)
     {
         $numTables = count($tables);
 
-    // Arrays to hold for each table, the checksum, the offset and the length
+        // Arrays to hold for each table, the checksum, the offset and the length
         $checksums = array();
         $offsets = array();
         $lengths = array();
@@ -724,17 +724,17 @@ class TTF
             if (isset($tables[$tableName])) {
                 $data = $tables[$tableName];
 
-            // Special handling for 'head' table - set checksum adjustment to zero
+                // Special handling for 'head' table - set checksum adjustment to zero
                 if ($tableName == 'head') {
                     $off = 8;
                     self::setUlong($data, $off, 0);
                 }
-        
-            // Calculate checksums, offsets, lengths
+
+                // Calculate checksums, offsets, lengths
                 $checksums[$tableName] = self::calculateTableChecksum($data);
                 $offsets[$tableName] = strlen($sb);
                 $lengths[$tableName] = strlen($data);
-            // Append data and right pad with '0' (align on four byte boundary)
+                // Append data and right pad with '0' (align on four byte boundary)
                 $sb .= $data;
                 while ((strlen($sb) % 4) != 0) {
                     $sb .= chr(0);
@@ -742,11 +742,11 @@ class TTF
             }
         }
 
-    // Dump the table directory
+        // Dump the table directory
         $off = 0;
         self::setUlong($sb, $off, 0x00010000); // This is actually fixed
         self::setUshort($sb, $off, $numTables);
-    // Calculate the binary search registers
+        // Calculate the binary search registers
         $binarySearchRegisters = self::calculateBinarySearchRegisters($numTables, 16, 4);
         self::setUshort($sb, $off, $binarySearchRegisters['SearchRange']);
         self::setUshort($sb, $off, $binarySearchRegisters['EntrySelector']);
@@ -760,7 +760,7 @@ class TTF
             }
         }
 
-    // Calculate the checksum adjustment for 'head' table
+        // Calculate the checksum adjustment for 'head' table
         $checksum = self::calculateTableChecksum(substr($sb, 0, 12 + 16 * $numTables));
         foreach ($checksums as $chk) {
             $checksum = bcadd($checksum, $chk);
@@ -780,7 +780,7 @@ class TTF
 
     // Search "cmap" for an encoding table having given "platformID" and "platformSpecificID"
     // and return it. Return null if no such table exists
-    static function getEncodingTable($cmap, $platformID, $platformSpecificID)
+    public static function getEncodingTable($cmap, $platformID, $platformSpecificID)
     {
         foreach ($cmap['tables'] as $table) {
             if ($table['platformID'] == 3 && $table['platformSpecificID'] == 1) {
@@ -791,7 +791,7 @@ class TTF
     }
 
     // Map character "charCode" to index using the encoding table "encodingTable"
-    static function characterToIndex($encodingTable, $charCode)
+    public static function characterToIndex($encodingTable, $charCode)
     {
         $format = $encodingTable['format'];
         if ($format == 0) {
@@ -806,7 +806,7 @@ class TTF
             $idDeltaArray = $encodingTable['idDeltaArray'];
             $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
             $glyphIdArray = $encodingTable['glyphIdArray'];
-    
+
             for ($seg = 0; $seg < $segCount; $seg++) {
                 $endCount = $endCountArray[$seg];
                 $startCount = $startCountArray[$seg];
@@ -835,7 +835,7 @@ class TTF
         return -1;
     }
 
-    static function indexToCharacter($encodingTable, $gid)
+    public static function indexToCharacter($encodingTable, $gid)
     {
         $format = $encodingTable['format'];
         if ($format == 0) {
@@ -853,7 +853,7 @@ class TTF
             $idDeltaArray = $encodingTable['idDeltaArray'];
             $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
             $glyphIdArray = $encodingTable['glyphIdArray'];
-    
+
             for ($seg = 0; $seg < $segCount; $seg++) {
                 $endCount = $endCountArray[$seg];
                 $startCount = $startCountArray[$seg];
@@ -890,7 +890,7 @@ class TTF
 
     // Get the horizontal metrics (advance width and left side bearing) for
     // glyph with index "index"
-    static function getHMetrics($hmtx, $numberOfHMetrics, $index)
+    public static function getHMetrics($hmtx, $numberOfHMetrics, $index)
     {
         $metrics = $hmtx['metrics'];
         $lsbs = $hmtx['lsbs'];
@@ -903,7 +903,7 @@ class TTF
     }
 
     // Given the glyph description, parse it and return a PHP array
-    static function getGlyph($description)
+    public static function getGlyph($description)
     {
         $off = 0;
 
@@ -919,7 +919,7 @@ class TTF
                 $lastEndPoint = self::getUshort($description, $off);
                 $endPointsOfContours[] = $lastEndPoint;
             }
-        
+
             // Collect the instructions
             $instructionLength = self::getUshort($description, $off);
             $instructions = self::getRaw($description, $off, $instructionLength);
@@ -945,7 +945,7 @@ class TTF
 
             // Collect the y coordinates
             $ys = self::getCoordinates($description, $off, $flags, 0x04, 0x20);
-        
+
             return array('numberOfContours' => $numberOfContours,
              'xMin' => $xMin, 'yMin' => $yMin,
              'xMax' => $xMax, 'yMax' => $yMax,
@@ -954,14 +954,14 @@ class TTF
              'flags' => $flags, 'xs' => $xs, 'ys' => $ys);
         } else {
             $components = array();
-        
+
             do {
                 $flags = self::getUshort($description, $off);
                 $glyphIndex = self::getUshort($description, $off);
-        
+
                 $argument1 = $argument2 = $arg1and2 = '';
                 $scale = $xscale = $yscale = $scale01 = $scale10 = '';
-        
+
                 if (($flags & self::ARG_1_AND_2_ARE_WORDS) != 0) {
                     $argument1 = self::getShort($description, $off);
                     $argument2 = self::getShort($description, $off);
@@ -1032,7 +1032,7 @@ class TTF
     }
 
     // Replace glyph indices of components of composite glyph
-    static function replaceComponentsOfCompositeGlyph($description, $replacements)
+    public static function replaceComponentsOfCompositeGlyph($description, $replacements)
     {
         $off = 0;
 
@@ -1152,19 +1152,19 @@ class TTF
         $b{$off++} = chr(bcmod($val, '256'));
     }
 
-    static function getLong($b, &$off)
+    public static function getLong($b, &$off)
     {
         $ret = self::getUlong($b, $off);
         return bccomp($ret, '2147483648') <  0 ? $ret : bcsub($ret, '4294967296');
     }
 
-    static function getFixed($b, &$off)
+    public static function getFixed($b, &$off)
     {
         $b1 = ord($b[$off++]);
         $b2 = ord($b[$off++]);
         $b3 = ord($b[$off++]);
         $b4 = ord($b[$off++]);
-    
+
         $mantissa = $b1 * 256 + $b2;
         if ($mantissa >= 32768) {
             $mantissa -= 65536;
@@ -1179,8 +1179,8 @@ class TTF
             return sprintf("%d.%s", $mantissa, $tmp);
         }
     }
-    
-    static function setFixed(&$b, &$off, $val)
+
+    public static function setFixed(&$b, &$off, $val)
     {
         if ($val{0} == '-') {
             $sign = -1;
@@ -1234,7 +1234,7 @@ class TTF
             $mantissa -= 4;
         }
         $fraction = $val & 0x3fff;
-    
+
         if ($fraction == 0) {
             // Append only one zero
             $ret = sprintf("%d.0", $mantissa);
@@ -1267,7 +1267,7 @@ class TTF
         $b2 = ord($val[1]);
         $b3 = ord($val[2]);
         $b4 = ord($val[3]);
-    
+
         $mantissa = $b1 * 256 + $b2;
         if ($mantissa >= 32768) {
             $mantissa -= 65536;
