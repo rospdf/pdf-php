@@ -88,7 +88,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
  * @license GNU General Public License v3
  * @link http://pdf-php.sf.net
  */
- class Cezpdf extends Cpdf_Extension {
+class Cezpdf extends Cpdf_Extension
+{
 
     /**
      * used to store most of the page configuration parameters
@@ -110,9 +111,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
     public $ezPageCount=0;
 
 
-	protected $ezTable;
-	
-	protected $ezAppearance;
+    protected $ezTable;
+    
+    protected $ezAppearance;
     /**
      * background color/image information
      */
@@ -142,7 +143,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      *   $options['repeat']  = repeat image horizontally (1), repeat image vertically (2) or full in both directions (3); default is 0<br>
      *
      * highly recommend to set this->hashed to true when using repeat function<br>
-     * 
+     *
      * @since [0.11.3] added repeat option for images
      *
      * @param mixed $paper paper format as string ('A4', 'A5', 'B5', ...) or an array with two/four elements defining the size
@@ -150,11 +151,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param string $type background type - 'none', 'image' or 'color'
      * @param array $options see options from above
      */
-    public function __construct($paper='a4',$orientation='portrait', $type = 'none', $options = array()){
-        if (!is_array($paper)){
-        	$size = Cpdf_Common::$Layout[strtoupper($paper)];
+    public function __construct($paper = 'a4', $orientation = 'portrait', $type = 'none', $options = array())
+    {
+        if (!is_array($paper)) {
+            $size = Cpdf_Common::$Layout[strtoupper($paper)];
             
-            switch (strtolower($orientation)){
+            switch (strtolower($orientation)) {
                 case 'landscape':
                     $a=$size[3];
                     $size[3]=$size[2];
@@ -165,8 +167,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             if (count($paper)>2) {
                 // then an array was sent it to set the size
                 $size = $paper;
-            }
-            else { //size in centimeters has been passed
+            } else { //size in centimeters has been passed
                 $size[0] = 0;
                 $size[1] = 0;
                 $size[2] = ( $paper[0] / 2.54 ) * 72;
@@ -177,9 +178,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         $this->ez['pageWidth']=$size[2];
         $this->ez['pageHeight']=$size[3];
 
-		$bleedbox = $this->calcBleedbox($size, 30, 30, 30,30);
-	
-		parent::__construct($size, null, $bleedbox);
+        $bleedbox = $this->calcBleedbox($size, 30, 30, 30, 30);
+    
+        parent::__construct($size, null, $bleedbox);
 
         // set the current writing position to the top of the first page
         $this->y = $this->ez['pageHeight']-$this->ez['topMargin'];
@@ -188,42 +189,43 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         //$this->ezPageCount=1;
 
         switch ($type) {
-            case 'color'  :
-            case 'colour' :
-				$this->CURPAGE->SetBackground($options);
+            case 'color':
+            case 'colour':
+                $this->CURPAGE->SetBackground($options);
                 break;
-            case 'image'  :
-				$this->CURPAGE->SetBackground(null, $options['img']);
+            case 'image':
+                $this->CURPAGE->SetBackground(null, $options['img']);
                 break;
         }
     }
     
-	private function calcBleedbox($mediabox, $leftMargin, $bottomMargin, $rightMargin, $topMargin){
-		if(!is_array($mediabox)){
-			Cpdf::DEBUG("Mediabox is not an array", Cpdf::DEBUG_MSG_WARN, $this->DEBUG);
-			return;
-		}
-		
-		if(count($mediabox) != 4){
-			Cpdf::DEBUG("Mediabox array is does not contain exact four elements", Cpdf::DEBUG_MSG_WARN, $this->DEBUG);
-			return;
-		}
-		
-		// XXX: Backward compability
-		$this->ez['leftMargin'] = $leftMargin;
-		$this->ez['bottomMargin'] = $bottomMargin;
-		$this->ez['rightMargin'] = $rightMargin;
-		$this->ez['topMargin'] = $topMargin;
-		
-		return array( 	$mediabox[0] + $leftMargin, 
-						$mediabox[1] + $bottomMargin, 
-						$mediabox[2] - $rightMargin,
-						$mediabox[3] - $topMargin );
-	}
+    private function calcBleedbox($mediabox, $leftMargin, $bottomMargin, $rightMargin, $topMargin)
+    {
+        if (!is_array($mediabox)) {
+            Cpdf::DEBUG("Mediabox is not an array", Cpdf::DEBUG_MSG_WARN, $this->DEBUG);
+            return;
+        }
+        
+        if (count($mediabox) != 4) {
+            Cpdf::DEBUG("Mediabox array is does not contain exact four elements", Cpdf::DEBUG_MSG_WARN, $this->DEBUG);
+            return;
+        }
+        
+        // XXX: Backward compability
+        $this->ez['leftMargin'] = $leftMargin;
+        $this->ez['bottomMargin'] = $bottomMargin;
+        $this->ez['rightMargin'] = $rightMargin;
+        $this->ez['topMargin'] = $topMargin;
+        
+        return array(   $mediabox[0] + $leftMargin,
+                        $mediabox[1] + $bottomMargin,
+                        $mediabox[2] - $rightMargin,
+                        $mediabox[3] - $topMargin );
+    }
     
     /**
      * setup a margin on document page
-     * 
+     *
      * **Example**<br>
      * <pre>
      * $pdf->ezSetMargins(50,50,50,50)
@@ -234,30 +236,32 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param float $left left margin
      * @param float $right right margin
      */
-    public function ezSetMargins($topMargin, $bottomMargin, $leftMargin, $rightMargin){
-    	if(!is_object($this->CURPAGE)){
-    		Cpdf::DEBUG("Current page not found", Cpdf::DEBUG_MSG_ERR, $this->DEBUG);
-			return;
-    	}
-		
-    	$this->CURPAGE->Bleedbox = $this->calcBleedbox($this->CURPAGE->Mediabox, $leftMargin, $bottomMargin, $rightMargin, $topMargin);
+    public function ezSetMargins($topMargin, $bottomMargin, $leftMargin, $rightMargin)
+    {
+        if (!is_object($this->CURPAGE)) {
+            Cpdf::DEBUG("Current page not found", Cpdf::DEBUG_MSG_ERR, $this->DEBUG);
+            return;
+        }
+        
+        $this->CURPAGE->Bleedbox = $this->calcBleedbox($this->CURPAGE->Mediabox, $leftMargin, $bottomMargin, $rightMargin, $topMargin);
     }
 
     /**
      * setup a margin on document page
-     * 
+     *
      * @author 2002-07-24: Nicola Asuni (info@tecnick.com)
      * @param float $top top margin in cm
      * @param float $bottom botom margin in cm
      * @param float $left left margin in cm
      * @param float $right right margin in cm
      */
-    public function ezSetCmMargins($top,$bottom,$left,$right){
+    public function ezSetCmMargins($top, $bottom, $left, $right)
+    {
         $top = ( $top / 2.54 ) * 72;
         $bottom = ( $bottom / 2.54 ) * 72;
         $left = ( $left / 2.54 ) * 72;
         $right = ( $right / 2.54 ) * 72;
-        $this->ezSetMargins($top,$bottom,$left,$right);
+        $this->ezSetMargins($top, $bottom, $left, $right);
     }
 
     /**
@@ -268,18 +272,19 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * $pdf->ezNewPage()
      * </pre>
      */
-    public function ezNewPage(){
-    	if(!is_object($this->CURPAGE)){
-    		Cpdf::DEBUG("Current page not found", Cpdf::DEBUG_MSG_ERR, $this->DEBUG);
-			return;
-    	}
-		
-		$tmpBackground = $this->CURPAGE->Background;
-		
-    	$this->ezPage = &$this->NewPage(null, null, $this->CURPAGE->Bleedbox);
-		
+    public function ezNewPage()
+    {
+        if (!is_object($this->CURPAGE)) {
+            Cpdf::DEBUG("Current page not found", Cpdf::DEBUG_MSG_ERR, $this->DEBUG);
+            return;
+        }
+        
+        $tmpBackground = $this->CURPAGE->Background;
+        
+        $this->ezPage = &$this->NewPage(null, null, $this->CURPAGE->Bleedbox);
+        
         // set the same background as before
-		$newPage->Background = $tmpBackground;
+        $newPage->Background = $tmpBackground;
     }
 
     /**
@@ -287,35 +292,35 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param $options array with option for gaps and number of columns - default: array('gap'=>10, 'num'=>2)
      */
     /*public function ezColumnsStart($options=array()){
-        // start from the current y-position, make the set number of columne
-        if (isset($this->ez['columns']) && $this->ez['columns']==1){
-            // if we are already in a column mode then just return.
-            return;
-        }
-        $def=array('gap'=>10,'num'=>2);
-        foreach ($def as $k=>$v){
-            if (!isset($options[$k])){
-                $options[$k]=$v;
-            }
-        }
-        // setup the columns
-        $this->ez['columns']=array('on'=>1,'colNum'=>1);
+      // start from the current y-position, make the set number of columne
+      if (isset($this->ez['columns']) && $this->ez['columns']==1){
+          // if we are already in a column mode then just return.
+          return;
+      }
+      $def=array('gap'=>10,'num'=>2);
+      foreach ($def as $k=>$v){
+          if (!isset($options[$k])){
+              $options[$k]=$v;
+          }
+      }
+      // setup the columns
+      $this->ez['columns']=array('on'=>1,'colNum'=>1);
 
-        // store the current margins
-        $this->ez['columns']['margins']=array(
-            $this->ez['leftMargin'],
-            $this->ez['rightMargin'],
-            $this->ez['topMargin'],
-            $this->ez['bottomMargin']
-        );
-        // and store the settings for the columns
-        $this->ez['columns']['options']=$options;
-        // then reset the margins to suit the new columns
-        // safe enough to assume the first column here, but start from the current y-position
-        $this->ez['topMargin']=$this->ez['pageHeight']-$this->y;
-        $width=($this->ez['pageWidth']-$this->ez['leftMargin']-$this->ez['rightMargin']-($options['num']-1)*$options['gap'])/$options['num'];
-        $this->ez['columns']['width']=$width;
-        $this->ez['rightMargin']=$this->ez['pageWidth']-$this->ez['leftMargin']-$width;
+      // store the current margins
+      $this->ez['columns']['margins']=array(
+          $this->ez['leftMargin'],
+          $this->ez['rightMargin'],
+          $this->ez['topMargin'],
+          $this->ez['bottomMargin']
+      );
+      // and store the settings for the columns
+      $this->ez['columns']['options']=$options;
+      // then reset the margins to suit the new columns
+      // safe enough to assume the first column here, but start from the current y-position
+      $this->ez['topMargin']=$this->ez['pageHeight']-$this->y;
+      $width=($this->ez['pageWidth']-$this->ez['leftMargin']-$this->ez['rightMargin']-($options['num']-1)*$options['gap'])/$options['num'];
+      $this->ez['columns']['width']=$width;
+      $this->ez['rightMargin']=$this->ez['pageWidth']-$this->ez['leftMargin']-$width;
 
     }*/
 
@@ -323,13 +328,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * stops the multi column mode
      */
     /*public function ezColumnsStop(){
-        if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
-            $this->ez['columns']['on']=0;
-            $this->ez['leftMargin']=$this->ez['columns']['margins'][0];
-            $this->ez['rightMargin']=$this->ez['columns']['margins'][1];
-            $this->ez['topMargin']=$this->ez['columns']['margins'][2];
-            $this->ez['bottomMargin']=$this->ez['columns']['margins'][3];
-        }
+      if (isset($this->ez['columns']) && $this->ez['columns']['on']==1){
+          $this->ez['columns']['on']=0;
+          $this->ez['leftMargin']=$this->ez['columns']['margins'][0];
+          $this->ez['rightMargin']=$this->ez['columns']['margins'][1];
+          $this->ez['topMargin']=$this->ez['columns']['margins'][2];
+          $this->ez['bottomMargin']=$this->ez['columns']['margins'][3];
+      }
     }*/
 
     /**
@@ -341,17 +346,17 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param $pos
      */
     /*public function ezInsertMode($status=1,$pageNum=1,$pos='before'){
-        switch($status){
-            case '1':
-                if (isset($this->ezPages[$pageNum])){
-                    $this->ez['insertMode']=1;
-                    $this->ez['insertOptions']=array('id'=>$this->ezPages[$pageNum],'pos'=>$pos);
-                }
-                break;
-            case '0':
-                $this->ez['insertMode']=0;
-                break;
-        }
+      switch($status){
+          case '1':
+              if (isset($this->ezPages[$pageNum])){
+                  $this->ez['insertMode']=1;
+                  $this->ez['insertOptions']=array('id'=>$this->ezPages[$pageNum],'pos'=>$pos);
+              }
+              break;
+          case '0':
+              $this->ez['insertMode']=0;
+              break;
+      }
     }*/
 
     /**
@@ -359,10 +364,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * If Y reaches the bottom margin a new page is generated
      * @param float $y Y position
      */
-    public function ezSetY($y){
+    public function ezSetY($y)
+    {
         // used to change the vertical position of the writing point.
         $this->y = $y;
-        if ( $this->y < $this->ez['bottomMargin']){
+        if ($this->y < $this->ez['bottomMargin']) {
             // then make a new page
             $this->ezNewPage();
         }
@@ -374,17 +380,18 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param $dy
      * @param $mod
      */
-    public function ezSetDy($dy,$mod=''){
+    public function ezSetDy($dy, $mod = '')
+    {
         // used to change the vertical position of the writing point.
         // changes up by a positive increment, so enter a negative number to go
         // down the page
         // if $mod is set to 'makeSpace' and a new page is forced, then the pointed will be moved
         // down on the new page, this will allow space to be reserved for graphics etc.
         $this->y += $dy;
-        if ( $this->y < $this->ez['bottomMargin']){
+        if ($this->y < $this->ez['bottomMargin']) {
             // then make a new page
             $this->ezNewPage();
-            if ($mod=='makeSpace'){
+            if ($mod=='makeSpace') {
                 $this->y += $dy;
             }
         }
@@ -408,18 +415,18 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @return int count of ez['pageNumbering']
      */
     /*public function ezStartPageNumbers($x,$y,$size,$pos='left',$pattern='{PAGENUM} of {TOTALPAGENUM}',$num=''){
-        if (!$pos || !strlen($pos)){
-            $pos='left';
-        }
-        if (!$pattern || !strlen($pattern)){
-            $pattern='{PAGENUM} of {TOTALPAGENUM}';
-        }
-        if (!isset($this->ez['pageNumbering'])){
-            $this->ez['pageNumbering']=array();
-        }
-        $i = count($this->ez['pageNumbering']);
-        $this->ez['pageNumbering'][$i][$this->ezPageCount]=array('x'=>$x,'y'=>$y,'pos'=>$pos,'pattern'=>$pattern,'num'=>$num,'size'=>$size);
-        return $i;
+      if (!$pos || !strlen($pos)){
+          $pos='left';
+      }
+      if (!$pattern || !strlen($pattern)){
+          $pattern='{PAGENUM} of {TOTALPAGENUM}';
+      }
+      if (!isset($this->ez['pageNumbering'])){
+          $this->ez['pageNumbering']=array();
+      }
+      $i = count($this->ez['pageNumbering']);
+      $this->ez['pageNumbering'][$i][$this->ezPageCount]=array('x'=>$x,'y'=>$y,'pos'=>$pos,'pattern'=>$pattern,'num'=>$num,'size'=>$size);
+      return $i;
     }*/
 
     /**
@@ -429,40 +436,41 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @return int page number
      */
     /*public function ezWhatPageNumber($pageNum,$i=0){
-    	return $this->CURPAGE->PageNum;
-        // given a particular generic page number (ie, document numbered sequentially from beginning),
-        // return the page number under a particular page numbering scheme ($i)
-        $num=0;
-        $start=1;
-        $startNum=1;
-        if (!isset($this->ez['pageNumbering'])) {
-            $this->addMessage('WARNING: page numbering called for and wasn\'t started with ezStartPageNumbers');
-            return 0;
-        }
-        foreach ($this->ez['pageNumbering'][$i] as $k=>$v){
-            if ($k<=$pageNum){
-                if (is_array($v)){
-                    // start block
-                    if (strlen($v['num'])){
-                        // a start was specified
-                        $start=$v['num'];
-                        $startNum=$k;
-                        $num=$pageNum-$startNum+$start;
-                    }
-                } else {
-                    // stop block
-                    $num=0;
-                }
-            }
-        }
-        return $num;
+      return $this->CURPAGE->PageNum;
+      // given a particular generic page number (ie, document numbered sequentially from beginning),
+      // return the page number under a particular page numbering scheme ($i)
+      $num=0;
+      $start=1;
+      $startNum=1;
+      if (!isset($this->ez['pageNumbering'])) {
+          $this->addMessage('WARNING: page numbering called for and wasn\'t started with ezStartPageNumbers');
+          return 0;
+      }
+      foreach ($this->ez['pageNumbering'][$i] as $k=>$v){
+          if ($k<=$pageNum){
+              if (is_array($v)){
+                  // start block
+                  if (strlen($v['num'])){
+                      // a start was specified
+                      $start=$v['num'];
+                      $startNum=$k;
+                      $num=$pageNum-$startNum+$start;
+                  }
+              } else {
+                  // stop block
+                  $num=0;
+              }
+          }
+      }
+      return $num;
     }*/
     
     /**
      * receive the current page number
      * @return int page number
      */
-    public function ezGetCurrentPageNumber(){
+    public function ezGetCurrentPageNumber()
+    {
         return $this->CURPAGE->PageNum;
     }
 
@@ -473,30 +481,30 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param $i
      */
     /*public function ezStopPageNumbers($stopTotal=0,$next=0,$i=0){
-        // if stopTotal=1 then the totalling of pages for this number will stop too
-        // if $next=1, then do this page, but not the next, else do not do this page either
-        // if $i is set, then stop that particular pagenumbering sequence.
-        if (!isset($this->ez['pageNumbering'])){
-            $this->ez['pageNumbering']=array();
-        }
-        if ($next && isset($this->ez['pageNumbering'][$i][$this->ezPageCount]) && is_array($this->ez['pageNumbering'][$i][$this->ezPageCount])){
-            // then this has only just been started, this will over-write the start, and nothing will appear
-            // add a special command to the start block, telling it to stop as well
-            if ($stopTotal){
-                $this->ez['pageNumbering'][$i][$this->ezPageCount]['stoptn']=1;
-            } else {
-                $this->ez['pageNumbering'][$i][$this->ezPageCount]['stopn']=1;
-            }
-        } else {
-            if ($stopTotal){
-                $this->ez['pageNumbering'][$i][$this->ezPageCount]='stopt';
-            } else {
-                $this->ez['pageNumbering'][$i][$this->ezPageCount]='stop';
-            }
-            if ($next){
-                $this->ez['pageNumbering'][$i][$this->ezPageCount].='n';
-            }
-        }
+      // if stopTotal=1 then the totalling of pages for this number will stop too
+      // if $next=1, then do this page, but not the next, else do not do this page either
+      // if $i is set, then stop that particular pagenumbering sequence.
+      if (!isset($this->ez['pageNumbering'])){
+          $this->ez['pageNumbering']=array();
+      }
+      if ($next && isset($this->ez['pageNumbering'][$i][$this->ezPageCount]) && is_array($this->ez['pageNumbering'][$i][$this->ezPageCount])){
+          // then this has only just been started, this will over-write the start, and nothing will appear
+          // add a special command to the start block, telling it to stop as well
+          if ($stopTotal){
+              $this->ez['pageNumbering'][$i][$this->ezPageCount]['stoptn']=1;
+          } else {
+              $this->ez['pageNumbering'][$i][$this->ezPageCount]['stopn']=1;
+          }
+      } else {
+          if ($stopTotal){
+              $this->ez['pageNumbering'][$i][$this->ezPageCount]='stopt';
+          } else {
+              $this->ez['pageNumbering'][$i][$this->ezPageCount]='stop';
+          }
+          if ($next){
+              $this->ez['pageNumbering'][$i][$this->ezPageCount].='n';
+          }
+      }
     }*/
 
     /**
@@ -507,16 +515,16 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @return float text width
      */
     /*public function ezGetTextWidth($size,$text){
-        $mx=0;
-        //$lines = explode("\n",$text);
-        $lines = preg_split("[\r\n|\r|\n]",$text);
-        foreach ($lines as $line){
-            $w = $this->getTextWidth($size,$line);
-            if ($w>$mx){
-                $mx=$w;
-            }
-        }
-        return $mx;
+      $mx=0;
+      //$lines = explode("\n",$text);
+      $lines = preg_split("[\r\n|\r|\n]",$text);
+      foreach ($lines as $line){
+          $w = $this->getTextWidth($size,$line);
+          if ($w>$mx){
+              $mx=$w;
+          }
+      }
+      return $mx;
     }*/
 
     /**
@@ -552,14 +560,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * <pre>
      * 'shadeHeadingCol'=>(r,g,b) array, defining the colour of the backgound of headings, default is transparent (empty array)
      * </pre>
-     * 
+     *
      * **since 0.12-rc11** applied patch #19 align all header columns at once
      * <pre>
      * 'gridlines'=> EZ_GRIDLINE_* default is EZ_GRIDLINE_DEFAULT, overrides 'showLines' to provide finer control
      * 'alignHeadings' => 'left','right','center'
      * </pre>
      *
-     * **deprecated in 0.12-rc11** 
+     * **deprecated in 0.12-rc11**
      * <pre>'showLines' in $options - use 'gridline' instead</pre>
      *
      * Note that the user will have had to make a font selection already or this will not // produce a valid pdf file.
@@ -583,164 +591,173 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param array $options all possible options, see description above
      * @return float the actual y position
      */
-    public function ezTable(&$data,$cols='',$title='',$options=''){
-        if (!is_array($data)){
+    public function ezTable(&$data, $cols = '', $title = '', $options = '')
+    {
+        if (!is_array($data)) {
             return;
         }
-		
-		$defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
+        
+        $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
         'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
         'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
         'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
         'shadeHeadingCol'=>array(), 'gridlines' => EZ_GRIDLINE_DEFAULT
         );
 
-        foreach ($defaults as $key=>$value){
-            if (is_array($value)){
-                if (!isset($options[$key]) || !is_array($options[$key])){
+        foreach ($defaults as $key => $value) {
+            if (is_array($value)) {
+                if (!isset($options[$key]) || !is_array($options[$key])) {
                     $options[$key]=$value;
                 }
             } else {
-                if (!isset($options[$key])){
+                if (!isset($options[$key])) {
                     $options[$key]=$value;
                 }
             }
         }
-		
-		reset($data);
-		$numColumns = 1;
-		
-		if(is_array($cols) && count($cols) > 0){
-			$numColumns = count($cols);
-		} else {
-			$cols = array();
-			$firstRow = current($data);
-			foreach($firstRow as $k => $v){
-				$cols[$k] = $k;
-			}
-			
-			$numColumns = count($firstRow);
-		}
-		
-		$bbox = $this->CURPAGE->Bleedbox;
-		$width = $bbox[2] - $bbox[0];
-		
-		if($options['width'] > 0 && $options['width'] <= $width){
-			$changeBBox = array();
-			
-			//$width = $options['width'];
-			
-			$changeBBox['ux'] = $options['width'] + $bbox[0]; 
-			
-			// only set orientation when smaller width is set
-			switch($options['xOrientation']){
-				case 'right':
-					$changeBBox['addlx'] = $width - $options['width'];
-					$changeBBox['addux'] = $width - $options['width'];
-					break;
-				case 'center':
-				case 'centre':
-					$changeBBox['addlx'] = ($width - $options['width']) / 2;
-					$changeBBox['addux'] = ($width - $options['width']) / 2;
-					break;
-			}
-			Cpdf_Common::SetBBox($changeBBox, $bbox);
-		}
-		
-		if(!empty($title)){
-			$this->ezText($title, $options['titleFontSize'], array('justification' => 'center'));
-			$h = $this->ezAppearance->GetFontHeight();
-			Cpdf_Common::SetBBox(array('adduy' => -$h), $bbox);
-		}
-		
-		$ls = new Cpdf_LineStyle(1, 'butt', 'miter');
-		$this->ezTable = $this->NewTable($bbox, $numColumns, null, $ls, $options['gridlines']);
-		
-		
-		
-		if($options['fontSize'] > 0){
-			$font = (empty($this->ez['fontName']))?'Helvetica':$this->ez['fontName'];
-			$this->ezTable->SetFont($font, $options['fontSize']);
-			$this->ez['fontSize'] = $options['fontSize'];
-		}
-			
-		// apply header row
-		if($options['showHeadings']){
-			foreach($cols as $k => $v){
-				$bg = null;
-				$justify = null;
-				if(isset($options['cols'][$k])){
-					$coption = &$options['cols'][$k];
-					
-					$bg = (isset($coption['bgcolor']))?$coption['bgcolor']:null;
-					$justify =  (isset($coption['justification']))?$coption['justification']:null;
-				}
-				
-				if(isset($options['showBgCol']) && $options['showBgCol'] > 0){
-					$bg = $options['shadeHeadingCol'];
-				}
-					
-				
-				$this->ezTable->AddCell($v, $justify, $bg);
-			}
-		}
-		
-		$i = 1;
-		foreach($data as $field){
-			foreach($field as $k => $v){
-				// display only the columns shich are defined in cols
-				if(isset($cols) && !isset($cols[$k])) continue;
-				
-				$bg = null;
-				$justify = null;
-				if(isset($options['cols'][$k])){
-					$coption = &$options['cols'][$k];
-					
-					$bg = (isset($coption['bgcolor']))?$coption['bgcolor']:null;
-					$justify =  (isset($coption['justification']))?$coption['justification']:null;
-				}
-				
-				if(!$bg && $options['shaded'] > 0){
-					if(!($i % 2))
-						$bg = $options['shadeCol'];
-					if($options['shaded'] > 1 && ($i % 2))
-						$bg = $options['shadeCol2'];
-						
-				}
-				$this->ezTable->AddCell($v, $justify, $bg);
-			}
-			$i++;
-		}
-		
-		// required to display table border and background color
-		$this->ezTable->EndTable();
-		
-		return;
+        
+        reset($data);
+        $numColumns = 1;
+        
+        if (is_array($cols) && count($cols) > 0) {
+            $numColumns = count($cols);
+        } else {
+            $cols = array();
+            $firstRow = current($data);
+            foreach ($firstRow as $k => $v) {
+                $cols[$k] = $k;
+            }
+            
+            $numColumns = count($firstRow);
+        }
+        
+        $bbox = $this->CURPAGE->Bleedbox;
+        $width = $bbox[2] - $bbox[0];
+        
+        if ($options['width'] > 0 && $options['width'] <= $width) {
+            $changeBBox = array();
+            
+            //$width = $options['width'];
+            
+            $changeBBox['ux'] = $options['width'] + $bbox[0];
+            
+            // only set orientation when smaller width is set
+            switch ($options['xOrientation']) {
+                case 'right':
+                    $changeBBox['addlx'] = $width - $options['width'];
+                    $changeBBox['addux'] = $width - $options['width'];
+                    break;
+                case 'center':
+                case 'centre':
+                    $changeBBox['addlx'] = ($width - $options['width']) / 2;
+                    $changeBBox['addux'] = ($width - $options['width']) / 2;
+                    break;
+            }
+            Cpdf_Common::SetBBox($changeBBox, $bbox);
+        }
+        
+        if (!empty($title)) {
+            $this->ezText($title, $options['titleFontSize'], array('justification' => 'center'));
+            $h = $this->ezAppearance->GetFontHeight();
+            Cpdf_Common::SetBBox(array('adduy' => -$h), $bbox);
+        }
+        
+        $ls = new Cpdf_LineStyle(1, 'butt', 'miter');
+        $this->ezTable = $this->NewTable($bbox, $numColumns, null, $ls, $options['gridlines']);
+        
+        
+        
+        if ($options['fontSize'] > 0) {
+            $font = (empty($this->ez['fontName']))?'Helvetica':$this->ez['fontName'];
+            $this->ezTable->SetFont($font, $options['fontSize']);
+            $this->ez['fontSize'] = $options['fontSize'];
+        }
+            
+        // apply header row
+        if ($options['showHeadings']) {
+            foreach ($cols as $k => $v) {
+                $bg = null;
+                $justify = null;
+                if (isset($options['cols'][$k])) {
+                    $coption = &$options['cols'][$k];
+                    
+                    $bg = (isset($coption['bgcolor']))?$coption['bgcolor']:null;
+                    $justify =  (isset($coption['justification']))?$coption['justification']:null;
+                }
+                
+                if (isset($options['showBgCol']) && $options['showBgCol'] > 0) {
+                    $bg = $options['shadeHeadingCol'];
+                }
+                    
+                
+                $this->ezTable->AddCell($v, $justify, $bg);
+            }
+        }
+        
+        $i = 1;
+        foreach ($data as $field) {
+            foreach ($field as $k => $v) {
+                // display only the columns shich are defined in cols
+                if (isset($cols) && !isset($cols[$k])) {
+                    continue;
+                }
+                
+                $bg = null;
+                $justify = null;
+                if (isset($options['cols'][$k])) {
+                    $coption = &$options['cols'][$k];
+                    
+                    $bg = (isset($coption['bgcolor']))?$coption['bgcolor']:null;
+                    $justify =  (isset($coption['justification']))?$coption['justification']:null;
+                }
+                
+                if (!$bg && $options['shaded'] > 0) {
+                    if (!($i % 2)) {
+                        $bg = $options['shadeCol'];
+                    }
+                    if ($options['shaded'] > 1 && ($i % 2)) {
+                        $bg = $options['shadeCol2'];
+                    }
+                }
+                $this->ezTable->AddCell($v, $justify, $bg);
+            }
+            $i++;
+        }
+        
+        // required to display table border and background color
+        $this->ezTable->EndTable();
+        
+        return;
     }
 
-	public function openHere($loc = 'Fit'){
-		$this->Options->OpenAction($this->CURPAGE, $loc);
-		// dummy
-	}
+    public function openHere($loc = 'Fit')
+    {
+        $this->Options->OpenAction($this->CURPAGE, $loc);
+        // dummy
+    }
 
-	public function selectFont($fontName){
-		$this->ez['fontName'] = $fontName;
-	}
-	
-	public function getFontHeight(){
-		return $this->ezAppearance->GetFontHeight();
-	}
-	
-	public function getFontDecender(){
-		return $this->ezAppearance->GetFontDescender();
-	}
-	
-	public function getTextWidth($size, $text){
-		return $this->ezAppearance->GetTextWidth($text, $size);
-	}
-	
-	
-	
+    public function selectFont($fontName)
+    {
+        $this->ez['fontName'] = $fontName;
+    }
+    
+    public function getFontHeight()
+    {
+        return $this->ezAppearance->GetFontHeight();
+    }
+    
+    public function getFontDecender()
+    {
+        return $this->ezAppearance->GetFontDescender();
+    }
+    
+    public function getTextWidth($size, $text)
+    {
+        return $this->ezAppearance->GetTextWidth($text, $size);
+    }
+    
+    
+    
 
     /**
      * this will add a string of text to the document, starting at the current drawing
@@ -767,55 +784,64 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * <pre>
      * $pdf->ezText('This is a text string\nplus next line', 12, array('justification'=> 'center'));
      * </pre>
-     * 
+     *
      * @param string $text text string
      * @param float $size font size
      * @param array $options options from above
      * @param bool $test is this test output only (to check if it fit to the page for instance)
      * @return float|bool Y position or true/false if $test parameter is set
      */
-    public function ezText($text,$size=0,$options=array()){
-    	if(!isset($this->ezAppearance) || $this->ezAppearance->page !== $this->CURPAGE){
-    		$this->ezAppearance = $this->NewAppearance();
-		}
+    public function ezText($text, $size = 0, $options = array())
+    {
+        if (!isset($this->ezAppearance) || $this->ezAppearance->page !== $this->CURPAGE) {
+            $this->ezAppearance = $this->NewAppearance();
+        }
         
         $margin = array();
-        if(isset($options['left']))
+        if (isset($options['left'])) {
             $margin['addlx'] = $options['left'];
-        if(isset($options['right']))
+        }
+        if (isset($options['right'])) {
             $margin['addux'] = $options['right'];
+        }
         
-        if(isset($options['aleft']))
+        if (isset($options['aleft'])) {
             $margin['lx'] = $options['aleft'];
-        if(isset($options['aright']))
+        }
+        if (isset($options['aright'])) {
             $margin['ux'] = $options['aright'];
+        }
         
         $tmp = $this->ezAppearance->GetBBox();
         
         $this->ezAppearance->UpdateBBox($margin);
-		
-		if(!isset($options['justification']))
-			$options['justification'] = 'left';
-		
-		if($options['justification'] == 'centre')
-			$options['justification'] = 'center';
-		
-		if(!isset($options['spacing']))
-			$options['spacing'] = 0;
-		
-		if(isset($this->ezTable) && $this->ezTable->y <= $this->ezTable->y){
-			$this->ezAppearance->y = $this->ezTable->y - $this->ezAppearance->GetFontDescender();
-			$this->ezAppearance->y -= $this->ezAppearance->GetFontHeight();
-		}
-		
-		if($size <= 0)
-			$size = 10;
-		
-		$this->ezAppearance->SetFont($this->ez['fontName'], $size);
-		$this->ez['fontSize'] = $size;
-			
-		$this->ezAppearance->AddText($text, 0, $options['justification'], $options['spacing']);
-		$this->ezAppearance->UpdateBBox($tmp);
+        
+        if (!isset($options['justification'])) {
+            $options['justification'] = 'left';
+        }
+        
+        if ($options['justification'] == 'centre') {
+            $options['justification'] = 'center';
+        }
+        
+        if (!isset($options['spacing'])) {
+            $options['spacing'] = 0;
+        }
+        
+        if (isset($this->ezTable) && $this->ezTable->y <= $this->ezTable->y) {
+            $this->ezAppearance->y = $this->ezTable->y - $this->ezAppearance->GetFontDescender();
+            $this->ezAppearance->y -= $this->ezAppearance->GetFontHeight();
+        }
+        
+        if ($size <= 0) {
+            $size = 10;
+        }
+        
+        $this->ezAppearance->SetFont($this->ez['fontName'], $size);
+        $this->ez['fontSize'] = $size;
+            
+        $this->ezAppearance->AddText($text, 0, $options['justification'], $options['spacing']);
+        $this->ezAppearance->UpdateBBox($tmp);
     }
 
     /**
@@ -829,41 +855,45 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * <pre>
      * $pdf->ezImage('file.jpg', 5, 100, 'full', 'right', array('color'=> array(0.2, 0.4, 0.4), 'width'=> 2, 'cap'=>'round'));
      * </pre>
-     * 
+     *
      * @param string $image image file or url path
      * @param float $pad image padding
      * @param float $width max width
      * @param $resize
      * @param string $just justification of the image ('left', 'right', 'center')
-     * @param array $border border array - see example 
+     * @param array $border border array - see example
      */
-    public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
-		$w = null;
-		if($resize == 'full'){
-			$w = '15%';
-		}
-		
-		$this->ezAppearance->AddImage($just, $this->ezAppearance->y, $image, $w);
+    public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '')
+    {
+        $w = null;
+        if ($resize == 'full') {
+            $w = '15%';
+        }
+        
+        $this->ezAppearance->AddImage($just, $this->ezAppearance->y, $image, $w);
     }
 
     /**
      * Output the PDF content as stream
-     * 
+     *
      * $options
      *
      * 'compress' => 0/1 to enable compression. For compression level please use $this->options['compression'] = <level> at the very first point. Default: 1<br>
      * 'download' => 0/1 to display inline (in browser) or as download. Default: 0<br>
-	 * 'filename' => 'output.pdf' pdf file name when user is downloading the content
+     * 'filename' => 'output.pdf' pdf file name when user is downloading the content
      *
      * @param array $options options array from above
      */
-    public function ezStream($options = array()){
-    	if(isset($options['compress']))
-    		$this->Compression = $options['compress'];
-		
-		if(!isset($options['filename']))
-			$options['filename'] = "ezoutput.pdf";
-    	$this->Stream($options['filename']);
+    public function ezStream($options = array())
+    {
+        if (isset($options['compress'])) {
+            $this->Compression = $options['compress'];
+        }
+        
+        if (!isset($options['filename'])) {
+            $options['filename'] = "ezoutput.pdf";
+        }
+        $this->Stream($options['filename']);
     }
 
     /**
@@ -872,10 +902,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param bool $debug uncompressed output for debugging purposes
      * @return string pdf document
      */
-    public function ezOutput($debug = FALSE){
-    	if($debug == TRUE)
-			$this->Compression = 0;
-    	return $this->OutputAll();
+    public function ezOutput($debug = false)
+    {
+        if ($debug == true) {
+            $this->Compression = 0;
+        }
+        return $this->OutputAll();
     }
 }
-?>

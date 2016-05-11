@@ -9,8 +9,9 @@ include '../src/Cpdf.php';
 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false)
+if (strpos(PHP_OS, 'WIN') !== false) {
     Cpdf::$TempPath = 'D:/xampp/tmp';
+}
 
 $pdf->Compression = 0;
 
@@ -39,22 +40,22 @@ $t = $pdf->NewText(array('ly'=> 790));
 //$t->SetFont('GOTHMED', 16,'', true);
 $t->AddText('Some Title goes here');
 
-$linestyle = new Cpdf_LineStyle(0.5,'butt');
+$linestyle = new Cpdf_LineStyle(0.5, 'butt');
 $table = $pdf->NewTable(array('uy'=>770,'ly'=> 650), 4, null, $linestyle, Cpdf_Table::DRAWLINE_ROW);
 //$table->SetPageMode(Cpdf_Content::PMODE_ALL, Cpdf_Content::PMODE_ALL);
 
-$table->SetColumnWidths(85,null,85,null);
+$table->SetColumnWidths(85, null, 85, null);
 
 $m = array('bottom'=>5,'top'=> 5);
 
 $table->SetFont('GOTHMBOK', 10, '', true);
 $table->AddCell('<b>Invoice no.</b>', null, $m);
 $table->AddCell('XXXX-XXX', null, $m);
-$table->AddCell('<b>Date</b>',null, $m); 
-$table->AddCell('05/05/2013',null, $m);
+$table->AddCell('<b>Date</b>', null, $m);
+$table->AddCell('05/05/2013', null, $m);
 
 $table->AddCell('<b>Client</b>', null, $m);
-$table->AddCell('XXX XXXXXXXX XXXXXXXX',null, $m);
+$table->AddCell('XXX XXXXXXXX XXXXXXXX', null, $m);
 $table->AddCell('<b>XXXXX</b>', null, $m);
 $table->AddCell('0313', null, $m);
 
@@ -76,4 +77,3 @@ $pdf->Stream(basename(__FILE__, '.php').'.pdf');
 // performance counter
 $end = microtime(true) - $start;
 //error_log($end);
-?>

@@ -15,13 +15,14 @@ $pdf->FontSubset = true;
 //Cpdf::$DEBUGLEVEL = Cpdf_Common::DEBUG_ROWS;
  
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false)
+if (strpos(PHP_OS, 'WIN') !== false) {
     Cpdf::$TempPath = 'D:/xampp/tmp';
+}
 
 // initialize first text object
 
 $textObject = $pdf->NewText();
-$textObject->BreakColumn = TRUE;
+$textObject->BreakColumn = true;
 //$textObject->ColumnGap = 40;
 
 // put text, left justifed
@@ -80,4 +81,3 @@ $pdf->Stream(basename(__FILE__, '.php').'.pdf');
 $time_end = microtime(true);
 $time = $time_end - $time_start;
 //error_log("$time s");
-?>

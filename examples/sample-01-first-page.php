@@ -14,8 +14,9 @@ $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
 
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false)
+if (strpos(PHP_OS, 'WIN') !== false) {
     Cpdf::$TempPath = 'D:/xampp/tmp';
+}
 
 $pdf->Compression = 0;
 
@@ -54,5 +55,3 @@ $pdf->Stream(basename(__FILE__, '.php').'.pdf');
 // performance counter
 $end = microtime(true) - $start;
 //error_log($end);
-
-?>

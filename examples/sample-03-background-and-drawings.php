@@ -6,8 +6,9 @@ include '../src/Cpdf.php';
 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false)
+if (strpos(PHP_OS, 'WIN') !== false) {
     Cpdf::$TempPath = 'D:/xampp/tmp';
+}
 
 $pdf->Compression = 0;
 
@@ -28,7 +29,6 @@ $app->AddOval(100, 300, 35, 0.5, 0);
 $app->AddOval(300, 300, 35, 0.5, 90);
 $app->AddOval(500, 300, 35, 0.5, 45);
 
-$app->AddPolygon(100, 200, array(150, 200, 200, 150, 125, 50, 90, 100, 80, 150, 100, 200), true, true, new Cpdf_LineStyle(6, 'round','round'));
+$app->AddPolygon(100, 200, array(150, 200, 200, 150, 125, 50, 90, 100, 80, 150, 100, 200), true, true, new Cpdf_LineStyle(6, 'round', 'round'));
 
 $pdf->Stream();
-?>
