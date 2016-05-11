@@ -58,13 +58,13 @@ class TTFsubset
     public function doSubset($fontFile, $chars, $gids)
     {
         $this->unmarshal($fontFile);
-    
-    // Initialize TTFchars array
+
+        // Initialize TTFchars array
         $this->TTFchars = array();
-    // Push index 0 (missing character) anyhow
+        // Push index 0 (missing character) anyhow
         $this->TTFchars[] = new TTFchar(null, 0, 0, $this->glyf[0]);
-    // Push index 1 (null character) anyhow
-    //$this->TTFchars[] = new TTFchar(null, 1, 0, '');
+        // Push index 1 (null character) anyhow
+        //$this->TTFchars[] = new TTFchar(null, 1, 0, '');
 
         if ($chars != null) {
             $this->collectChars($chars);
@@ -73,8 +73,8 @@ class TTFsubset
         }
         $this->pushComponentsOfCompositeGlyphs();
         $this->assignNewIndices();
-    //$this->replaceComponentsOfCompositeGlyphs();
-    //$this->constructHmtx();
+        //$this->replaceComponentsOfCompositeGlyphs();
+        //$this->constructHmtx();
         $this->constructCmap();
         $this->constructLocaAndGlyf();
         $this->constructPost();
@@ -103,7 +103,7 @@ class TTFsubset
         $this->orgFpgmRaw = $ttf->getTableRaw('fpgm');
         $this->orgHmtx = $ttf->getTableRaw('hmtx');
 
-    //$this->hmtx = $ttf->unmarshalHmtx($this->numberOfHMetrics, $this->numGlyphs);
+        //$this->hmtx = $ttf->unmarshalHmtx($this->numberOfHMetrics, $this->numGlyphs);
         $this->loca = $ttf->unmarshalLoca($this->indexToLocFormat, $this->numGlyphs);
         $this->glyf = $ttf->unmarshalGlyf($this->loca);
         $this->cmap = $ttf->unmarshalCmap();
@@ -141,13 +141,15 @@ class TTFsubset
         if ($this->orgFpgmRaw != null) {
             $tables['fpgm'] = $this->orgFpgmRaw;
         }
-    /*$tables['cmap'] = $newCmapRaw;
-	if ($this->orgOS_2Raw != null) {
-	    $tables['OS/2'] = $this->orgOS_2Raw;
-	}
-	if ($this->orgNameRaw != null) {
-	    $tables['name'] = $this->orgNameRaw;
-	}*/
+        /*
+        $tables['cmap'] = $newCmapRaw;
+	      if ($this->orgOS_2Raw != null) {
+	          $tables['OS/2'] = $this->orgOS_2Raw;
+	      }
+	      if ($this->orgNameRaw != null) {
+	          $tables['name'] = $this->orgNameRaw;
+	      }
+        */
         $tables['post'] = $newPostRaw;
 
         return TTF::marshalAll($tables);
@@ -160,10 +162,10 @@ class TTFsubset
         foreach ($this->TTFchars as $TTFchar) {
             $allMetrics[] = TTF::getHMetrics($this->hmtx, $this->numberOfHMetrics, $TTFchar->orgIndex);
         }
-    // Split to metrics and lsbs
+        // Split to metrics and lsbs
         $numAllMetrics = count($allMetrics);
         $lastMetric = $allMetrics[$numAllMetrics - 1];
-    // Looping from last to first, collect a sequence of metrics that have same advance width as last
+        // Looping from last to first, collect a sequence of metrics that have same advance width as last
         for ($i = $numAllMetrics - 1; $i > 0; $i--) {
             $metric = $allMetrics[$i - 1];
             if ($metric[0] != $lastMetric[0]) {
@@ -178,7 +180,7 @@ class TTFsubset
         } else {
             $this->newNumberOfHMetrics = $i + 1;
         }
-    
+
         $metrics = array();
         $lsbs = array();
         for ($i = 0; $i < $numAllMetrics; $i++) {
@@ -231,7 +233,7 @@ class TTFsubset
                 $newStartCountArray[] = 0;
                 $newIdDeltaArray[] = 0;
                 $newIdRangeOffsetArray[] = 0;
-        
+
                 while ($i < $cnt) {
                     //XXX something better here
                     // Collect a sequence with increasing charCode and newIndex
@@ -252,7 +254,7 @@ class TTFsubset
                 $newStartCountArray[] = 65535;
                 $newIdDeltaArray[] = 1;
                 $newIdRangeOffsetArray[] = 0;
-        
+
                 $newSegCount = count($newEndCountArray);
 
                 if (self::VERBOSE) {
@@ -312,9 +314,6 @@ class TTFsubset
     // Construct new loca and glyf tables
     private function constructLocaAndGlyf()
     {
-    
-    //print_r($this->TTFchars);
-    //print_r($this->glyf);
         $this->newGlyf = array();
         $this->newLoca = array();
         $offset = 0;
@@ -327,9 +326,9 @@ class TTFsubset
                     break;
                 }
             }
-        
+
             $len = strlen($description);
-        
+
             if (($len % 4) != 0) {
                 $toPad = 4 - ($len % 4);
                 $description .= str_repeat(chr(0), $toPad);
@@ -339,21 +338,23 @@ class TTFsubset
             $this->newLoca[] = $offset;
             $offset += $len;
         }
-    /*foreach ($this->TTFchars as $TTFchar) {
-	    $description = $TTFchar->description;
-	    $len = strlen($description);
-	    if (($len % 4) != 0) {
-		$toPad = 4 - ($len % 4);
-		$description .= str_repeat(chr(0), $toPad);
-		$len += $toPad;
-	    }
-	    $this->newGlyf[] = $description;
-	    $this->newLoca[] = $offset;
-	    $offset += $len;
-	}*/
+        /*
+        foreach ($this->TTFchars as $TTFchar) {
+	          $description = $TTFchar->description;
+	          $len = strlen($description);
+	          if (($len % 4) != 0) {
+		            $toPad = 4 - ($len % 4);
+		            $description .= str_repeat(chr(0), $toPad);
+		            $len += $toPad;
+	          }
+	          $this->newGlyf[] = $description;
+	          $this->newLoca[] = $offset;
+	          $offset += $len;
+	      }
+        */
         $this->newLoca[] = $offset;
         $this->newIndexToLocFormat = $offset <= 0x20000 ? 0 : 1;
-    //print_r($this->newGlyf);
+        //print_r($this->newGlyf);
     }
 
     // Construct new post table
@@ -415,16 +416,16 @@ class TTFsubset
 
     private function collectGids($gids)
     {
-    // Collect the unicode encoding table
+        // Collect the unicode encoding table
         $unicodeEncodingTable = TTF::getEncodingTable($this->cmap, 3, 1);
-    
+
         for ($i = 0; $i < count($gids); $i++) {
             $orgIndex = $gids[$i];
             $description = $this->glyf[$orgIndex];
             if (!$this->orgIndexAlreadyExists($orgIndex)) {
                 $unicodeValue = $unicodeEncodingTable == null ? null : TTF::indexToCharacter($unicodeEncodingTable, $orgIndex);
 
-            //XXXX THANOS
+                //XXXX THANOS
                 $this->TTFchars[] = new TTFchar($unicodeValue, $orgIndex, 0, $description);
             }
         }
@@ -432,8 +433,8 @@ class TTFsubset
 
     private function pushComponentsOfCompositeGlyphs()
     {
-    // If there exist composite glyphs (numberOfContours < 0), we have to append the components
-    // WARNING: This loop appends to $this->TTFchars (foreach will not work)
+        // If there exist composite glyphs (numberOfContours < 0), we have to append the components
+        // WARNING: This loop appends to $this->TTFchars (foreach will not work)
         for ($i = 0; $i < count($this->TTFchars); $i++) {
             $TTFchar = $this->TTFchars[$i];
             $description = $TTFchar->description;
@@ -444,7 +445,7 @@ class TTFsubset
             if ($glyph['numberOfContours'] >= 0) {
                 continue;
             }
-        
+
             foreach ($glyph['components'] as $component) {
                 if (!$this->orgIndexAlreadyExists($component['glyphIndex'])) {
                     $orgIndex2 = $component['glyphIndex'];
@@ -468,9 +469,9 @@ class TTFsubset
 
     private function replaceComponentsOfCompositeGlyphs()
     {
-    
-    // If there exist composite glyphs, replace the components' glyphIndices
-    // First construct a from=>to array
+
+        // If there exist composite glyphs, replace the components' glyphIndices
+        // First construct a from=>to array
         $replacements = array();
         foreach ($this->TTFchars as $TTFchar) {
             $orgIndex = $TTFchar->orgIndex;
@@ -490,7 +491,7 @@ class TTFsubset
             $newDescription = TTF::replaceComponentsOfCompositeGlyph($description, $replacements);
             $this->TTFchars[$i]->description = $newDescription;
         }
-    
+
         if (self::VERBOSE) {
             foreach ($this->TTFchars as $TTFchar) {
                 echo sprintf("%4d %4d %4d %4d\n", $TTFchar->charCode, $TTFchar->orgIndex, $TTFchar->newIndex, strlen($TTFchar->description));
@@ -542,7 +543,7 @@ class TTFchar
     public $newIndex;
     public $description;
 
-    function __construct($charCode, $orgIndex, $newIndex, $description)
+    public function __construct($charCode, $orgIndex, $newIndex, $description)
     {
         $this->charCode = $charCode;
         $this->orgIndex = $orgIndex;

@@ -27,9 +27,6 @@
  <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
   <severity>0</severity>
  </rule>
- <rule ref="Squiz.Scope.MethodScope.Missing">
-  <severity>0</severity>
- </rule>
  <rule ref="PSR2.ControlStructures.SwitchDeclaration.TerminatingComment">
   <severity>0</severity>
  </rule>
@@ -37,9 +34,6 @@
   <severity>0</severity>
  </rule>
  <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
-  <severity>0</severity>
- </rule>
- <rule ref="PSR2.Classes.PropertyDeclaration.ScopeMissing">
   <severity>0</severity>
  </rule>
 </ruleset>
