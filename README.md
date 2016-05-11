@@ -9,7 +9,7 @@ This is the **experimental version** of the R&OS PHP Pdf class previously stored
 The R&OS Pdf class is used to generate PDF Documents using PHP without installing any additional modules or extensions
 It comes with a base class called "Cpdf.php" plus a helper class "Cezpdf.php" to generate tables, add backgrounds and provide paging
 
-<p align="center"> <a href="https://github.com/ole1986/pdf-php/blob/master/readme.pdf">DOCUMENTATION</a> : <a href="https://github.com/ole1986/pdf-php/archive/master.zip">DOWNLOAD</a></p>
+<p align="center"> <a href="readme.pdf">DOCUMENTATION</a> : <a href="../../archive/experimental.zip">DOWNLOAD</a></p>
 
 ### Features
 - OOP and PHP 5.X support
