@@ -2,24 +2,23 @@
     "name": "randos/pdf-php",
     "type": "library",
     "description": "The R&OS Pdf class supports the creation of PDF documents without any adiditional modules or extensions.",
-    "homepage": "http://pdf-php.sourceforge.net/",
+    "homepage": "https://github.com/ole1986/pdf-php",
     "license": "GPL-3.0",
     "authors": [
         {
-          "name": "Wayne Munro",
-          "email": "pdf@ros.co.nz"
+          "name": "Ole Koeckemann",
+          "email": "ole1986@users.sourceforge.net",
+          "role": "Developer"
         },
         {
             "name": "Lars Olesen",
-            "email": "lars@intraface.dk"
+            "email": "lars@intraface.dk",
+            "role": "Developer"
         },
         {
-          "name": "Sune T. Jensen",
-          "email": "sj@sunet.dk"
-        },
-        {
-          "name": "Ole Koeckemann",
-          "email": "ole1986@users.sourceforge.net"
+          "name": "Wayne Munro",
+          "email": "pdf@ros.co.nz",
+          "role": "Inactive"
         }
     ],
     "autoload": {
