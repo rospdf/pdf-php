@@ -6,8 +6,9 @@ include '../src/Cpdf.php';
 
 $pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false)
+if (strpos(PHP_OS, 'WIN') !== false) {
     Cpdf::$TempPath = 'D:/xampp/tmp';
+}
 //$pdf->Compression = 0;
 $pdf->CURPAGE->SetBackground(array(0.6, 0.9, 0.9));
 // use Appearance object for images and drawings
@@ -27,4 +28,3 @@ $app->AddImage('right', 'bottom', 'images/test_grayscaled.png');
 
 // Output the PDF - use parameter 1 to set a filename
 $pdf->Stream(basename(__FILE__, '.php').'.pdf');
-?>
