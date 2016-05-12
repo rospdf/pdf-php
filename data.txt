@@ -29,41 +29,42 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<0.12-rc20>
+2<0.12.20>
 
-- fixed reported issue with Typo "decender" in Cpdf.php and Cezpdf.php
+- fixed reported issue with Typo "decender" in Cpdf.php and Cezpdf.php. 
+  <b>Please use "getFontDescender"</b>
 
-2<0.12-rc19>
+2<0.12.19>
 
 - applied patch "updated extension CezTableImage" from Code Snippets forum - thanks Sigurd Nes
 
-2<0.12-rc18>
+2<0.12.18>
 
 - fixed reported bug #77 ezText html bold tag problem
 
-2<0.12-rc17>
+2<0.12.17>
 
 - fixed reported bug #76 Invalid creation date
 
-2<0.12-rc16>
+2<0.12.16>
 
 - fixed property $stack to be protected as a private property cause strange behaviours in PHP 5.1 and 5.2
 
-2<0.12-rc15>
+2<0.12.15>
 
 - fixed PHP Notice "Undefined offset: -1" for unknown glyphs in TTFsubset.php
 
-2<0.12-rc14>
+2<0.12.14>
 
 - fixed ezTableDrawLines in CezTableImage.php extension
 - improved performance in openFont
 - use max 255 chars for font type TrueType if unicode is disabled
 
-2<0.12-rc13>
+2<0.12.13>
 
 - fixed encoding conversation when using core fonts.
 
-2<0.12-rc12>
+2<0.12.12>
 
 NOTE: Some private properties have been changed in Cpdf.php
 NOTE: selectFont does not return $this->currentFontNum anymore
@@ -72,7 +73,7 @@ NOTE: selectFont does not return $this->currentFontNum anymore
 - added $pdf->getCurrentFont([$withStyle = false]) to get the font name currently in use
 - updated SVN version to 1.8
 
-2<0.12-rc11>
+2<0.12.11>
 
 NOTE: A new option 'gridlines' in ezTable is available to allow additional line modes
 NOTE: A new option 'alignHeadings' in ezTable is available to align the complete header row
@@ -83,13 +84,13 @@ NOTE: The option 'showLines' is DEPRECATED in ezTable option
 - applied patch #19 Table heading alignment
 - fixed an old bug related to vertical lines in ezTable when page break occurs
 
-2<0.12-rc10>
+2<0.12.10>
 
 - fixed bug #74 font subsetting ignored when no character is set | thank you Johannes
 - applied ezTable changes to extension class CezTableImage.php
 - added new example tables.php
 
-2<0.12-rc9>
+2<0.12.9>
 
 NOTE: callback function and ezText option 'justification'=>'full' can cause bad results
 NOTE: More info, see bug report #67 on https://sourceforge.net/p/pdf-php/bugs/67/
@@ -101,7 +102,7 @@ NOTE: More info, see bug report #67 on https://sourceforge.net/p/pdf-php/bugs/67
 - corrected ezTable 'showLine' option to display head line properly
 - some other slightly changes
 
-2<0.12-rc8>
+2<0.12.8>
 
 NOTE: Due to the fontPath change it is <b>recommend to only use the font name</b> in $pdf->selectFont().
 NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
@@ -109,22 +110,22 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - added "fontPath" property to define font folders outside the project root
 - fixed AAR search by setting unique fileIdentifiers
 
-2<0.12-rc7>
+2<0.12.7>
 
 - fixed bug #72 - directives cause wrong line alignment
 
-2<0.12-rc6>
+2<0.12.6>
 
 - fixed bug #71 - wrong fileIdentfier cause Adobe Reader to invalidate search
 - corrected table border on page break
 
-2<0.12-rc5>
+2<0.12.5>
 
 - fixed bug when table page breaks (changed some private declarations into protected)
 - font cache fixed by disabling subsets for non-unicode fonts (need improvement)
 - NEW PROPERTY cacheTimeout to allow setting the cache lifetime (default: 1 day)
 
-2<0.12-rc4>
+2<0.12.4>
 
 - indexed PNG fixed (but without alpha channel)
 - background color check simplified in Cezpdf.php which causes sporadic errors on line 219
@@ -132,7 +133,7 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - some fixes with text directives (E.g. &lt;b&gt;[new line]text[new line]text&lt;/b&gt;)
 - corrected getTextWidth by removing all directives set in $pdf->allowedTags
 
-2<0.12-rc3>
+2<0.12.3>
 
 - removed unused Begin Text - objects (BT ... ET) by checking empty text in addText method
 - fixed bug #66 Bug in specifying font size
@@ -142,13 +143,13 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - NEW FEATURE: new annotation called comments - demo in examples/annotations.php
 - applied patch no# 13 - 16
 
-2<0.12-rc2>
+2<0.12.2>
 
 - bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)
 - fixed bug with wrong calculation of the char "0" (zero) in $pdf->uniord($c)
 - code optimization
 
-2<0.12-rc1>
+2<0.12.1>
 
 - additional bug fixes for directive (especially for UTF-8 text)
 - slightly performance improvements
@@ -165,7 +166,7 @@ NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
 - font subsetting completed
 - No ttf2afm or ttf2ufm is required - Thank goes to Thanos Efraimidis (4real.gr) for TTF.php and TTFsubset.php
 
-2<other versions>
+2<older versions>
 
 <c:alink:http://sourceforge.net/p/pdf-php/code/HEAD/tree/tags/0.11.8/readme.pdf?format=raw>click here</c:alink> for version 0.11.8
 <c:alink:http://sourceforge.net/projects/pdf-php/files/v%20011%20with%20Fonts/0.11.7c-php4.zip/download>click here</c:alink> for PHP4 compatibility version 0.11-7c
@@ -488,10 +489,10 @@ The other options are described here:
 'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
 'nextPageY'=> true or false (eg. 0 or 1) Sets the same Y position of the table for all future pages
 
-<b>0.12-rc9:</b>
+<b>0.12.9:</b>
  'shadeHeadingCol'=>(r,g,b) array, defining the backgound color of headings, default is empty
 
-<b>0.12-rc11:</b>
+<b>0.12.11:</b>
  'gridlines'=> EZ_GRIDLINE_* default is EZ_GRIDLINE_DEFAULT, overrides 'showLines' to provide finer control
  'alignHeadings' => 'left','right','center'
  
@@ -1014,9 +1015,9 @@ The options array can be used to set a number of things about the output:
 
 Returns the height of the current font, in the given size. This is the distance from the bottom of the descender to the top of the Capitals.
 
-2<getFontDecender>
+2<getFontDescender>
 
-<b>x=getFontDecender(size)</b>
+<b>x=getFontDescender(size)</b>
 
 Returns a number which is the distance that the descender goes beneath the Baseline, for a normal character set this is a negative number. 
 
