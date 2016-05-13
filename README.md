@@ -1,6 +1,6 @@
 # ROS PHP Pdf creation class
 <sup>**Version 0.13** | Author: ole1986 | License: GNU Lesser General Public License (LGPLv3) </sup><br />
-[![Build Status](https://travis-ci.org/ole1986/pdf-php.svg?branch=master)](https://travis-ci.org/ole1986/pdf-php)
+[![Build Status](https://travis-ci.org/rospdf/pdf-php.svg?branch=experimental)](https://travis-ci.org/rospdf/pdf-php)
 
 ![ros.jpg](https://raw.githubusercontent.com/ole1986/pdf-php/master/ros.jpg "R&OS PHP Pdf creation class")
 
