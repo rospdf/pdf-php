@@ -32,5 +32,11 @@
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "2.*"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-experimental": "0.13.x-dev",
+            "dev-master": "0.12.x-dev"
+        }
     }
 }
