@@ -1,8 +1,8 @@
 {
-    "name": "randos/pdf-php",
+    "name": "rospdf/pdf-php",
     "type": "library",
     "description": "The R&OS Pdf class supports the creation of PDF documents without any adiditional modules or extensions.",
-    "homepage": "https://github.com/ole1986/pdf-php",
+    "homepage": "https://github.com/rospdf/pdf-php",
     "license": "GPL-3.0",
     "authors": [
         {
