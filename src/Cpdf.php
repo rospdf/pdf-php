@@ -3541,7 +3541,7 @@
      * add a PNG image into the document, from a file
      * this should work with remote files
      */
-    public function addPngFromFile($file,$x,$y,$w=0,$h=0){
+    public function addPngFromFile($file,$x,$y,$w=0,$h=0,$angle=0){
         // read in a png file, interpret it, then add to the system
         $error = false;
         $errormsg = "";
@@ -3631,8 +3631,22 @@
             }
             $this->o_image($this->numObj,'new',$options);
         }
+
+        $this->objects[$this->currentContents]['c'].="\nq";
         
-        $this->objects[$this->currentContents]['c'].="\nq ".sprintf('%.3F',$w)." 0 0 ".sprintf('%.3F',$h)." ".sprintf('%.3F',$x)." ".sprintf('%.3F',$y)." cm";
+        if($angle != 0)
+        {
+            // add the angle if other than zero
+            $a = deg2rad((float)$angle);
+            $cx = ($w/2);
+            $cy = ($h/2);
+            $this->objects[$this->currentContents]['c'].= sprintf(' 1 0 0 1 %.3F %.3F cm', $x + $cx, $y + $cy);
+            $this->objects[$this->currentContents]['c'].= sprintf(' %.3F %.3F %.3F %.3F 0 0 cm',cos($a), sin($a), -1*sin($a), cos($a));
+            $this->objects[$this->currentContents]['c'].= sprintf(' %.3F 0 0 %.3F %.3F %.3F cm',$w, $h, -$cx, -$cy);
+        } else {
+            $this->objects[$this->currentContents]['c'].= sprintf(' %.3F 0 0 %.3F %.3F %.3F cm',$w, $h, $x, $y);
+        }
+        
         $this->objects[$this->currentContents]['c'].=" /".$label.' Do';
         $this->objects[$this->currentContents]['c'].=" Q";
     }
@@ -3640,7 +3654,7 @@
     /**
      * add a JPEG image into the document, from a file
      */
-    public function addJpegFromFile($img,$x,$y,$w=0,$h=0){
+    public function addJpegFromFile($img,$x,$y,$w=0,$h=0,$angle=0){
         // attempt to add a jpeg image straight from a file, using no GD commands
         // note that this function is unable to operate on a remote file.
 
@@ -3670,7 +3684,7 @@
 
         $data = file_get_contents($img);
 
-        $this->addJpegImage_common($data,$x,$y,$w,$h,$imageWidth,$imageHeight,$channels);
+        $this->addJpegImage_common($data,$x,$y,$w,$h,$angle,$imageWidth,$imageHeight,$channels);
     }
 
     /**
@@ -3724,7 +3738,7 @@
      * @param $h height
      * @param $quality image quality
      */
-    protected function addImage(&$img,$x,$y,$w=0,$h=0,$quality=75){
+    protected function addImage(&$img,$x,$y,$w=0,$h=0,$quality=75,$angle=0){
         // add a new image into the current location, as an external object
         // add the image at $x,$y, and with width and height as defined by $w & $h
 
@@ -3760,13 +3774,13 @@
             $this->debug('addImage: trouble opening image resource', E_USER_WARNING);
         }
         unlink($tmpName);
-        $this->addJpegImage_common($data,$x,$y,$w,$h,$imageWidth,$imageHeight);
+        $this->addJpegImage_common($data,$x,$y,$w,$h,$angle,$imageWidth,$imageHeight);
     }
 
     /**
      * common code used by the two JPEG adding functions
      */
-    private function addJpegImage_common(&$data,$x,$y,$w=0,$h=0,$imageWidth,$imageHeight,$channels=3){
+    private function addJpegImage_common(&$data,$x,$y,$w=0,$h=0,$angle,$imageWidth,$imageHeight,$channels=3){
         // note that this function is not to be called externally
         // it is just the common code between the GD and the file options
         if($this->hashed){
@@ -3787,6 +3801,20 @@
         }
 
         $this->objects[$this->currentContents]['c'].="\nq ".sprintf('%.3F',$w)." 0 0 ".sprintf('%.3F',$h)." ".sprintf('%.3F',$x)." ".sprintf('%.3F',$y)." cm";
+        
+        if($angle != 0)
+        {
+            // add the angle if other than zero
+            $a = deg2rad((float)$angle);
+            $cx = ($w/2);
+            $cy = ($h/2);
+            $this->objects[$this->currentContents]['c'].= sprintf(' 1 0 0 1 %.3F %.3F cm', $x + $cx, $y + $cy);
+            $this->objects[$this->currentContents]['c'].= sprintf(' %.3F %.3F %.3F %.3F 0 0 cm',cos($a), sin($a), -1*sin($a), cos($a));
+            $this->objects[$this->currentContents]['c'].= sprintf(' %.3F 0 0 %.3F %.3F %.3F cm',$w, $h, -$cx, -$cy);
+        } else {
+            $this->objects[$this->currentContents]['c'].= sprintf(' %.3F 0 0 %.3F %.3F %.3F cm',$w, $h, $x, $y);
+        }
+        
         $this->objects[$this->currentContents]['c'].=" /".$label.' Do';
         $this->objects[$this->currentContents]['c'].=" Q";
     }

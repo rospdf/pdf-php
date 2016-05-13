@@ -1716,7 +1716,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
      * @param string $just justification of the image ('left', 'right', 'center')
      * @param array $border border array - see example 
      */
-    public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '') {
+    public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $angle = 0, $border = '') {
         $temp = false;
         //beta ezimage function
         if (stristr($image, '://')) { //copy to temp file
@@ -1787,14 +1787,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         //call appropriate function
         switch ($imageInfo[2]) {
             case IMAGETYPE_JPEG:
-                $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
+                $this->addJpegFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width, 0, $angle);
                 break;
             case IMAGETYPE_PNG:
-                $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
+                $this->addPngFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width, 0, $angle);
                 break;
             case IMAGETYPE_GIF:
                 // use GD to convert the GIF image to PNG and allow transparency
-                $this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width);
+                $this->addGifFromFile($image, $this->ez['leftMargin'] + $pad + $offset, $this->y - $pad - $height, $width, 0, $angle);
                 break;
             default:
                 $this->debug("ezImage: Unsupported image type".$imageInfo[2], E_USER_WARNING);
