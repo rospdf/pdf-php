@@ -22,59 +22,54 @@ include './src/Cezpdf.php';
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
+    var $reportContents = array();
 
-var $reportContents = array();
+    function Creport($p,$o,$t,$op){
+        parent::__construct($p,$o,$t,$op);
+    }
 
-function Creport($p,$o,$t,$op){
-  parent::__construct($p,$o,$t,$op);
-}
+    function rf($info){
+        // this callback records all of the table of contents entries, it also places a destination marker there
+        // so that it can be linked too
+        $tmp = $info['p'];
+        $lvl = $tmp[0];
+        $lbl = rawurldecode(substr($tmp,1));
+        $num=$this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
+        $this->reportContents[] = array($lbl,$num,$lvl );
+        $this->addDestination('toc'.(count($this->reportContents)-1),'Fit',$info['y']+$info['height']);
+    }
 
-function rf($info){
-  // this callback records all of the table of contents entries, it also places a destination marker there
-  // so that it can be linked too
-  $tmp = $info['p'];
-  $lvl = $tmp[0];
-  $lbl = rawurldecode(substr($tmp,1));
-  $num=$this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
-  $this->reportContents[] = array($lbl,$num,$lvl );
-  $this->addDestination('toc'.(count($this->reportContents)-1),'Fit',$info['y']+$info['height']);
-}
+    function dots($info){
+        // draw a dotted line over to the right and put on a page number
+        $tmp = $info['p'];
+        $lvl = $tmp[0];
+        $lbl = substr($tmp,1);
+        $xpos = 520;
 
-function dots($info){
-  // draw a dotted line over to the right and put on a page number
-  $tmp = $info['p'];
-  $lvl = $tmp[0];
-  $lbl = substr($tmp,1);
-  $xpos = 520;
+        switch($lvl){
+        case '1':
+            $size=16;
+            $thick=1;
+            break;
+        case '2':
+            $size=12;
+            $thick=0.5;
+            break;
+        }
 
-  switch($lvl){
-    case '1':
-      $size=16;
-      $thick=1;
-      break;
-    case '2':
-      $size=12;
-      $thick=0.5;
-      break;
-  }
-
-  $this->saveState();
-  $this->setLineStyle($thick,'round','',array(0,10));
-  $this->line($xpos,$info['y'],$info['x']+5,$info['y']);
-  $this->restoreState();
-  $this->addText($xpos+5,$info['y'],$size,$lbl);
-
-
-}
-
-
+        $this->saveState();
+        $this->setLineStyle($thick,'round','',[0,2]);
+        $this->line($xpos,$info['y'],$info['x']+5,$info['y']);
+        $this->restoreState();
+        $this->addText($xpos+5,$info['y'],$size,$lbl);
+    }
 }
 // I am in NZ, so will design my page for A4 paper.. but don't get me started on that.
 // (defaults to legal)
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12-rc20";
+$project_version = "0.12.20";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
@@ -128,7 +123,7 @@ function ros_logo(&$pdf,$x,$y,$height,$wl=0,$wr=0){
   $text = 'R&OS';
   $ts=100*$factor;
   $th = $pdf->getFontHeight($ts);
-  $td = $pdf->getFontDecender($ts);
+  $td = $pdf->getFontDescender($ts);
   $tw = $pdf->getTextWidth($ts,$text);
   $pdf->setColor(0.6,0,0);
   $z = 0.86;
@@ -215,7 +210,7 @@ foreach ($data as $line){
           $thisPageNum = $pdf->ezPageCount;
           $pdf->saveState();
           $pdf->setColor(0.9,0.9,0.9);
-          $pdf->filledRectangle($pdf->ez['leftMargin'],$pdf->y-$pdf->getFontHeight(18)+$pdf->getFontDecender(18),$pdf->ez['pageWidth']-$pdf->ez['leftMargin']-$pdf->ez['rightMargin'],$pdf->getFontHeight(18));
+          $pdf->filledRectangle($pdf->ez['leftMargin'],$pdf->y-$pdf->getFontHeight(18)+$pdf->getFontDescender(18),$pdf->ez['pageWidth']-$pdf->ez['leftMargin']-$pdf->ez['rightMargin'],$pdf->getFontHeight(18));
           $pdf->restoreState();
           $pdf->ezText($tmp2,18,array('justification'=>'left'));
           if ($pdf->ezPageCount==$thisPageNum){
