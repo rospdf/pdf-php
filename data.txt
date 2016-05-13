@@ -29,134 +29,13 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
-2<0.12-rc17>
+2<0.13.0>
+- initial version of 0.13
 
-- fixed reported bug #76 Invalid creation date
+2<older versions>
 
-2<0.12-rc16>
-
-- fixed property $stack to be protected as a private property cause strange behaviours in PHP 5.1 and 5.2
-
-2<0.12-rc15>
-
-- fixed PHP Notice "Undefined offset: -1" for unknown glyphs in TTFsubset.php
-
-2<0.12-rc14>
-
-- fixed ezTableDrawLines in CezTableImage.php extension
-- improved performance in openFont
-- use max 255 chars for font type TrueType if unicode is disabled
-
-2<0.12-rc13>
-
-- fixed encoding conversation when using core fonts.
-
-2<0.12-rc12>
-
-NOTE: Some private properties have been changed in Cpdf.php
-NOTE: selectFont does not return $this->currentFontNum anymore
-
-- some slightly changes to Cpdf
-- added $pdf->getCurrentFont([$withStyle = false]) to get the font name currently in use
-- updated SVN version to 1.8
-
-2<0.12-rc11>
-
-NOTE: A new option 'gridlines' in ezTable is available to allow additional line modes
-NOTE: A new option 'alignHeadings' in ezTable is available to align the complete header row
-NOTE: The option 'showLines' is DEPRECATED in ezTable option
-
-- applied path #20 ezTable advanced grid lines (see examples/tables.php)
-- fixed bug #75 Alignment fixes for tables and images
-- applied patch #19 Table heading alignment
-- fixed an old bug related to vertical lines in ezTable when page break occurs
-
-2<0.12-rc10>
-
-- fixed bug #74 font subsetting ignored when no character is set | thank you Johannes
-- applied ezTable changes to extension class CezTableImage.php
-- added new example tables.php
-
-2<0.12-rc9>
-
-NOTE: callback function and ezText option 'justification'=>'full' can cause bad results
-NOTE: More info, see bug report #67 on https://sourceforge.net/p/pdf-php/bugs/67/
-
-- applied patch #9 ezTable: permit coloured background for headings - See example on page 14
-- applied patch #11 coloured text as callback by using &lt;c:color:r,g,b&gt;color text&lt;/c:color&gt;
-- optimized widths entry (/W [...]) for unicode font output
-- fixed openFont function which caused an abnormal exit or blank browser page
-- corrected ezTable 'showLine' option to display head line properly
-- some other slightly changes
-
-2<0.12-rc8>
-
-NOTE: Due to the fontPath change it is <b>recommend to only use the font name</b> in $pdf->selectFont().
-NOTE: Define the font location by using $pdf->fontPath = '/dir/to/your/fonts'
-
-- added "fontPath" property to define font folders outside the project root
-- fixed AAR search by setting unique fileIdentifiers
-
-2<0.12-rc7>
-
-- fixed bug #72 - directives cause wrong line alignment
-
-2<0.12-rc6>
-
-- fixed bug #71 - wrong fileIdentfier cause Adobe Reader to invalidate search
-- corrected table border on page break
-
-2<0.12-rc5>
-
-- fixed bug when table page breaks (changed some private declarations into protected)
-- font cache fixed by disabling subsets for non-unicode fonts (need improvement)
-- NEW PROPERTY cacheTimeout to allow setting the cache lifetime (default: 1 day)
-
-2<0.12-rc4>
-
-- indexed PNG fixed (but without alpha channel)
-- background color check simplified in Cezpdf.php which causes sporadic errors on line 219
-- custom callback for underlined (c:uline) is set to allowedTags by default
-- some fixes with text directives (E.g. &lt;b&gt;[new line]text[new line]text&lt;/b&gt;)
-- corrected getTextWidth by removing all directives set in $pdf->allowedTags
-
-2<0.12-rc3>
-
-- removed unused Begin Text - objects (BT ... ET) by checking empty text in addText method
-- fixed bug #66 Bug in specifying font size
-- bug fixed: font style now ends up properly after line break has forced
-- optimized pdf output for link annotation (actions are now set inline)
-- fixed sprintf locale output for rectangle in o_annotation
-- NEW FEATURE: new annotation called comments - demo in examples/annotations.php
-- applied patch no# 13 - 16
-
-2<0.12-rc2>
-
-- bug fixed for missing ET tags (caused pdf viewer to resave the file when closing)
-- fixed bug with wrong calculation of the char "0" (zero) in $pdf->uniord($c)
-- code optimization
-
-2<0.12-rc1>
-
-- additional bug fixes for directive (especially for UTF-8 text)
-- slightly performance improvements
-- addTextWrap function is no more, use addText instead
-- added FreeSerif font from http://ftp.gnu.org/gnu/freefont/ 
-
-- use UTF-8 text input in addText and addTextWrap by default
-- fixed issue with directives when using unicode (underline, bold, ...)
-
-- fixed bug: wrong width is used when document is set to unicodee
-- optimized and simplified the methods for custom callbacks (checkTextDirective is no more)
-- improved performance (readme.php is 30% faster)
-- new property allowedTags, which is important when using custom callbacks (see barcode.php, CezTableImage.php or CezDummy.php)
-- font subsetting completed
-- No ttf2afm or ttf2ufm is required - Thank goes to Thanos Efraimidis (4real.gr) for TTF.php and TTFsubset.php
-
-2<other versions>
-
-<c:alink:http://sourceforge.net/p/pdf-php/code/HEAD/tree/tags/0.11.8/readme.pdf?format=raw>click here</c:alink> for version 0.11.8
-<c:alink:http://sourceforge.net/projects/pdf-php/files/v%20011%20with%20Fonts/0.11.7c-php4.zip/download>click here</c:alink> for PHP4 compatibility version 0.11-7c
+<c:alink:http://github.com/rospdf/pdf-php/releases/tag/0.12.20>click here</c:alink> for version 0.12.X
+<c:alink:http://github.com/rospdf/pdf-php/releases/tag/0.11.7d-php4>click here</c:alink> for version 0.11.X (PHP4)
 #NP
 
 1<Use>

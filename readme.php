@@ -18,7 +18,7 @@
 error_reporting(E_ALL);
 set_time_limit(1800);
 
-include '../src/Cezpdf.php';
+include './src/Cezpdf.php';
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
