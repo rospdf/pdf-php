@@ -9,7 +9,7 @@ This is the offical GIT clone from the R&OS PHP Pdf class previously stored on [
 The R&OS Pdf class is used to generate PDF Documents using PHP without installing any additional modules or extensions
 It comes with a base class called "Cpdf.php" plus a helper class "Cezpdf.php" to generate tables, add backgrounds and provide paging.
 
-<p align="center"> <a href="https://github.com/rospdf/pdf-php/blob/master/readme.pdf">DOCUMENTATION</a> : <a href="https://github.com/rospdf/pdf-php/archive/master.zip">DOWNLOAD</a></p>
+<div align="center"> <a href="https://github.com/rospdf/pdf-php/blob/master/readme.pdf">DOCUMENTATION</a></div>
 
 ## Features
 - Quick and easy to use
@@ -27,44 +27,37 @@ It comes with a base class called "Cpdf.php" plus a helper class "Cezpdf.php" to
 
 ## Installation
 
-### Installation via composer
+### Manual Download
 
-To leverage an automatic autoloader, you can install through `composer`. Simply add a dependency on ´rospdf/pdf-php´ to your projects `composer.json`.
+Open the [RELEASE](https://github.com/rospdf/pdf-php/releases) page and pick the latest version to download.
 
-```
-{
-    "require": {
-        "rospdf/pdf-php": "0.12.*"
-    }
-}
-```
-
-When managing your dependencies through `composer`, you can leverage the autoloader placed in the `vendor` directory.
-
-```php5
-require_once 'vendor/autoload.php';
-```
-
-For a system-wide installation via Composer, you can run:
-
-    composer global require "rospdf/pdf-php=0.12.*"
+Extract the archive into your project directory
 
 ### Clone via git
 
 You can also use git to install it using:
 
     git clone https://github.com/rospdf/pdf-php.git
-    git checkout <tag name>
+    git checkout <latest-version>
+	
 
-### Manual installation
+### Installation via composer
 
-Copy the `src` folder into your project directory and include the Cezpdf.php using php `include 'src\Cezpdf.php'`
+This library is also available on the dependecy manager `composer` - https://packagist.org/packages/rospdf/pdf-php
+
+Please follow the steps [here](https://getcomposer.org/download/) to install. Once this is done one simple command will get all dependencies for the package `rospdf/pdf-php`
+
+	./composer.phar require rospdf/pdf-php
+
+For more details on how to use `composer` please refer to the documentation - https://getcomposer.org/doc/
 
 ### Example
 
-```php5
+```php
 <?php
-include 'src\Cezpdf.php'; // Or using the autoloader from vendor/autoload.php if installed through composer
+
+include 'src/Cezpdf.php'; // Or use 'vendor/autoload.php' when installed through composer
+
 // Initialize a ROS PDF class object using DIN-A4, with background color gray
 $pdf = new Cezpdf('a4','portrait','color',array(0.8,0.8,0.8));
 // Set pdf Bleedbox
@@ -87,4 +80,6 @@ $pdf->ezStream(array('compress'=>0));
 
 ## Contributors
 
-[ole1986](http://github.com/ole1986) is lead developer. See the full list of [contributors](https://github.com/rospdf/pdf-php/graphs/contributors).
+[ole1986](http://github.com/ole1986) is lead developer. 
+
+See the full list of [contributors](https://github.com/rospdf/pdf-php/graphs/contributors).
