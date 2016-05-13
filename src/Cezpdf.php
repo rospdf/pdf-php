@@ -281,10 +281,9 @@ class Cezpdf extends Cpdf_Extension
 
         $tmpBackground = $this->CURPAGE->Background;
 
-        $this->ezPage = &$this->NewPage(null, null, $this->CURPAGE->Bleedbox);
-
+        $this->ezPage = $this->NewPage(null, null, $this->CURPAGE->Bleedbox);
         // set the same background as before
-        $newPage->Background = $tmpBackground;
+        $this->ezPage->Background = $tmpBackground;
     }
 
     /**

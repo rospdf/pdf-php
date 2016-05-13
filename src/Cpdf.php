@@ -4068,16 +4068,16 @@ class Cpdf_Appearance extends Cpdf_Content
         $tagEnd = mb_strpos($text, '>', $tagStart, 'UTF-8');
         $fullTag = mb_substr($text, $tagStart, $tagEnd - $tagStart + 1, 'UTF-8');
 
-        $regex = "/<\/?([cC]:|)(".$this->pages->AllowedTags.")\>/";
-
+        $regex = "/<\/?([cC]:|)(".$this->pages->AllowedTags.")>/";
+        
         if (!preg_match($regex, $fullTag, $regs)) {
             return;
         }
 
-        $p = explode(':', $regs[2]);
-        if (count($p) > 1) {
-            $func = $p[0];
-            $parameter = $p[1];
+        $p = strpos($regs[2], ":");
+        if ($p !== false) {
+            $func = substr($regs[2], 0, $p);
+            $parameter = substr($regs[2], $p + 1);
         } else {
             $func = $regs[2];
             $parameter = '';
@@ -4088,7 +4088,7 @@ class Cpdf_Appearance extends Cpdf_Content
             $isEndTag = 1;
         } elseif ($regs[1] == "C:") {
             $isEndTag = 2;
-        }
+        }        
         return array('func' => $func, 'param' => $parameter, 'start'=> $tagStart, 'end' => $tagEnd, 'close' => $isEndTag);
     }
 
