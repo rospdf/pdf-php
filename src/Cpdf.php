@@ -3800,7 +3800,7 @@
             $this->o_image($this->numObj,'new',array('label'=>$label,'data'=>$data,'iw'=>$imageWidth,'ih'=>$imageHeight,'channels'=>$channels));
         }
 
-        $this->objects[$this->currentContents]['c'].="\nq ".sprintf('%.3F',$w)." 0 0 ".sprintf('%.3F',$h)." ".sprintf('%.3F',$x)." ".sprintf('%.3F',$y)." cm";
+        $this->objects[$this->currentContents]['c'].="\nq";
         
         if($angle != 0)
         {
