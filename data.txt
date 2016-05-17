@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changes>
 
+2<0.12.21>
+
+- added image rotation support
+
 2<0.12.20>
 
 - fixed reported issue with Typo "decender" in Cpdf.php and Cezpdf.php. 
@@ -569,7 +573,7 @@ This function now supports the use of underlining markers (&lt;u> &lt;/u>), thes
 
 2<ezImage>
 
-<b>ezImage(image,[padding],[width],[resize],[justification],[array border])</b>
+<b>ezImage(image,[padding],[width],[resize],[justification], [angle],[array border])</b>
 
 This function makes it much easier to simply place an image (either jpeg or png) within the flow of text within a document.  Although this function can certainly be used with full page documents, its functionality is most suited to documents that are formatted in multiple columns.
 
@@ -592,6 +596,8 @@ The value 'width' behaves the same as 'none' with the exception that images will
 The value 'full' behaves the same as 'width' with the exception that images will be resized down vertically to fit within the current page and column if their height is too long to fit.
 
 <b>$justification</b> (optional) determines the horizontal position of the image within the current column.  The default is 'center', and can be specified as either 'center', 'left', or 'right'.  This setting has little meaning if the image has been resized to fit the column and only makes a practical difference if the width of the image is smaller than the width of the column.
+
+<b>$angle</b> (optional) allows you the rotate the image
 
 <b>$border</b> (optional) is an array which specifies the details of the border around the image.  The default is no border if this argument is not given.  You may specify any of the following border elements:
 
@@ -1097,14 +1103,14 @@ modified in version 003 so that 'label' can also be an array of key->value pairs
 
 2<addImage>
 
-<b>addImage(img,x,y,w,[h],[quality=75])</b>
+<b>addImage(img,x,y,w,[h],[quality=75],[angle=0])</b>
 
 Add an image to the document, this feature needs some development. But as it stands, img must be a handle to a GD graphics object, and one or both of w or h must be specified, if only one of them is specified, then the other is calculated by keeping the ratio of the height and width of the image constant.
 The image will be placed with its lower left corner at (x,y), and w and h refer to page units, not pixels.
 
 2<addJpegFromFile>
 
-<b>addJpegFromFile(imgFileName,x,y,w,[h])</b>
+<b>addJpegFromFile(imgFileName,x,y,w,[h],[angle=0])</b>
 
 Add a JPEG image to the document, this function does not require the GD functionality, so should be usable to more people, interestingly it also seems to 
 be more reliable and better quality. The syntax of the command is similar to the above 'addImage' function, though 'img' is a string containing the file name of the jpeg image.
@@ -1113,7 +1119,7 @@ x,y are the position of the lower left corner of the image, and w,h are the widt
 
 2<addPngFromFile>
 
-<b>addPngFromFile(imgFileName,x,y,w,[h])</b>
+<b>addPngFromFile(imgFileName,x,y,w,[h],[angle=0])</b>
 
 Similar to <i>addJepgFromFile</i>, but for PNG images.
 
