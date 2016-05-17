@@ -712,7 +712,7 @@ class CezTableImage extends Cezpdf {
      * @param $quality image quality
 	 * @access protected
 	 */
-	function addImage(& $params, $x = 0, $y = 0, $w=0,$h=0,$quality=75) {
+	function addImage(& $params, $x = 0, $y = 0, $w=0,$h=0,$quality=75, $angle = 0) {
 		if ($params->isUrl()) {
 			if (function_exists('imagecreatefrompng')) { 
 				switch($params->getImageType()) {
@@ -727,19 +727,19 @@ class CezTableImage extends Cezpdf {
 						$image = imagecreatefromgif($params->getFilename());
 					break;
 				}
-				parent::addImage($image, $x, $y, $params->getWidth(), $params->getHeight());
+				parent::addImage($image, $x, $y, $params->getWidth(), $params->getHeight(), $quality, $angle);
 			}
 		} else {
 			// check for image type, currently only png and jpeg supported	
 			switch($params->getImageType()) {
 				case 3: // png
-					parent::addPngFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight());
+					parent::addPngFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight(), $angle);
 				break;
 				case 2: // jpeg
-					parent::addJpegFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight());
+					parent::addJpegFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight(), $angle);
 				break;
 				case 1: // gif
-					parent::addGifFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight());
+					parent::addGifFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight(), $angle);
 				break;
 			}
 		}
