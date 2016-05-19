@@ -14,10 +14,6 @@ $pdf = new Creport('a4','portrait');
 
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
 
-// to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false)
-    Creport::$TempPath = 'D:/xampp/tmp';
-
 $pdf->ezSetMargins(20,20,20,20);
 
 $pdf->selectFont('courier');

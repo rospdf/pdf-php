@@ -1,26 +1,21 @@
 <?php
-error_reporting(E_ALL);
-set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
-set_time_limit(180);
+require '../src/CpdfExtension.php';
 
-include 'Cpdf.php';
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfTable;
+
 
 $time_start = microtime(true);
 
-$pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
+$pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 
 //$pdf->Compression  = 0;
 
 $pdf->FontSubset = true;
-//Cpdf::$DEBUGLEVEL = Cpdf_Common::DEBUG_ROWS;
+//Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_ROWS;
 
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    Cpdf::$TempPath = 'D:/xampp/tmp';
-}
-
-$ls = new Cpdf_LineStyle(1, 'butt', 'miter');
-$table = $pdf->NewTable(array('ly'=>774, 'ux'=>280), 4, null, $ls, Cpdf_Table::DRAWLINE_HEADERROW);
+$ls = new CpdfLineStyle(1, 'butt', 'miter');
+$table = $pdf->NewTable(array('ly'=>774, 'ux'=>280), 4, null, $ls, CpdfTable::DRAWLINE_HEADERROW);
 // disable page break for tables by settings BreakPage to 0 (zero)
 //$table->BreakPage = 0;
 

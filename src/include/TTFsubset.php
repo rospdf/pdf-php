@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-include_once 'TTF.php';
+require_once 'TTF.php';
 
 class TTFsubset
 {

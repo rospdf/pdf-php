@@ -9,7 +9,7 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->cpdf = new \Cpdf_Extension(\Cpdf_Common::$Layout['A4']);
+        $this->cpdf = new \CpdfExtension(\Cpdf::$Layout['A4']);
     }
 
     public function testConstructor()

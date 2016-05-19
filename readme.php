@@ -18,7 +18,7 @@
 error_reporting(E_ALL);
 set_time_limit(1800);
 
-include './src/Cezpdf.php';
+require_once './src/Cezpdf.php';
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
@@ -79,7 +79,7 @@ class Creport extends Cezpdf {
 	  	
 	  	$initBBox = $app->GetBBox();
 	  	
-	  	$ls = new Cpdf_LineStyle(1, 'butt', 'butt', array(1,2));
+	  	$ls = new CpdfLineStyle(1, 'butt', 'butt', array(1,2));
 	  	$app->AddLine(0,0, $initBBox[2] - $bbox[2], 0, $ls);
 	  	
 	  	switch($lvl){
@@ -106,17 +106,14 @@ $project_version = "0.13.0";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
-// to test on windows xampp
-  if(strpos(PHP_OS, 'WIN') !== false){
-    $pdf->tempPath = 'E:/xampp/xampp/tmp';
-  }
+
 $start = microtime(true);
 
 $pdf->ezSetMargins(50,70,50,50);
 
 // put a line top and bottom on all the pages
 $appFooter = $pdf->NewAppearance(array('adduy'=> 10,'ly'=> 20));
-$appFooter->SetPageMode(Cpdf_Content::PMODE_ALL);
+$appFooter->SetPageMode(\ROSPDF\CpdfContent::PMODE_ALL);
 
 $appFooter->AddLine(0, $appFooter->GetBBox('height'), $appFooter->GetBBox('width'));
 $appFooter->UpdateBBox(array('uy'=> 40), TRUE);
