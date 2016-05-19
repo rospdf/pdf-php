@@ -7,7 +7,7 @@ use ROSPDF\CpdfBorderStyle;
 
 
 $pdf = new CpdfExtension(Cpdf::$Layout['A4']);
-Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
+//Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
 
 $t = $pdf->NewText();
 $t->AddText("// IMPORTANT NOTE about Annotations");

@@ -3,7 +3,7 @@ require '../src/CpdfExtension.php';
 
 use ROSPDF\Cpdf;
 use ROSPDF\CpdfTable;
-
+use ROSPDF\CpdfLineStyle;
 
 $time_start = microtime(true);
 
@@ -15,7 +15,7 @@ $pdf->FontSubset = true;
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_ROWS;
 
 $ls = new CpdfLineStyle(1, 'butt', 'miter');
-$table = $pdf->NewTable(array('ly'=>774, 'ux'=>280), 4, null, $ls, CpdfTable::DRAWLINE_HEADERROW);
+$table = $pdf->NewTable(['ly'=>774, 'ux'=>280], 4, null, $ls, CpdfTable::DRAWLINE_HEADERROW);
 // disable page break for tables by settings BreakPage to 0 (zero)
 //$table->BreakPage = 0;
 
@@ -25,12 +25,12 @@ $table->SetFont('FreeSerif', 10, '', true);
 $table->Fit = true;
 
 for ($i=1; $i <= 4; $i+=2) {
-    $table->AddCell("ROW $i", null, array(0.5, 0.7, 0.2));
+    $table->AddCell("ROW $i", null, [0.5, 0.7, 0.2]);
     $table->AddCell("HOUSTON USA € $");
     $table->AddCell("汉");
     $table->AddCell("лобо");
     
-    $table->AddCell("ROW ".($i+1), null, array(0.5, 0.5, 0.8));
+    $table->AddCell("ROW ".($i+1), null, [0.5, 0.5, 0.8]);
     $table->AddCell("HOUSTON UNITED STATES");
     $table->AddCell("Discharge Port");
     $table->AddCell("CALLAO, PERU");

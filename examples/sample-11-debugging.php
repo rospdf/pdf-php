@@ -3,6 +3,7 @@ require '../src/CpdfExtension.php';
 
 use ROSPDF\Cpdf;
 use ROSPDF\CpdfTable;
+use ROSPDF\CpdfLineStyle;
 
 // performance counter
 $start = microtime(true);
@@ -43,7 +44,7 @@ $table->SetColumnWidths(85, null, 85, null);
 
 $m = array('bottom'=>5,'top'=> 5);
 
-$table->SetFont('GOTHMBOK', 10, '', true);
+//$table->SetFont('GOTHMBOK', 10, '', true);
 $table->AddCell('<b>Invoice no.</b>', null, $m);
 $table->AddCell('XXXX-XXX', null, $m);
 $table->AddCell('<b>Date</b>', null, $m);

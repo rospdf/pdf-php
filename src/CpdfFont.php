@@ -170,7 +170,7 @@ class CpdfFont
     private function subsetProgram()
     {
         if (class_exists('TTFsubset')) {
-            $t = new TTFsubset();
+            $t = new \TTFsubset();
             // combine all used characters as string
             $s = implode('', array_keys($this->subsets));
 
@@ -313,7 +313,7 @@ class CpdfFont
         // set unicode to all TTF fonts by default
         $this->IsUnicode = true;
 
-        $ttf = new TTF(file_get_contents($fontpath));
+        $ttf = new \TTF(file_get_contents($fontpath));
 
         $head = $ttf->unmarshalHead();
         $uname = $ttf->unmarshalName();
@@ -390,7 +390,7 @@ class CpdfFont
 
             $this->props['C'] = array();
             foreach ($charToGlyph as $char => $glyphIndex) {
-                $m = TTF::getHMetrics($hmetrics, $hhea['numberOfHMetrics'], $glyphIndex);
+                $m = \TTF::getHMetrics($hmetrics, $hhea['numberOfHMetrics'], $glyphIndex);
 
                 // calculate the correct char width by dividing it with 'units per em'
                 $this->props['C'][$char] = intval($m[0] / ($head['unitsPerEm'] / 1000));

@@ -1,5 +1,7 @@
 <?php
 
+namespace ROSPDF;
+
 class CpdfTable extends CpdfAppearance
 {
 

@@ -24,13 +24,15 @@
  * @license  GNU General Public License v3
  * @link     http://pdf-php.sf.net
  */
-namespace ROSPDF;
 
+namespace ROSPDF;
 // include TTF and TTFsubset classes
 require_once 'include/TTFsubset.php';
 
 if(!defined('ROSPDF_SKIP_AUTOLOAD')) {
     spl_autoload_register(function ($class) {
+        if(strpos($class,'ROSPDF\\Cpdf') === false) return;
+        
         $parts = explode('\\', $class);
         error_log("Loading $class...");
         require_once end($parts) . '.php';
