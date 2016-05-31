@@ -24,9 +24,12 @@ $pdf->ezSetMargins(20,20,20,20);
 $pdf->openHere('Fit');
 
 $pdf->selectFont('Helvetica');
-for($i = 1; $i <= 1; $i++){
-    $pdf->ezText("Lorem $ £ € ipsum dol $i");
+$result = '';
+for($i = 1; $i <= 50; $i++){
+    $result.='Lorem ipsum dol sit ';
 }
+
+$pdf->addTextWrap(100, 600,10,$result, 250);
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
