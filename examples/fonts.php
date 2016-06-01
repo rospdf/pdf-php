@@ -12,9 +12,9 @@ class Creport extends Cezpdf{
 }
 $pdf = new Creport('a4','portrait');
 // to test on windows xampp
-  if(strpos(PHP_OS, 'WIN') !== false){
-    $pdf->tempPath = 'E:/xampp/xampp/tmp';
-  }
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'C:/temp';
+}
   
 $pdf->ezSetMargins(20,20,20,20);
 $pdf->openHere('Fit');

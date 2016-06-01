@@ -12,6 +12,10 @@ class Creport extends Cezpdf{
 	}
 }
 $pdf = new Creport('a4','portrait');
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'C:/temp';
+}
 // make sure cache is regenerated
 $pdf->cacheTimeout = 0;
 
@@ -24,9 +28,12 @@ $pdf->ezSetMargins(20,20,20,20);
 $pdf->openHere('Fit');
 
 $pdf->selectFont('Helvetica');
-for($i = 1; $i <= 1; $i++){
-    $pdf->ezText("Lorem $ £ € ipsum dol $i");
+$result = '';
+for($i = 1; $i <= 50; $i++){
+    $result.='Lorem ipsum dol sit ';
 }
+
+$pdf->addTextWrap(100, 600,10,$result, 250, 'full');
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
