@@ -8,7 +8,7 @@ include 'Cezpdf.php';
 $pdf = new Cezpdf('a4','portrait');
 // to test on windows xampp
 if(strpos(PHP_OS, 'WIN') !== false){
-    $pdf->tempPath = 'E:/xampp/xampp/tmp';
+    $pdf->tempPath = 'C:/temp';
 }
 
 if(!isset($_GET['nocrypt'])){

@@ -69,13 +69,14 @@ class Creport extends Cezpdf {
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12.21";
+$project_version = "0.12.22";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
-  if(strpos(PHP_OS, 'WIN') !== false){
-    $pdf->tempPath = 'E:/xampp/xampp/tmp';
-  }
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'C:/temp';
+}
+
 $start = microtime(true);
 
 // IMPORTANT: To allow custom callbacks being executed
