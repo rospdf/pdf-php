@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch CLI",
+            "type": "php",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${fileDirname}"
+        },
+        {
+            "name": "Launch Server",
+            "type": "PowerShell",
+            "request": "launch",
+            "program": "php",
+            "args": ["-S localhost:80"],
+            "cwd": "${workspaceRoot}"
+        }
+    ]
+}
