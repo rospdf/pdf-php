@@ -10,6 +10,8 @@
  * Text directives, like strong and italic are dependent on the Font family set defined in Cpdf::$DefaultFontFamily
  */
 
+namespace ROSPDF;
+
 require_once 'Cpdf.php';
 
 use ROSPDF\Cpdf as Cpdf;
