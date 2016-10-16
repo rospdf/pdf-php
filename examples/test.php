@@ -24,16 +24,15 @@ $pdf->targetEncoding = 'ISO-8859-1';
 // used for Euro and Pound sign
 $pdf->targetEncoding = 'cp1252';
 
-$pdf->ezSetMargins(20,20,20,20);
+$pdf->ezSetMargins(30,30,30,30);
 $pdf->openHere('Fit');
 
 $pdf->selectFont('Helvetica');
-$result = '';
-for($i = 1; $i <= 50; $i++){
-    $result.='Lorem ipsum dol sit ';
-}
+//$result = 'Lorem ipsum dol sit Lorem ipsum dol sit Lorem ipsum dol sit Lorem ipsum dol sit <b>Lorem ipsum</b> dol sit <strong>Lorem</strong> ipsum dol sit <i>bla bla bla</i> Lorem ipsum dol sit Lorem';
 
-$pdf->addTextWrap(100, 600,10,$result, 250, 'full');
+$result = 'There is a directive similar to <i>alink</i>, but designed for linking within the document, this is the <i>ilink</i> callback function.';
+
+$pdf->ezText($result, 12);
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);

@@ -124,7 +124,7 @@
     
     /**
      * default encoding for NON-UNICODE text
-     @var string default encoding is IS0-8859-1
+     * @var string default encoding is IS0-8859-1
      */
     public $targetEncoding = 'ISO-8859-1';
     /**
@@ -2737,6 +2737,7 @@
         $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/";
         $cb = array();
         $r = preg_match_all($regex, $text, $regs, PREG_OFFSET_CAPTURE);
+        //print_r($regs);
         if($r){
             // backup current font style
             $store_currentTextState = $this->currentTextState;
@@ -2753,35 +2754,34 @@
 
             $restWidth = $width;
             reset($regs[0]);
-            
-            $prevEndTagIndex = 0;
-            while(list($k,$curTag) = each($regs[0])){
-                $curTagIndex = mb_strlen(substr($text, 0, $curTag[1]), 'UTF-8');
-                $endTagIndex = $curTagIndex + strlen($curTag[0]);
+        
+            $prevPosEnd = 0;
+            foreach($regs[0] as $k => $v) {
                 
-                $tmpstr = mb_substr($text, $prevEndTagIndex, $curTagIndex - $prevEndTagIndex, 'UTF-8');
-                $tmpstr = $this->filterText($tmpstr, false, false);
+                $curTag = $regs[2][$k][0];
+                $curPos = $v[1];
+                $curPosEnd = $curPos + strlen($v[0]);
+                $parm = '';
+
+                $isEnd = (stripos($v[0], "</") !== false) ? true : false;
+                $noClose = ($regs[1][$k][0] == 'C:')? true: false;
+
+                $tmpstr = mb_substr($text, $prevPosEnd, $curPos - $prevPosEnd, 'UTF-8');
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
+                
+                if(isset($_GET['d'])) 
+                {
+                    echo "$tmpstr - ";
+                    print_r($tmp);
+                }
                 // if the text does not fit to $width, $tmp[2] contains the length to break the line
-                if($tmp[2] > 0){
+                if($tmp[2] >= 0){
                     // position where the line break occurs
-                    $lbpos = $prevEndTagIndex + $tmp[2];
+                    $lbpos = $prevPosEnd + $tmp[2];
                     
                     // adjust to position if justification is set
                     if($nx > $x){
                         $tmpw = ($width - $restWidth) + $tmp[0];
-                        // force word wrap when something already written
-                        /*$lbpos -= $tmp[2];
-                        if($prevEndTagIndex == $lbpos){
-                            $lastCallback = array_pop($cb);
-                            
-                            if(isset($lastCallback)){
-                                $lbpos -= $lastCallback['endTag'] - $lastCallback['startTag'];
-                                $tmp[0] = 0;
-                                if(isset($lastCallback['nCallback']))
-                                    $this->nCallback--;
-                            }
-                        }*/
                     } else{
                         $tmpw = $tmp[0];
                     }
@@ -2795,27 +2795,23 @@
                     return $cb;
                 }
                 
-                $prevEndTagIndex = $endTagIndex;
+                $prevPosEnd = $curPosEnd;
+
                 $restWidth -= $tmp[0];
                 $nx += $tmp[0];
-                
                 $ny += $tmp[1];
-                
+
+                // if below is not null, there are custom parameters
                 if(!empty($regs[1][$k][0])){
-                    // these are custom callbacks (with parameters)
-                    $pos = strpos($regs[2][$k][0], ':');
+                    $pos = strpos($curTag, ':');
                     if($pos){
-                        $func = substr($regs[2][$k][0], 0, $pos);
-                        $parm = substr($regs[2][$k][0], $pos + 1);
-                    } else {
-                        $func = $regs[2][$k][0];
-                        $parm = '';
+                        $parm = substr($curTag, $pos + 1);
+                        $curTag = substr($curTag, 0, $pos);
                     }
-                    // adjust the coordinates if justification is set
-                    
+
                     // end tag for custom callbacks
-                    if(substr($curTag[0], 0, 2) == "</"){
-                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny,'angle'=>$angle,'status'=>'end', 'f'=>$func, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $curTagIndex, 'endTag' => $endTagIndex );
+                    if($isEnd){
+                        $cb[$curPos] = array('x'=> $nx, 'y'=>$ny,'angle'=>$angle,'status'=>'end', 'f'=>$curTag, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd );
                         if(!$noCB){
                             $this->nCallback--;
                             if ($this->nCallback<0){
@@ -2823,48 +2819,48 @@
                             }
                         }
                     } else {
-                        $noClose = ($regs[1][$k][0] == 'C:')? true: false;
-                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$func,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDescender($size), 
-                                            'startTag' => $curTagIndex, 'endTag' => $endTagIndex , 'noClose' => $noClose);
+                        $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$curTag,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDescender($size), 
+                                            'startTag' => $curPos, 'endTag' => $curPosEnd , 'noClose' => $noClose);
                         if(!$noCB){
                             if(!$noClose){
                                 $this->nCallback++;
-                                $cb[$curTagIndex]['nCallback']=$this->nCallback;
-                                $this->callback[$this->nCallback]=$cb[$curTagIndex];
+                                $cb[$curPos]['nCallback']=$this->nCallback;
+                                $this->callback[$this->nCallback]=$cb[$curPos];
                             }
                         }
                     }
+
+
                 } else {
-                    $parm = $regs[2][$k][0];
-                    if(substr($curTag[0] ,0 , 2) == "</"){
-                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'end',  'p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $curTagIndex, 'endTag' => $endTagIndex );
+                    if($isEnd){
+                        $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'end',  'p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
                     } else {
-                        $cb[$curTagIndex] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>'defaultFormatting', 'startTag' => $curTagIndex, 'endTag' => $endTagIndex );
+                        $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
                     }
                     
                     // do a dry formatting to fetch the correct text width
-                    $this->defaultFormatting($cb[$curTagIndex]);
+                    $this->defaultFormatting($cb[$curPos]);
                     $this->setCurrentFont();
                 }
             }
             
             $l = mb_strlen($text, 'UTF-8');
             
-            if($prevEndTagIndex < $l){
-                $tmpstr = mb_substr($text, $prevEndTagIndex, $l - $prevEndTagIndex, 'UTF-8');
+            if($prevPosEnd < $l){
+                $tmpstr = mb_substr($text, $prevPosEnd, $l - $prevPosEnd, 'UTF-8');
                 $tmp = $this->getTextLength($size, $tmpstr, $restWidth, $angle, $wordSpaceAdjust);
                 // if the text does not fit to $width, $tmp[2] contains the length
-                if($tmp[2] > 0){
+                if($tmp[2] >= 0){
                     // restore previous stored font style 
                     $this->currentTextState = $store_currentTextState;
                     $this->setCurrentFont();
                     
-                    $tmpstr = mb_substr($text, 0, $prevEndTagIndex + $tmp[2], 'UTF-8');
+                    $tmpstr = mb_substr($text, 0, $prevPosEnd + $tmp[2], 'UTF-8');
                     // adjust to position if justification is set
                     $this->adjustWrapText($tmpstr, $width - ($restWidth - $tmp[0]), $width, $x, $wordSpaceAdjust, $justification);
                     // set position array by using the current break position minus offset
                     
-                    $lbpos = $prevEndTagIndex + $tmp[2];
+                    $lbpos = $prevPosEnd + $tmp[2];
                     $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
                     return $cb;
                 } else {
@@ -2956,7 +2952,7 @@
         $len=mb_strlen($text,'UTF-8');
         
         $directives = $this->getDirectives($text, $x, $y, $width, $size, $justification, $angle, $wordSpaceAdjust);
-        //print_r($directives);
+        
         if ($angle == 0) {
           $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
         } else {
@@ -3131,6 +3127,7 @@
         $tw = $maxWidth/$size*1000;
         $break=0;
         $w=0;
+        $truncateChar = 1;
         
         for ($i=0;$i< $len ;$i++){
             $c = mb_substr($text, $i, 1, 'UTF-8');
@@ -3156,7 +3153,7 @@
             
             if($maxWidth > 0 && (cos($a)*$w) > $tw){
                 if ($break>0){
-                    return array(cos($a)*$breakWidth, -sin($a)*$breakWidth, $break, 1);
+                    return array(cos($a)*$breakWidth, -sin($a)*$breakWidth, $break, $truncateChar);
                 } else {
                     $ctmp = $cOrd;
                     if (isset($this->fonts[$cf]['differences'][$ctmp])){
@@ -3164,22 +3161,24 @@
                     }
                     $tmpw=($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
                     // just split before the current character
-                    return array(cos($a)*$tmpw, -sin($a)*$tmpw, $i, 0);
+                    return array(cos($a)*$tmpw, -sin($a)*$tmpw, 0, 0);
                 }
             }
             
             // find space or minus for a clean line break
             if(in_array($cOrd2, $spaces) && $maxWidth > 0){
             	$break=$i;
+                $truncateChar = 1;
                 $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd2])*$size/1000;
-            } else if($cOrd2 == 45  && $maxWidth > 0){
+            } else if($cOrd2 == 45 && $maxWidth > 0){
             	$break=$i;
+                $truncateChar = 0;
                 $breakWidth = $w*$size/1000;
             }
         }
         
         $tmpw=$w*$size/1000;
-        return array(cos($a)*$tmpw, -sin($a)*$tmpw, 0, 0);
+        return array(cos($a)*$tmpw, -sin($a)*$tmpw, -1, 0);
     }
 
     /**
