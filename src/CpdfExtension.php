@@ -14,9 +14,9 @@ namespace ROSPDF;
 
 require_once 'Cpdf.php';
 
-use ROSPDF\Cpdf as Cpdf;
-use ROSPDF\CpdfLineStyle as CpdfLineStyle;
-use ROSPDF\CpdfColor as CpdfColor;
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfLineStyle;
+use ROSPDF\CpdfColor;
 
 class CpdfExtension extends Cpdf
 {

@@ -179,6 +179,11 @@ class Cpdf
     public static $CacheTimeout = '30 minutes';
 
     /**
+     * Default timezone
+     */
+    public static $Locale = 'UTC';
+
+    /**
      * stores the absolute path of the font directory
      */
     public $FontPath;
@@ -253,6 +258,8 @@ class Cpdf
      */
     public function __construct($mediabox, $cropbox = null, $bleedbox = null)
     {
+        // set the default timezone to UTC
+        date_default_timezone_set(self::$Locale);
 
         $this->Options = new CpdfOption($this);
 

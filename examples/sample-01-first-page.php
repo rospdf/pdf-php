@@ -3,6 +3,7 @@
 require '../src/CpdfExtension.php';
 
 use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 
 $start = microtime(true);
 // A new page parameter can be either a default layout, defined in Cpdf

@@ -4,6 +4,8 @@ set_time_limit(180);
 
 include '../src/Cezpdf.php';
 
+use ROSPDF\CpdfTable;
+
 $pdf = new Cezpdf('a4');
 $pdf->Compression = 0;
 

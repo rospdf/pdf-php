@@ -2,6 +2,7 @@
 require '../src/CpdfExtension.php';
 
 use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 
 // NewPage parameter can be either a default layout, defined in Cpdf
 // or an array three numbers to define a bounding box (Example: array(20, 20, 550, 800))

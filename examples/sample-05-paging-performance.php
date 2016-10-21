@@ -2,6 +2,7 @@
 require '../src/CpdfExtension.php';
 
 use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 use ROSPDF\CpdfContent;
 
 // performance counter

@@ -2,6 +2,7 @@
 require '../src/CpdfExtension.php';
 
 use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 
 $pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 $pdf->FontSubset = true;

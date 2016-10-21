@@ -90,7 +90,9 @@ define('EZ_GRIDLINE_COLUMNS', 1);
 
 require_once 'CpdfExtension.php';
 
-use ROSPDF\Cpdf as Cpdf;
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
+use ROSPDF\CpdfLineStyle;
 
 class Cezpdf extends CpdfExtension
 {
