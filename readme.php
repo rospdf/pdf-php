@@ -69,7 +69,7 @@ class Creport extends Cezpdf {
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12.23";
+$project_version = "0.12.24";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp

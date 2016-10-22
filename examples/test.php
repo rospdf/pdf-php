@@ -17,26 +17,46 @@ if(strpos(PHP_OS, 'WIN') !== false){
     $pdf->tempPath = 'C:/temp';
 }
 // make sure cache is regenerated
-$pdf->cacheTimeout = 0;
 
-// used for Pound sign
-$pdf->targetEncoding = 'ISO-8859-1';
-// used for Euro and Pound sign
-$pdf->targetEncoding = 'cp1252';
+$pdf->ezSetCmMargins(1,3,2.5,2.5);
+$pdf->selectFont('Times-Roman');
 
-$pdf->ezSetMargins(30,30,30,30);
-$pdf->openHere('Fit');
+$pdf->ezText("\n\n\n\n\n\n\n\n");
+$pdf->ezText("\n\n\n", 12);
 
-$pdf->selectFont('Helvetica');
-//$result = 'Lorem ipsum dol sit Lorem ipsum dol sit Lorem ipsum dol sit Lorem ipsum dol sit <b>Lorem ipsum</b> dol sit <strong>Lorem</strong> ipsum dol sit <i>bla bla bla</i> Lorem ipsum dol sit Lorem';
+$_POST['emisor'] = "Test";
+$_POST['cargo_emisor'] = "Test 123";
+$_POST['vicerrectorado'] = "Test 456";
+$_POST['profesor'] = "Test 456";
+$_POST['créditos'] = "Test 456";
+$_POST['curso'] = "Test 456";
+$_POST['master'] = "Test 456";
+$_POST['asignatura'] = "Test 456";
 
-$result = 'There is a directive similar to <i>alink</i>, but designed for linking within the document, this is the <i>ilink</i> callback function.';
 
-$pdf->ezText($result, 12);
+//$pdf->selectFont('Times-Bold');
+$txtintro = $_POST['emisor'].", ".$_POST['cargo_emisor']." DEL ".$_POST['vicerrectorado'].",\n\n";
+$pdf->ezText($txtintro, 12, array('spacing'=>1.5,'justification'=> 'full'));
+
+
+//$pdf->selectFont('Times-Roman');
+$pdf->ezText("INFORMA:\n\n");
+
+$pdf->ezSetCmMargins(1,3,4,4);
+$pdf->ezText("Que según la documentación existente en este Secretariado, <strong>".$_POST['profesor']."</strong> ha impartido docencia durante el curso ".$_POST['curso']." en el Máster Universitario en <b>".$_POST['master']."</b>, impartiendo la asignatura <b><i>\"".$_POST['asignatura']. "\"</b></i>, perteneciente al primer cuatrimestre, con una docencia de ".$_POST['créditos']. " créditos ECTS en la misma.\n", 0, array('spacing'=>1.5,'justification'=> 'full'));
+$pdf->ezSetCmMargins(1,3,4,4.3);	
+$pdf->ezText("\n\n", 11);	
+//$pdf->ezText("Y para que así conste y surta efecto, a petición del interesado/a firmo la presente, en Jaén, ".date('d'). " de ".$mesesEspanyol[date('n')-1]. " de ".date('Y').".", 12, array('spacing'=>1.5,'justification'=> 'full'));
+$pdf->ezText("\n", 11);
+$pdf->ezText("\n");
+$pdf->ezText($_POST['cargo_emisor'],11,array('justification'=> 'center'));
+$pdf->ezText("\n\n\n\n\n\n", 11);	
+$pdf->ezText($_POST['emisor'],11,array('justification'=> 'center'));
+
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
+  $pdfcode = str_replace("\n","\n<br>",$pdfcode);
   echo '<html><body>';
   echo trim($pdfcode);
   echo '</body></html>';
