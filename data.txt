@@ -342,11 +342,11 @@ guarantees that there will be 100 units of space above the final writing point.
 
 <b>setNum = ezStartPageNumbers(x,y,size,[pos],[pattern],[num])</b>
 
- Add page numbers on the pages from here, place then on the 'pos' side of the coordinates (x,y) (pos can be 'left' or 'right').
- Use the given 'pattern' for display, where {PAGENUM} and {TOTALPAGENUM} are replaced as required, by default the pattern is set to '{PAGENUM} of {TOTALPAGENUM}'
- If $num is set, then make the first page this number, the number of total pages will be adjusted to account for this.
+Add page numbers on the pages from here, place then on the 'pos' side of the coordinates (x,y) (pos can be 'left' or 'right').
+Use the given 'pattern' for display, where {PAGENUM} and {TOTALPAGENUM} are replaced as required, by default the pattern is set to '{PAGENUM} of {TOTALPAGENUM}'
+If $num is set, then make the first page this number, the number of total pages will be adjusted to account for this.
 
- the following code produces a seven page document, numbered from the second page (which will be labelled '1 of 6'), and numbered until the 6th page (labelled '5 of 6')
+the following code produces a seven page document, numbered from the second page (which will be labelled '1 of 6'), and numbered until the 6th page (labelled '5 of 6')
 
 #C
 $pdf = new Cezpdf();
