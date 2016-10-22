@@ -1032,7 +1032,7 @@ class TTF {
 	return array('SearchRange' => $searchRange, 'EntrySelector' => $entrySelector, 'RangeShift' => $rangeShift);
     }
 
-    private function calculateTableChecksum($data) {
+    private static function calculateTableChecksum($data) {
 	$ret = '0';
 
 	// "Right" pad with zeros
