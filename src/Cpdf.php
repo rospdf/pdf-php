@@ -2733,7 +2733,7 @@
     }
 
     private function getDirectives(&$text, &$x, &$y, $width = 0, $size = 0, $justification = 'left',$angle = 0, &$wordSpaceAdjust = 0, $noCB = false){
-        $cb = [];
+        $cb = array();
         $restWidth = $width;
 
         $result = preg_split("/(<.*?\>)/", $text, -1, PREG_SPLIT_DELIM_CAPTURE);
