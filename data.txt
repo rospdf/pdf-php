@@ -32,6 +32,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 2<0.12.24>
 
 - fixed reported issue #38 
+- fixed afm font resources (Helvetica, Courier and Times Roman)
 
 2<0.12.23>
 

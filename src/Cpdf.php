@@ -2143,25 +2143,7 @@
 						$firstChar = 0;
 						$lastChar = 255;
 					}
-					
-                    // also need to adjust the widths for the differences array
-                    /*if (isset($options['differences'])){
-                        foreach ($options['differences'] as $charNum => $charName){
-                            if ($charNum>$lastChar){
-                                for($i = $lastChar + 1; $i <= $charNum; $i++) {
-                                    $widths[]=0;
-                                }
-                                $lastChar = $charNum;
-                            }
-                            if (isset($font['C'][$charName])){
-                                $widths[$charNum-$firstChar]=$font['C'][$charName];
-                                if($font['isUnicode']){
-                                    $cid_widths[$charName] = $font['C'][$charName];
-                                }
-                            }
-                        }
-                    }*/
-                    
+					                    
                     if($font['isUnicode']){
                         $font['CIDWidths'] = $font['C'];
                     }
@@ -2753,13 +2735,16 @@
 
             $curPos = 0;
             $curPosEnd = 0;
+            $offset = 0;
             $tmpstr = "";
             foreach($result as $v) {
-                $tmpstr .= $v;
+                if($v == '') continue;
 
                 if(preg_match("/^<\/?([cC]:|)(".$this->allowedTags.")\>$/", $v, $regs)) {
-                    
-                    $curPosEnd = $curPos + mb_strlen($v, 'UTF-8');
+                    $len = mb_strlen($v, 'UTF-8');
+                    $offset += $len;
+                    $curPosEnd = $curPos + $len;
+
                     $curTag = $regs[2];
 
                     $isEnd = (stripos($v, "</") !== false) ? true : false;
@@ -2807,36 +2792,33 @@
                         $this->defaultFormatting($cb[$curPos]);
                         $this->setCurrentFont();
                     }
-                } else {
-                    $tmp = $this->getTextLength($size, $v, $restWidth, $angle, $wordSpaceAdjust);
-                    // if the text does not fit to $width, $tmp[2] contains the length to break the line
-                    if($tmp[2] >= 0){
-                        // position where the line break occurs
-                        $lbpos = $curPos + $tmp[2];
-                        
-                        // adjust to position if justification is set
-                        if($nx > $x){
-                            $tmpw = ($width - $restWidth) + $tmp[0];
-                        } else{
-                            $tmpw = $tmp[0];
-                        }
 
-                        $tmpstr = mb_substr($tmpstr, 0, $lbpos, 'UTF-8');
-
-                        $this->adjustWrapText($tmpstr, $tmpw, $width, $x, $wordSpaceAdjust, $justification);
-                        // set position array by using the current break position minus offset
-                        $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
-                        // restore previous stored font style 
-                        $this->currentTextState = $store_currentTextState;
-                        $this->setCurrentFont();
-                        
-                        return $cb;
-                    }
-
-                    $restWidth -= $tmp[0];
-                    $nx += $tmp[0];
-                    $ny += $tmp[1];
+                    $curPos = $curPosEnd;
+                    continue;
                 }
+
+                $tmpstr .= $v;
+                $tmp = $this->getTextLength($size, $v, $restWidth, $angle, $wordSpaceAdjust);
+                // if the text does not fit to $width, $tmp[2] contains the length to break the line
+                if($tmp[2] >= 0){
+                    // position where the line break occurs
+                    $lbpos = $curPos + $tmp[2];
+
+                    $t = mb_substr($tmpstr, 0, $lbpos - $offset, 'UTF-8');
+
+                    $this->adjustWrapText($t, $width - ($restWidth - $tmp[0]), $width, $x, $wordSpaceAdjust, $justification);
+                    // set position array by using the current break position minus offset
+                    $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                    // restore previous stored font style 
+                    $this->currentTextState = $store_currentTextState;
+                    $this->setCurrentFont();
+
+                    return $cb;
+                }
+
+                $restWidth -= $tmp[0];
+                $nx += $tmp[0];
+                $ny += $tmp[1];
 
                 $curPos += mb_strlen($v, 'UTF-8');
             }
@@ -2862,7 +2844,7 @@
                 $this->adjustWrapText($tmpstr, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
                 // set position array by using the current break position minus offset
                 $lbpos = $tmp[2];
-                $cb[$lbpos] = array('x'=> ($x + $tmp[0]), 'y'=> $y + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                $cb[$lbpos] = array('x'=> $x + $tmp[0], 'y'=> $y + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
                 return $cb;
             } else if($justification != 'full') {
                 $this->adjustWrapText($text, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
@@ -3107,16 +3089,14 @@
             
             if (isset($this->fonts[$cf]['differences'][$cOrd])){
                 // then this character is being replaced by another
-                $cOrd2 = $this->fonts[$cf]['differences'][$cOrd];
-            } else {
-                $cOrd2 = $cOrd;
+                $cOrd = $this->fonts[$cf]['differences'][$cOrd];
             }
 
-            if (isset($this->fonts[$cf]['C'][$cOrd2])){
-                $w+=$this->fonts[$cf]['C'][$cOrd2];
+            if (isset($this->fonts[$cf]['C'][$cOrd])){
+                $w+=$this->fonts[$cf]['C'][$cOrd];
             }
             // word space adjust
-            if($wa > 0 && in_array($cOrd2, $spaces)){
+            if($wa > 0 && in_array($cOrd, $spaces)){
                 $w += $wa;
             }
             
@@ -3124,22 +3104,18 @@
                 if ($break>0){
                     return array(cos($a)*$breakWidth, -sin($a)*$breakWidth, $break, $truncateChar);
                 } else {
-                    $ctmp = $cOrd;
-                    if (isset($this->fonts[$cf]['differences'][$ctmp])){
-                        $ctmp=$this->fonts[$cf]['differences'][$ctmp];
-                    }
-                    $tmpw=($w-$this->fonts[$cf]['C'][$ctmp])*$size/1000;
+                    $tmpw=($w-$this->fonts[$cf]['C'][$cOrd])*$size/1000;
                     // just split before the current character
                     return array(cos($a)*$tmpw, -sin($a)*$tmpw, 0, 0);
                 }
             }
             
             // find space or minus for a clean line break
-            if(in_array($cOrd2, $spaces) && $maxWidth > 0){
+            if(in_array($cOrd, $spaces) && $maxWidth > 0){
             	$break=$i;
                 $truncateChar = 1;
-                $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd2])*$size/1000;
-            } else if($cOrd2 == 45 && $maxWidth > 0){
+                $breakWidth = ($w-$this->fonts[$cf]['C'][$cOrd])*$size/1000;
+            } else if($cOrd == 45 && $maxWidth > 0){
             	$break=$i;
                 $truncateChar = 0;
                 $breakWidth = $w*$size/1000;
