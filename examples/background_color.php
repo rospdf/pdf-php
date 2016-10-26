@@ -37,7 +37,7 @@ $result = '';
 foreach($parts as $v) {
 	$r = rand(1,10);
 	if($r == 1) {
-		$result.= "<c:color:".rand(0,1).",".rand(0,1).",".rand(0,1).">" . $v . "</c:color> ";
+		$result.= " <c:color:".rand(0,1).",".rand(0,1).",".rand(0,1).">" . $v . "</c:color> ";
 	} else {
 		$result.= $v.' ';
 	}
@@ -45,7 +45,7 @@ foreach($parts as $v) {
 
 $result = rtrim($result);
 
-/*$result = "eirmod tempor invidunt ut <c:color:1,0,0>labore</c:color> et dolore magna aliquyam erat, sed diam <c:color:0,0,1>eirmod</c:color> tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At <c:color:1,0,0>vero</c:color> eos et accusam et justo duo dolores et";*/
+/*$result = "eirmod tempor <c:color:1,0,1>invidunt</c:color> ut <c:color:1,0,0>labore</c:color> et dolore magna aliquyam erat, sed diam <c:color:0,0,1>eirmod</c:color> tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At <c:color:1,0,0>vero</c:color> eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua";*/
 
 
 $pdf->ezText($result, 12, array('justification'=>'full'));

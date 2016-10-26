@@ -2757,14 +2757,16 @@
 
                         $t = mb_substr($tmpstr, 0, $lbpos - $offset, 'UTF-8');
 
-                        //$lbpos += $tmp[3];
                         $this->adjustWrapText($t, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
 
                         foreach($cb as &$c){
+                            $ew = 0;
+                            if(!empty($c['nspaces']))
+                                $ew = $wordSpaceAdjust * $c['nspaces'];
                             if($c['status'] == 'start'){
-                                $c['x'] += $x;
+                                $c['x'] += $x + $ew;
                             } else {
-                                $c['x'] += $x;
+                                $c['x'] += $x + $ew;
                             }
                         }
 
@@ -2776,6 +2778,7 @@
                         
                         return $cb;
                     }
+
                 } else {
                     $len = mb_strlen($v, 'UTF-8');
                     $offset += $len;
@@ -2787,6 +2790,12 @@
                     $noClose = ($regs[1] == 'C:')? true: false;
                     $parm = '';
 
+                    // adjust justification 'full'
+                    if($justification == 'full')
+                        $nspaces = str_word_count($tmpstr) - 1;
+                    else
+                        $nspaces = 0;
+
                     // if below is not null, there are custom parameters
                     if(!empty($regs[1])){
                         $pos = strpos($curTag, ':');
@@ -2797,7 +2806,7 @@
 
                         // end tag for custom callbacks
                         if($isEnd){
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny,'angle'=>$angle,'status'=>'end', 'f'=>$curTag, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd );
+                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'end', 'f'=>$curTag, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd );
                             if(!$noCB){
                                 $this->nCallback--;
                                 if ($this->nCallback<0){
@@ -2805,7 +2814,7 @@
                                 }
                             }
                         } else {
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$curTag,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDescender($size), 
+                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$curTag,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDescender($size), 
                                                 'startTag' => $curPos, 'endTag' => $curPosEnd , 'noClose' => $noClose);
                             if(!$noCB){
                                 if(!$noClose){
@@ -2819,9 +2828,9 @@
 
                     } else {
                         if($isEnd){
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'end',  'p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
+                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'end',  'p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
                         } else {
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'angle'=>$angle,'status'=>'start','p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
+                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'start','p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
                         }
                         
                         // do a dry formatting to fetch the correct text width
@@ -2955,7 +2964,7 @@
             } else if($func == 'linebreak') { // line break
                 $this->addContent(' ET');
 
-                if ($this->nCallback > 0) { 
+                /*if ($this->nCallback > 0) { 
                     for ($j = $this->nCallback; $j > 0; $j--) {
                         $info = array(
                           'x' => $directive['x'],
@@ -2970,7 +2979,7 @@
                         $func = $this->callback[$j]['f'];
                         $this->$func($info);
                     }
-                }
+                }*/
                 return mb_substr($text,$pos + $directive['p'], $len, 'UTF-8');
             } else { // custom callbacks
                 $this->addContent(' ET');

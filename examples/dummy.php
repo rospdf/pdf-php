@@ -7,6 +7,11 @@ if(!file_exists($ext)){
 include $ext;
 $pdf = new CezDummy("a4");
 
+// to test on windows xampp
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'C:/temp';
+}
+
 $pdf->selectFont('Helvetica');
 
 $pdf->ezText("Check the CezDummy.php extension to find the data being displayed\n");
