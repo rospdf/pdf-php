@@ -7,7 +7,7 @@ include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
 	function Creport($p,$o){
-  		$this->__construct($p, $o,'color',array(0.2,0.8,0.8));
+  		$this->__construct($p, $o,'color',array(0.8,0.8,0.8));
 	}
 }
 $pdf = new Creport('a4','portrait');
@@ -27,21 +27,21 @@ $height = $pdf->getFontHeight($size);
 // modified to use the local file if it can
 $pdf->openHere('Fit');
 
-$pdf->ezText("PNG grayscaled");
+$pdf->ezText("ROS PDF Image Example\n", 18);
+
+$pdf->ezText("PNG grayscaled", 10);
 $pdf->ezImage('images/test_grayscaled.png',0,0,'none','right');
 $pdf->ezText("PNG grayscaled with alpha channel");
 $pdf->ezImage('images/test_grayscaled_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG true color plus alpha channel #1");
 $pdf->ezImage('images/test_alpha.png',0,0,'none','right');
 $pdf->ezText("PNG indexed:\n\n");
-$pdf->ezImage('images/test_indexed.png',0,500,'width','right');
+$pdf->ezImage('images/test_indexed.png',0,0,'none','right');
 $pdf->ezNewPage();
-$pdf->ezText("PNG indexed transparent (no transparency supported yet):\n\n");
-$pdf->ezImage('images/test_indexed_transparent.png',0,500,'width','right');
-$pdf->ezText("PNG true color plus alpha channel #2");
-$pdf->ezImage('images/test_alpha2.png',0,0,'none','right');
+$pdf->ezText("PNG indexed transparent (NOT SUPPORTED):\n\n");
+$pdf->ezImage('images/test_indexed_transparent.png',0,0,'none','right');
 $pdf->ezText("JPEG from an external resource");
-$pdf->ezImage('http://pdf-php.sf.net/pdf-php-code/ros.jpg',0,0,'none','right');
+$pdf->ezImage('https://github.com/rospdf/pdf-php/raw/master/ros.jpg',0,0,'none','right');
 
 $pdf->ezText("GIF image converted into JPG\n\n");
 $pdf->ezImage('images/test_alpha.gif',0,0,'none','right');
