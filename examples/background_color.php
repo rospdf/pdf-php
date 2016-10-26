@@ -45,8 +45,8 @@ foreach($parts as $v) {
 
 $result = rtrim($result);
 
-$result = "minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo <c:color:1,0,0>consequat.</c:color> Duis";
-$result = "eirmod tempor invidunt ut <c:color:1,0,0>labore</c:color> et dolore magna aliquyam erat, sed diam <c:color:0,0,1>eirmod</c:color> tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At <c:color:1,0,0>vero</c:color> eos et accusam et justo duo dolores et";
+/*$result = "eirmod tempor invidunt ut <c:color:1,0,0>labore</c:color> et dolore magna aliquyam erat, sed diam <c:color:0,0,1>eirmod</c:color> tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At <c:color:1,0,0>vero</c:color> eos et accusam et justo duo dolores et";*/
+
 
 $pdf->ezText($result, 12, array('justification'=>'full'));
 
