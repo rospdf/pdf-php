@@ -2722,25 +2722,61 @@
         if(count($result) > 1) {
             // backup current font style
             $store_currentTextState = $this->currentTextState;
-        
-            $nx = $x;
+
+            $nx = 0;
             $ny = $y;
             if($this->nCallback > 0){
                 $cb[0] = $this->callback[1];
-                $cb[0]['x'] = $x;
+                $cb[0]['x'] = 0;
                 $cb[0]['y'] = $y;
                 $cb[0]['startTag'] = 0;
                 $cb[0]['endTag'] = 0;
             }
 
             $curPos = 0;
+            $currentCallback = -1;
             $curPosEnd = 0;
             $offset = 0;
             $tmpstr = "";
             foreach($result as $v) {
                 if($v == '') continue;
 
-                if(preg_match("/^<\/?([cC]:|)(".$this->allowedTags.")\>$/", $v, $regs)) {
+                $isTag = preg_match("/^<\/?([cC]:|)(".$this->allowedTags.")\>$/", $v, $regs);
+
+                if(!$isTag) {
+                    $tmpstr .= $v;
+                    
+                    $tmp = $this->getTextLength($size, $v, $restWidth, $angle, $wordSpaceAdjust);
+                    $restWidth -= $tmp[0];
+                    $nx += $tmp[0];
+                    $ny += $tmp[1];
+
+                    if($tmp[2] >= 0){
+                        // position where the line break occurs
+                        $lbpos = $curPos + $tmp[2];
+
+                        $t = mb_substr($tmpstr, 0, $lbpos - $offset, 'UTF-8');
+
+                        //$lbpos += $tmp[3];
+                        $this->adjustWrapText($t, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
+
+                        foreach($cb as &$c){
+                            if($c['status'] == 'start'){
+                                $c['x'] += $x;
+                            } else {
+                                $c['x'] += $x;
+                            }
+                        }
+
+                        // set position array by using the current break position minus offset
+                        $cb[$lbpos] = array('x'=> $nx, 'y'=> $ny, 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                        // restore previous stored font style 
+                        $this->currentTextState = $store_currentTextState;
+                        $this->setCurrentFont();
+                        
+                        return $cb;
+                    }
+                } else {
                     $len = mb_strlen($v, 'UTF-8');
                     $offset += $len;
                     $curPosEnd = $curPos + $len;
@@ -2793,46 +2829,22 @@
                         $this->setCurrentFont();
                     }
 
-                    $curPos = $curPosEnd;
-                    continue;
-                }
-
-                $tmpstr .= $v;
-                $tmp = $this->getTextLength($size, $v, $restWidth, $angle, $wordSpaceAdjust);
-                // if the text does not fit to $width, $tmp[2] contains the length to break the line
-                if($tmp[2] >= 0){
-                    // position where the line break occurs
-                    $lbpos = $curPos + $tmp[2];
-
-                    $t = mb_substr($tmpstr, 0, $lbpos - $offset, 'UTF-8');
-
-                    $this->adjustWrapText($t, $width - ($restWidth - $tmp[0]), $width, $x, $wordSpaceAdjust, $justification);
-                    // set position array by using the current break position minus offset
-                    $cb[$lbpos] = array('x'=> ($nx + $tmp[0]), 'y'=> $ny + $tmp[1], 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
-                    // restore previous stored font style 
-                    $this->currentTextState = $store_currentTextState;
-                    $this->setCurrentFont();
-
-                    return $cb;
-                }
-
-                $restWidth -= $tmp[0];
-                $nx += $tmp[0];
-                $ny += $tmp[1];
+                    $currentCallback = $curPos;
+                }                
 
                 $curPos += mb_strlen($v, 'UTF-8');
+                $tmp = null;
             }
 
-            $tmpx = $x;
             if($justification != 'full') {
                 $this->adjustWrapText($text, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
             }
 
             foreach($cb as &$c){
                 if($c['status'] == 'start'){
-                    $c['x'] += $x - $tmpx;
+                    $c['x'] += $x;
                 } else {
-                    $c['x'] += $x - $tmpx;
+                    $c['x'] += $x;
                 }
             }
         } else {
@@ -2942,6 +2954,7 @@
                 $this->setCurrentFont();
             } else if($func == 'linebreak') { // line break
                 $this->addContent(' ET');
+
                 if ($this->nCallback > 0) { 
                     for ($j = $this->nCallback; $j > 0; $j--) {
                         $info = array(
@@ -2961,6 +2974,7 @@
                 return mb_substr($text,$pos + $directive['p'], $len, 'UTF-8');
             } else { // custom callbacks
                 $this->addContent(' ET');
+                if($this->nStateStack > 1) $this->restoreState();
                 $this->$func($directive);
                 
                 $xp = $directive['x'];
@@ -3076,7 +3090,7 @@
         $len=mb_strlen($text);
         $cf = $this->currentFont;
         $tw = $maxWidth/$size*1000;
-        $break=0;
+        $break=-1;
         $w=0;
         $truncateChar = 1;
         
@@ -3101,12 +3115,12 @@
             }
             
             if($maxWidth > 0 && (cos($a)*$w) > $tw){
-                if ($break>0){
+                if ($break>=0){
                     return array(cos($a)*$breakWidth, -sin($a)*$breakWidth, $break, $truncateChar);
                 } else {
                     $tmpw=($w-$this->fonts[$cf]['C'][$cOrd])*$size/1000;
                     // just split before the current character
-                    return array(cos($a)*$tmpw, -sin($a)*$tmpw, 0, 0);
+                    return array(cos($a)*$tmpw, -sin($a)*$tmpw, $i, 0);
                 }
             }
             
@@ -3144,8 +3158,7 @@
                 break;
             case 'full':
                 // count the number of words
-                $words = explode(' ',$text);
-                $nspaces=count($words) - 1;
+                $nspaces=str_word_count($text) - 1;
                 if ($nspaces>0){
                     $adjust = ($width-$actual)/$nspaces;
                 } else {

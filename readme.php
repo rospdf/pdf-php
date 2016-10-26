@@ -18,6 +18,8 @@
 error_reporting(E_ALL);
 set_time_limit(1800);
 
+date_default_timezone_set('UTC');
+
 include './src/Cezpdf.php';
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
@@ -69,7 +71,7 @@ class Creport extends Cezpdf {
 // this code has been modified to use ezpdf.
 
 $project_url = "http://pdf-php.sf.net";
-$project_version = "0.12.24";
+$project_version = "0.12.25";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
