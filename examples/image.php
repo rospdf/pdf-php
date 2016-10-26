@@ -1,6 +1,5 @@
 <?php
 error_reporting(E_ALL);
-set_time_limit(1800);
 set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
 
 include 'Cezpdf.php';
@@ -16,7 +15,7 @@ if(strpos(PHP_OS, 'WIN') !== false){
     $pdf->tempPath = 'C:/temp';
 }
 
-$pdf -> ezSetMargins(20,20,20,20);
+$pdf->ezSetMargins(20,20,20,20);
 
 $mainFont = 'Times-Roman';
 // select a font
