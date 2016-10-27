@@ -6,8 +6,8 @@ date_default_timezone_set('UTC');
 include 'Cezpdf.php';
 
 class Creport extends Cezpdf{
-	function Creport($p,$o,$t,$op){
-  		$this->__construct($p, $o, $t, $op);
+	public function __construct($p,$o,$t,$op){
+  		parent::__construct($p, $o, $t, $op);
 	}
 }
 

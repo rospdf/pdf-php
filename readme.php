@@ -26,7 +26,7 @@ include './src/Cezpdf.php';
 class Creport extends Cezpdf {
     var $reportContents = array();
 
-    function Creport($p,$o,$t,$op){
+    public function __construct($p,$o,$t,$op){
         parent::__construct($p,$o,$t,$op);
     }
 
