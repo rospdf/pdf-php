@@ -839,6 +839,19 @@ $pdf->setColor(0.9,0.9,0.9);
 $pdf->polygon($pdata,4,1);
 #x
 
+2<rectangle>
+
+<b>rectangle(x1,y1,width,height)</b>
+
+Build a rectangle with no background, only borders
+
+#C
+$pdf->rectangle(400, $pdf->y, 120,50);
+#c
+
+#X
+$pdf->rectangle(400, $pdf->y, 120,50);
+#x
 
 2<filledRectangle>
 
@@ -852,21 +865,6 @@ $pdf->filledRectangle(400, $pdf->y, 120, 50);
 
 #X
 $pdf->filledRectangle(400, $pdf->y, 120,50);
-#x
-
-
-2<rectangle>
-
-<b>rectangle(x1,y1,width,height)</b>
-
-Build a rectangle with no background, only borders
-
-#C
-$pdf->rectangle(400, $pdf->y, 120,50);
-#c
-
-#X
-$pdf->rectangle(400, $pdf->y, 120,50);
 #x
 
 2<newPage>
