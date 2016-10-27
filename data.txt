@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.26>
+
+- fixed deprecated constructor calls (PHP7 compatibility)
+
 3<0.12.25>
 
 - significant changes in getDirectives() method

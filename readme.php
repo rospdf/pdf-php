@@ -16,8 +16,6 @@
 // don't want any warnings turning up in the pdf code if the server is set to 'anal' mode.
 //error_reporting(7);
 error_reporting(E_ALL);
-set_time_limit(1800);
-
 date_default_timezone_set('UTC');
 
 include './src/Cezpdf.php';
@@ -71,7 +69,7 @@ class Creport extends Cezpdf {
 // this code has been modified to use ezpdf.
 
 $project_url = "https://github.com/rospdf/";
-$project_version = "0.12.25";
+$project_version = "0.12.26";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
