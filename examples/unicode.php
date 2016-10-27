@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
-set_time_limit(1800);
 set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
+date_default_timezone_set('UTC');
 
 include 'Cezpdf.php';
 
@@ -16,6 +16,7 @@ class Creport extends Cezpdf{
 }
 $pdf = new Creport('a4','portrait');
 
+// to test on windows xampp
 if(strpos(PHP_OS, 'WIN') !== false){
     $pdf->tempPath = 'C:/temp';
 }

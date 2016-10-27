@@ -2,6 +2,10 @@
 include_once '../src/Cezpdf.php';
 $pdf = new CezPDF("a4");
 
+if(strpos(PHP_OS, 'WIN') !== false){
+    $pdf->tempPath = 'C:/temp';
+}
+
 $pdf->selectFont('Helvetica');
 
 // some general data used for table output
