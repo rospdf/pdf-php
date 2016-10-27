@@ -2725,13 +2725,6 @@
 
             $nx = 0;
             $ny = $y;
-            if($this->nCallback > 0){
-                $cb[0] = $this->callback[1];
-                $cb[0]['x'] = 0;
-                $cb[0]['y'] = $y;
-                $cb[0]['startTag'] = 0;
-                $cb[0]['endTag'] = 0;
-            }
 
             $curPos = 0;
             $currentCallback = -1;
@@ -2771,11 +2764,11 @@
                         }
 
                         // set position array by using the current break position minus offset
-                        $cb[$lbpos] = array('x'=> $nx, 'y'=> $ny, 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
-                        // restore previous stored font style 
+                        $cb[$lbpos] = array('x'=> $nx + $x, 'y'=> $ny, 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+
                         $this->currentTextState = $store_currentTextState;
                         $this->setCurrentFont();
-                        
+
                         return $cb;
                     }
 
@@ -2796,6 +2789,8 @@
                     else
                         $nspaces = 0;
 
+                    $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=> ($isEnd)?'end':'start' , 'f'=>$curTag, 'p'=>$parm, 'height' => null, 'descender' => null, 'nCallback'=>$this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd );
+
                     // if below is not null, there are custom parameters
                     if(!empty($regs[1])){
                         $pos = strpos($curTag, ':');
@@ -2803,39 +2798,32 @@
                             $parm = substr($curTag, $pos + 1);
                             $curTag = substr($curTag, 0, $pos);
                         }
+                        $cb[$curPos]['f'] = $curTag;
+                        $cb[$curPos]['p'] = $parm;
 
-                        // end tag for custom callbacks
-                        if($isEnd){
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'end', 'f'=>$curTag, 'p'=>$parm,'nCallback'=>$this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd );
-                            if(!$noCB){
-                                $this->nCallback--;
-                                if ($this->nCallback<0){
-                                    $this->nCallback=0;
-                                }
-                            }
-                        } else {
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'start','p'=>$parm,'f'=>$curTag,'height'=>$this->getFontHeight($size),'descender'=>$this->getFontDescender($size), 
-                                                'startTag' => $curPos, 'endTag' => $curPosEnd , 'noClose' => $noClose);
-                            if(!$noCB){
-                                if(!$noClose){
-                                    $this->nCallback++;
-                                    $cb[$curPos]['nCallback']=$this->nCallback;
-                                    $this->callback[$this->nCallback]=$cb[$curPos];
-                                }
-                            }
+                        if(!$isEnd) {
+                            $cb[$curPos]['height'] = $this->getFontHeight($size);
+                            $cb[$curPos]['descender'] = $this->getFontDescender($size);
                         }
-
-
                     } else {
-                        if($isEnd){
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'end',  'p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
-                        } else {
-                            $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=>'start','p'=>$curTag,'f'=>'defaultFormatting', 'startTag' => $curPos, 'endTag' => $curPosEnd );
-                        }
-                        
-                        // do a dry formatting to fetch the correct text width
+                        $cb[$curPos]['f'] = 'defaultFormatting';
+                        $cb[$curPos]['p'] = $curTag;
+
                         $this->defaultFormatting($cb[$curPos]);
                         $this->setCurrentFont();
+                    }                  
+
+                    // end tag for custom callbacks
+                    if($isEnd){
+                        if(!$noCB && $this->nCallback > 0){
+                            $this->nCallback--;
+                        }
+                    } else if(!$noCB) {
+                        if(!$noClose){
+                            $this->nCallback++;
+                            $cb[$curPos]['nCallback']=$this->nCallback;
+                            $this->callback[$this->nCallback]=$cb[$curPos];
+                        }
                     }
 
                     $currentCallback = $curPos;
@@ -2856,6 +2844,9 @@
                     $c['x'] += $x;
                 }
             }
+
+            $this->currentTextState = $store_currentTextState;
+            $this->setCurrentFont();
         } else {
             $tmp = $this->getTextLength($size, $text, $restWidth, $angle, $wordSpaceAdjust);
             // if the text does not fit to $width, $tmp[2] contains the length
@@ -2904,9 +2895,11 @@
         if (!$this->numFonts) {
             $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
         }
+
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0){ 
             for ($i = $this->nCallback; $i > 0; $i--){
+                if($this->callback[$i]['f'] == 'defaultFormatting') continue;
                 // call each function
                 $info = array('x'=>$x,'y'=>$y,'angle'=>$angle,'status'=>'sol','p'=>$this->callback[$i]['p'],'nCallback'=>$this->callback[$i]['nCallback'],'height'=>$this->callback[$i]['height'],'descender'=>$this->callback[$i]['descender']);
                 $func = $this->callback[$i]['f'];
@@ -2947,7 +2940,7 @@
                 $place_text = $this->filterText($part, false);
                 
                 if ($this->fonts[$cf]['isUnicode'] && $wordSpaceAdjust != 0) {
-					$s = $this->fonts[$this->currentFont]['C'][32];
+					$s = $this->fonts[$cf]['C'][32];
                 	$space_scale = (1000 / $size) * $wordSpaceAdjust + $s;
                 	$place_text = str_replace("\x00\x20", ') '.(-round($space_scale)).' (', $place_text);
                 
@@ -2964,8 +2957,9 @@
             } else if($func == 'linebreak') { // line break
                 $this->addContent(' ET');
 
-                /*if ($this->nCallback > 0) { 
+                if ($this->nCallback > 0) { 
                     for ($j = $this->nCallback; $j > 0; $j--) {
+                        if($this->callback[$j]['f'] == 'defaultFormatting') continue;
                         $info = array(
                           'x' => $directive['x'],
                           'y' => $directive['y'],
@@ -2974,16 +2968,16 @@
                           'p'         => $this->callback[$j]['p'],
                           'nCallback' => $this->callback[$j]['nCallback'],
                           'height'    => $this->callback[$j]['height'],
-                          'descender' => isset($this->callback[$j]['descender'])?$this->callback[$j]['descender']:null
+                          'descender' => $this->callback[$j]['descender']
                         );
                         $func = $this->callback[$j]['f'];
                         $this->$func($info);
                     }
-                }*/
+                }
                 return mb_substr($text,$pos + $directive['p'], $len, 'UTF-8');
             } else { // custom callbacks
                 $this->addContent(' ET');
-                if($this->nStateStack > 1) $this->restoreState();
+                //if($this->nStateStack > 1) $this->restoreState();
                 $this->$func($directive);
                 
                 $xp = $directive['x'];
@@ -3207,7 +3201,7 @@
      * restore a previously saved state
      */
     public function restoreState($pageEnd=0){
-        if (!$pageEnd){
+        if (!$pageEnd && $this->nStateStack > 0){
             $n = $this->nStateStack;
             $this->currentColour = $this->stateStack[$n]['col'];
             $this->currentStrokeColour = $this->stateStack[$n]['str'];

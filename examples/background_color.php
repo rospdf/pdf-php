@@ -45,8 +45,9 @@ foreach($parts as $v) {
 
 $result = rtrim($result);
 
-/*$result = "eirmod tempor <c:color:1,0,1>invidunt</c:color> ut <c:color:1,0,0>labore</c:color> et dolore magna aliquyam erat, sed diam <c:color:0,0,1>eirmod</c:color> tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At <c:color:1,0,0>vero</c:color> eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua";*/
+/*$result = "eirmod tempor <c:color:1,0,1>invidunt</c:color> ut <c:color:1,0,0>labore</c:color> et dolore magna aliquyam erat, sed diam <b>eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.<b> At <c:color:1,0,0>vero</c:color> eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua";*/
 
+/*$result = "documents have <b>y-coordinates which are zero at the bottom of the page and increase as they go up</b> the page.";*/
 
 $pdf->ezText($result, 12, array('justification'=>'full'));
 
