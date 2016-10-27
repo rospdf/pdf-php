@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('UTC');
+
 include_once '../src/Cezpdf.php';
 $pdf = new CezPDF("a4");
 

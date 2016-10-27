@@ -1,7 +1,7 @@
 <?php
 error_reporting(E_ALL);
-set_time_limit(1800);
 set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
+date_default_timezone_set('UTC');
 
 include 'Cezpdf.php';
 
@@ -10,8 +10,6 @@ class Creport extends Cezpdf{
   		$this->__construct($p, $o, $t, $op);
 	}
 }
-
-date_default_timezone_set('UTC');
 
 $pdf = new Creport('a4','portrait','color',array(0.8,0.8,0.8));
 
