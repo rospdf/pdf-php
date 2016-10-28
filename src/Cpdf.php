@@ -2764,7 +2764,7 @@
                         }
 
                         // set position array by using the current break position minus offset
-                        $cb[$lbpos] = array('x'=> $nx + $x, 'y'=> $ny, 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
+                        $cb[$lbpos] = array('x'=> $x + $width, 'y'=> $ny, 'f'=>'linebreak', 'p' => $tmp[3], 'width'=>$tmp[0]);
 
                         $this->currentTextState = $store_currentTextState;
                         $this->setCurrentFont();
@@ -2784,10 +2784,10 @@
                     $parm = '';
 
                     // adjust justification 'full'
-                    if($justification == 'full')
-                        $nspaces = str_word_count($tmpstr) - 1;
-                    else
-                        $nspaces = 0;
+                    $nspaces = 0;
+                    if($justification == 'full') {
+                        $nspaces = substr_count($tmpstr, ' ') - 1;
+                    }
 
                     $cb[$curPos] = array('x'=> $nx, 'y'=>$ny, 'nspaces' => $nspaces, 'angle'=>$angle,'status'=> ($isEnd)?'end':'start' , 'f'=>$curTag, 'p'=>$parm, 'height' => null, 'descender' => null, 'nCallback'=>$this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd );
 
@@ -3161,7 +3161,7 @@
                 break;
             case 'full':
                 // count the number of words
-                $nspaces=str_word_count($text) - 1;
+                $nspaces=substr_count($text, ' ');
                 if ($nspaces>0){
                     $adjust = ($width-$actual)/$nspaces;
                 } else {
