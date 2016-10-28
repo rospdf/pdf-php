@@ -33,6 +33,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - fixed deprecated constructor calls (PHP7 compatibility)
 - fixed space counting issue in full justification
+- fixed underline on justification full and unicode
 
 3<0.12.25>
 
