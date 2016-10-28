@@ -3161,7 +3161,7 @@
                 break;
             case 'full':
                 // count the number of words
-                $nspaces=str_word_count($text) - 1;
+                $nspaces=substr_count($text, ' ');
                 if ($nspaces>0){
                     $adjust = ($width-$actual)/$nspaces;
                 } else {
