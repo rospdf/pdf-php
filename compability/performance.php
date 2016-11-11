@@ -8,9 +8,7 @@ $time_start = microtime(true);
 
 $pdf = new Cezpdf('a4');
 
-if(strpos(PHP_OS, 'WIN') !== false)
-	Cpdf::$TempPath = 'D:/xampp/tmp';
-//Cpdf::$DEBUGLEVEL = Cpdf_Common::DEBUG_OUTPUT;
+//Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
 
 $pdf->selectFont('Helvetica');
 //$pdf->ezText("Test Hello World");

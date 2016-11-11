@@ -1,0 +1,24 @@
+{
+    // This task will start php in background (WINDOWS)
+    "version": "0.1.0",
+    "command": "cmd",
+    "isShellCommand": true,
+    "args": ["/c"],
+    "showOutput": "always",
+    "tasks": [
+        { 
+            "taskName": "Run PHP Server",
+            "suppressTaskName": true,
+            "args": [
+                "php", "-S", "localhost:9000"
+            ]
+        },
+        { 
+            "taskName": "Kill PHP Server",
+            "suppressTaskName": true,
+            "args": [
+                "taskkill", "/IM", "php.exe"
+            ]
+        }
+    ]
+}

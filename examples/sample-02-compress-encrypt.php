@@ -1,16 +1,12 @@
 <?php
-error_reporting(E_ALL);
-set_time_limit(180);
+require '../src/CpdfExtension.php';
 
-include '../src/Cpdf.php';
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 
-// NewPage parameter can be either a default layout, defined in Cpdf_Common
+// NewPage parameter can be either a default layout, defined in Cpdf
 // or an array three numbers to define a bounding box (Example: array(20, 20, 550, 800))
-$pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    Cpdf::$TempPath = 'D:/xampp/tmp';
-}
+$pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 
 $textObject = $pdf->NewText();
 

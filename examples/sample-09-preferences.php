@@ -1,14 +1,10 @@
 <?php
-error_reporting(E_ALL);
-set_time_limit(180);
+require '../src/CpdfExtension.php';
 
-include '../src/Cpdf.php';
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 
-$pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    Cpdf::$TempPath = 'D:/xampp/tmp';
-}
+$pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 
 $pdf->Options->OpenAction($pdf->CURPAGE, 'FitV');
 $pdf->Options->SetPageLayout('TwoColumnLeft');

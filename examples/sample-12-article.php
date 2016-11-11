@@ -1,24 +1,18 @@
 <?php
-error_reporting(E_ALL);
-set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
-set_time_limit(180);
+require '../src/CpdfExtension.php';
 
-include 'Cpdf.php';
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
 
 $time_start = microtime(true);
 
-$pdf = new Cpdf_Extension(Cpdf_Common::$Layout['A4']);
+$pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 
 $pdf->Compression  = 0;
 
 $pdf->FontSubset = true;
-//Cpdf::$DEBUGLEVEL = Cpdf_Common::DEBUG_ROWS;
+//Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_ROWS;
  
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    Cpdf::$TempPath = 'D:/xampp/tmp';
-}
-
 // initialize first text object
 
 $textObject = $pdf->NewText();

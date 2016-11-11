@@ -4,11 +4,11 @@ set_time_limit(180);
 
 include '../src/Cezpdf.php';
 
+use ROSPDF\CpdfTable;
+
 $pdf = new Cezpdf('a4');
 $pdf->Compression = 0;
-if(strpos(PHP_OS, 'WIN') !== false)
-	Cpdf::$TempPath = 'D:/xampp/tmp';
-	
+
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_ALL;
 
 $cols = array(
@@ -25,7 +25,7 @@ $options = array(
 				'width'=> 380,
 				'showBgCol' => 1, 
 				'shadeHeadingCol' => array(0.6,0.6,0.5),
-				'gridlines'=> Cpdf_Table::DRAWLINE_ROW | Cpdf_Table::DRAWLINE_HEADERROW);
+				'gridlines'=> CpdfTable::DRAWLINE_ROW | CpdfTable::DRAWLINE_HEADERROW);
 $options['cols'] = array(
 	'num' => array('justification'=>'right'/*, 'bgcolor'=> array(0.5,0.8,0.8)*/), 
 	'title' => array('justification'=>'right', 'bgcolor'=> array(0.2,0.7,0.8)),

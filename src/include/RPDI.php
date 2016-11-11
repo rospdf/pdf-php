@@ -10,7 +10,7 @@
  * More details about Linearized PDF, see Appendix F in PDF reference 1.3
  *
  * Example:
- * $pdf = new RPDI('template.pdf', Cpdf_Common::$Layout['A4']);
+ * $pdf = new RPDI('template.pdf', Cpdf::$Layout['A4']);
  * $pdf->Compression = 0;
  * $pdf->ImportPage(1);
  * $t = $pdf->NewText();
@@ -26,7 +26,7 @@
  * @license  GNU General Public License v3
  * @link     http://pdf-php.sf.net
  */
-class RPDI extends Cpdf_Extension
+class RPDI extends CpdfExtension
 {
     const EOFOffset = 50;
     
@@ -116,7 +116,7 @@ class RPDI extends Cpdf_Extension
                 // initialize pages
                 $this->initPages();
             } else {
-                Cpdf_Common::DEBUG("RPDI: An error occured - No template is used", Cpdf_Common::DEBUG_MSG_ERR, Cpdf_Common::$DEBUGLEVEL);
+                Cpdf::DEBUG("RPDI: An error occured - No template is used", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
             }
         }
     }
@@ -152,12 +152,12 @@ class RPDI extends Cpdf_Extension
         //print_r($fullPage);
         
         if (!isset($fullPage)) {
-            Cpdf_Common::DEBUG("RPDI: Page not found", Cpdf_Common::DEBUG_MSG_ERR, Cpdf_Common::$DEBUGLEVEL);
+            Cpdf::DEBUG("RPDI: Page not found", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
             return;
         }
         
         if (!isset($fullPage['Contents'])) {
-            Cpdf_Common::DEBUG("RPDI: No Content found for page $pageNumber", Cpdf_Common::DEBUG_MSG_ERR, Cpdf_Common::$DEBUGLEVEL);
+            Cpdf::DEBUG("RPDI: No Content found for page $pageNumber", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
             return;
         }
         
@@ -171,7 +171,7 @@ class RPDI extends Cpdf_Extension
                 
                 if (isset($obj)) {
                     $cObject = $this->NewContent();
-                    $cObject->SetPageMode(Cpdf_Content::PMODE_NOPAGE);
+                    $cObject->SetPageMode(CpdfContent::PMODE_NOPAGE);
                     $cObject->Name = "PDFIMPORT_".$entry['value'];
                     
                     if (isset($obj['stream'])) {
@@ -193,12 +193,12 @@ class RPDI extends Cpdf_Extension
     private function parseContent(&$fullPage)
     {
         if (!is_array($fullPage['Contents']) || count($fullPage['Contents']) <= 0) {
-            Cpdf_Common::DEBUG("RPDI: Empty content", Cpdf_Common::DEBUG_MSG_WARN, Cpdf_Common::$DEBUGLEVEL);
+            Cpdf::DEBUG("RPDI: Empty content", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
         }
         
         foreach ($fullPage['Contents'] as $key => $value) {
             $cObject = $this->NewContent();
-            $cObject->SetPageMode(Cpdf_Content::PMODE_ALL);
+            $cObject->SetPageMode(CpdfContent::PMODE_ALL);
             $cObject->Name = "PDFIMPORT_$key";
             
             $cObject->AddRaw($value['stream']);
@@ -445,13 +445,13 @@ class RPDI extends Cpdf_Extension
         $xrefhead = array();
         if (!$isLinearized) {
             if (substr($buffer, 0, 4) != 'xref') {
-                Cpdf_Common::DEBUG("RPDI: xref position not found", Cpdf_Common::DEBUG_MSG_ERR, Cpdf_Common::$DEBUGLEVEL);
+                Cpdf::DEBUG("RPDI: xref position not found", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
                 return false;
             }
             
             $r = preg_match("/([0-9]+) ([0-9]+)/", $buffer, $xrefhead);
             if (!$r) {
-                Cpdf_Common::DEBUG("RPDI: Failed to receive XRef header", Cpdf_Common::DEBUG_MSG_ERR, Cpdf_Common::$DEBUGLEVEL);
+                Cpdf::DEBUG("RPDI: Failed to receive XRef header", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
                 return false;
             }
             
@@ -479,7 +479,7 @@ class RPDI extends Cpdf_Extension
         
         if ($i != ($xrefhead[1] + $xrefhead[2])) {
             //print_r($xrefhead);
-            Cpdf_Common::DEBUG("RPDI: XRef table mismatch: $i != ".($xrefhead[1] + $xrefhead[2]), Cpdf_Common::DEBUG_MSG_ERR, Cpdf_Common::$DEBUGLEVEL);
+            Cpdf::DEBUG("RPDI: XRef table mismatch: $i != ".($xrefhead[1] + $xrefhead[2]), Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
             return false;
         }
         

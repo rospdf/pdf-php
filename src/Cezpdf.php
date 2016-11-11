@@ -24,7 +24,6 @@
  * @license  GNU General Public License v3
  * @link     http://pdf-php.sf.net
  */
-require_once 'Cpdf.php';
 
 /**
  * draw all lines to ezTable output
@@ -88,7 +87,14 @@ define('EZ_GRIDLINE_COLUMNS', 1);
  * @license GNU General Public License v3
  * @link http://pdf-php.sf.net
  */
-class Cezpdf extends Cpdf_Extension
+
+require_once 'CpdfExtension.php';
+
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
+use ROSPDF\CpdfLineStyle;
+
+class Cezpdf extends CpdfExtension
 {
 
     /**
@@ -154,7 +160,7 @@ class Cezpdf extends Cpdf_Extension
     public function __construct($paper = 'a4', $orientation = 'portrait', $type = 'none', $options = array())
     {
         if (!is_array($paper)) {
-            $size = Cpdf_Common::$Layout[strtoupper($paper)];
+            $size = Cpdf::$Layout[strtoupper($paper)];
 
             switch (strtolower($orientation)) {
                 case 'landscape':
@@ -652,16 +658,16 @@ class Cezpdf extends Cpdf_Extension
                     $changeBBox['addux'] = ($width - $options['width']) / 2;
                     break;
             }
-            Cpdf_Common::SetBBox($changeBBox, $bbox);
+            Cpdf::SetBBox($changeBBox, $bbox);
         }
 
         if (!empty($title)) {
             $this->ezText($title, $options['titleFontSize'], array('justification' => 'center'));
             $h = $this->ezAppearance->GetFontHeight();
-            Cpdf_Common::SetBBox(array('adduy' => -$h), $bbox);
+            Cpdf::SetBBox(array('adduy' => -$h), $bbox);
         }
 
-        $ls = new Cpdf_LineStyle(1, 'butt', 'miter');
+        $ls = new CpdfLineStyle(1, 'butt', 'miter');
         $this->ezTable = $this->NewTable($bbox, $numColumns, null, $ls, $options['gridlines']);
 
         if ($options['fontSize'] > 0) {
