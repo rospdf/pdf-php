@@ -1384,7 +1384,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                         elseif($options['showBgCol'] && isset($options["cols"]) && isset($options["cols"][$colName]) && isset($options["cols"][$colName]["bgcolor"]) && is_array($options["cols"][$colName]["bgcolor"]))
                             $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options["cols"][$colName]["bgcolor"]);
                         // all rows use the same shadeCol
-                        elseif($options['shaded'] == 1)
+                        elseif($options['shaded'] == 1  && $cnt%2==1)
                             $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options['shadeCol']);
                         // alternating rows (options 1)
                         elseif(($options['shaded']==2) && $cnt%2==0)
