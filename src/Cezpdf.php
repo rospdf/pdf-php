@@ -1186,7 +1186,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $narrowest = 999999999;
             foreach ($options["cols"] as $colName => $col)
             {
-                if ($col["width"]) // was the width of this column specified?
+                if (isset($col["width"])) // was the width of this column specified?
                 {
                     $manualCount++;
                     $manualWidth += $col["width"] * 1;
@@ -1381,8 +1381,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                         if(count($fillColor) && is_array($fillColor))
                             $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$fillColor);
                         // color of the column is second choice
-                        elseif(isset($options["bgcolor"][$colName]) && count($options["bgcolor"][$colName]) && is_array($options["bgcolor"][$colName]))
-                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options["bgcolor"][$colName]);
+                        elseif($options['showBgCol'] && isset($options["cols"]) && isset($options["cols"][$colName]) && isset($options["cols"][$colName]["bgcolor"]) && is_array($options["cols"][$colName]["bgcolor"]))
+                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options["cols"][$colName]["bgcolor"]);
                         // all rows use the same shadeCol
                         elseif($options['shaded'] == 1)
                             $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options['shadeCol']);
@@ -1540,17 +1540,17 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                         }
 
                                         // grab the defined colors for this cell
-//                                        if (isset($row[$colName."Text"]))
-//                                            $textColor = $row[$colName."Text"];
-//                                        else
-//                                            $textColor = "";
-//
-//                                        // apply the color to the text
-//                                        if (is_array($textColor))
-//                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$textColor[0].",".$textColor[1].",".$textColor[2].">".$line."</c:color>", $maxWidth[$colName], $just);
-//                                        else
-//                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$options['textCol'][0].",".$options['textCol'][1].",".$options['textCol'][2].">".$line."</c:color>", $maxWidth[$colName], $just);
-                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
+                                        if (isset($row[$colName."Color"]))
+                                            $textColor = $row[$colName."Color"];
+                                        else
+                                            $textColor = "";
+
+                                        // apply the color to the text
+                                        if (is_array($textColor))
+                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$textColor[0].",".$textColor[1].",".$textColor[2].">".$line."</c:color>", $maxWidth[$colName], $just);
+                                        else
+                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$options['textCol'][0].",".$options['textCol'][1].",".$options['textCol'][2].">".$line."</c:color>", $maxWidth[$colName], $just);
+//                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                     }
                                 }
                             }
@@ -1577,8 +1577,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                         foreach ($cols as $colName=>$colHeading){
                             if (isset($row[$colName."Fill"]))
                                 $leftOvers[$colName."Fill"] = $row[$colName."Fill"];
-//                            if (isset($row[$colName."Text"]))
-//                                $leftOvers[$colName."Text"] = $row[$colName."Text"];
+                            if (isset($row[$colName."Color"]))
+                                $leftOvers[$colName."Color"] = $row[$colName."Color"];
                         }
                         $row = $leftOvers;
 
