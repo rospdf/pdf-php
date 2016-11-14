@@ -993,23 +993,25 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $options=array();
         }
 
-        $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
-        'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
-        'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
-        'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
-        'shadeHeadingCol'=>array(), 'gridlines' => EZ_GRIDLINE_DEFAULT, 'evenColumns'=>0
+        $defaults = array(
+            /* shading */
+            'shaded'=>1, 'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7), 'shadeHeadingCol'=> array(),
+            /* font */
+            'fontSize'=>10,'titleFontSize'=>12, 'textCol'=>array(0,0,0),
+            /* border */
+            'gridlines' => EZ_GRIDLINE_DEFAULT, 'lineCol'=>array(0,0,0), 'innerLineThickness'=>1,'outerLineThickness'=>1,
+            /* position, size and padding */
+            'width'=>0,'maxWidth'=>0,'titleGap'=>5,'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
+            'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5, 'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
+            /* other */
+            'showHeadings'=>1,'cols'=>array(),'evenColumns'=>0
         );
 
         foreach ($defaults as $key=>$value){
-            if (is_array($value)){
-                if (!isset($options[$key]) || !is_array($options[$key])){
-                    $options[$key]=$value;
-                }
-            } else {
-                if (!isset($options[$key])){
-                    $options[$key]=$value;
-                }
-            }
+            if(!isset($options[$key]))
+                $options[$key] = $value;
+            else if(is_array($value) && !is_array($options[$key]) )
+                $options[$key] = $value;
         }
         
         // @deprecated Compatibility with 'showLines' option
@@ -1381,7 +1383,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                         if(count($fillColor) && is_array($fillColor))
                             $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$fillColor);
                         // color of the column is second choice
-                        elseif($options['showBgCol'] && isset($options["cols"]) && isset($options["cols"][$colName]) && isset($options["cols"][$colName]["bgcolor"]) && is_array($options["cols"][$colName]["bgcolor"]))
+                        elseif(isset($options["cols"]) && isset($options["cols"][$colName]) && isset($options["cols"][$colName]["bgcolor"]) && is_array($options["cols"][$colName]["bgcolor"]))
                             $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options["cols"][$colName]["bgcolor"]);
                         // all rows use the same shadeCol
                         elseif($options['shaded'] == 1  && $cnt%2==1)

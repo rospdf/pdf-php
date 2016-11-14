@@ -26,13 +26,12 @@ $conf = array(
 'evenColumns'=>1,
 'maxWidth' => 350,
 'shadeHeadingCol'=>array(0.6,0.6,0.5),
-'shaded'=>2,
+'shaded'=>1,
 'shadeCol'=>array(0.95, 0.95, 0.95),
 'shadeCol2'=>array(0.85, 0.85, 0.85),
 'xPos' => 'right',
 'xOrientation' => 'left',
 'gridlines'=>31,
-'showBgCol' => 1,
 'cols'=> array('num'=>array('bgcolor'=>array(1,1,0)))
 );
 
