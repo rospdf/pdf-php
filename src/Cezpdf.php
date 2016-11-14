@@ -1079,6 +1079,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         // we need to cache the first version of the calculated columns
         $cachepos = $pos;
 
+        if($options['maxWidth'] == 0)
+        {
+            $options['maxWidth'] = $this->ez['pageWidth'] - ($this->ez['rightMargin'] + $this->ez['leftMargin']);
+        }
         // if maxWidth is specified, and the table is too wide, and the width has not been set,
         // then set the width.
         if ($options['width']==0 && $options['maxWidth'] && ($t-$x)>$options['maxWidth']){
@@ -1169,15 +1173,12 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $pos['_end_']=$t;
         }
 
-        $evenDistribution = 0;
         // if the option is turned on we need to look at recalculating the columns
-        if ($options['evenColumns'])
+        if ($options['evenColumns'] == 1)
         {
             // what is the maximum width? it is either specified or the page width between the margins
-            if ($options['maxWidth'])
-                $redistribution = $options['maxWidth'];
-            else
-                $redistribution = $this->ez['pageWidth'] - $this->ez['rightMargin'] - $this->ez['leftMargin'];
+            $redistribution = $options['maxWidth'];
+
             // what are the manually specified column widths?
             // what is the narrowest auto column? (columns with a specifically defined width are ignored)
             $manualWidth = 0;
@@ -1193,74 +1194,58 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 elseif ($narrowest > $maxWidth[$colName])
                     $narrowest = $maxWidth[$colName];
             }
-            // if evenColumns is 1 ALWAYS redistribute the widths
-            // if evenColumns is 2 ONLY redistribute if the first width calculations were too wode AND one of the auto columns is very narrow
-            // the available space is evenly distributed accross all column without a specific width
-            if (($options['evenColumns'] == 1) || (($options['evenColumns'] == 2) && ($cachepos["_end_"] > $redistribution) && ($narrowest <= 40))) // narrowest copmarision figure could be tweaked
+            // the total width to be redistributed
+            $redistributedWidth = ($redistribution - $manualWidth) / (sizeof($pos) - 1 - $manualCount);
+            // recalculate the x positions of the columnn
+            $new = 0;
+            foreach ($pos as $key => $old)
             {
-                // the total width to be redistributed
-                $redistributedWidth = ($redistribution - $manualWidth) / (sizeof($pos) - 1 - $manualCount);
-                // recalculate the x positions of the columnn
-                $new = 0;
-                foreach ($pos as $key => $old)
-                {
-                    $pos[$key] = $new;
-                    if (isset($options["cols"][$key]["width"]))
-                        $new += $options["cols"][$key]["width"];
-                    else
-                        $new += $redistributedWidth;
-                }
-                // recalculate the column widths
-                $last = -1;
-                $newWidth = array();
-                foreach ($pos as $key => $val)
-                {
-                    if ($last >= 0)
-                        $newWidth[$lastKey] = ($val - $last) - $options['gap'];
-                    $last = $val;
-                    $lastKey = $key;
-                }
-                $maxWidth = $newWidth;
-                $evenDistribution = 1;
+                $pos[$key] = $new;
+                if (isset($options["cols"][$key]["width"]))
+                    $new += $options["cols"][$key]["width"];
+                else
+                    $new += $redistributedWidth;
             }
+            // recalculate the column widths
+            $last = -1;
+            $newWidth = array();
+            foreach ($pos as $key => $val)
+            {
+                if ($last >= 0)
+                    $newWidth[$lastKey] = ($val - $last) - $options['gap'];
+                $last = $val;
+                $lastKey = $key;
+            }
+            $maxWidth = $newWidth;
             $t=array_sum($maxWidth) + (sizeof($maxWidth) * 2 * $options["colGap"]);
         }
 
-        // now adjust the table to the correct location across the page
-        if ($evenDistribution && !$options["maxWidth"])
-        {
-            $xref = $this->ez['leftMargin'];
-            $dx = $this->ez['leftMargin'];
+        switch ($options['xPos']){
+            case 'left':
+                $xref = $this->ez['leftMargin'];
+                break;
+            case 'right':
+                $xref = $this->ez['pageWidth'] - $this->ez['rightMargin'];
+                break;
+            case 'centre':
+            case 'center':
+                $xref = $middle;
+                break;
+            default:
+                $xref = $options['xPos'];
+                break;
         }
-        else
-        {
-            switch ($options['xPos']){
-                case 'left':
-                    $xref = $this->ez['leftMargin'];
-                    break;
-                case 'right':
-                    $xref = $this->ez['pageWidth'] - $this->ez['rightMargin'];
-                    break;
-                case 'centre':
-                case 'center':
-                    $xref = $middle;
-                    break;
-                default:
-                    $xref = $options['xPos'];
-                    break;
-            }
-            switch ($options['xOrientation']){
-                case 'left':
-                    $dx = $xref-$t;
-                    break;
-                case 'right':
-                    $dx = $xref;
-                    break;
-                case 'centre':
-                case 'center':
-                    $dx = $xref-$t/2;
-                    break;
-            }
+        switch ($options['xOrientation']){
+            case 'left':
+                $dx = $xref-$t;
+                break;
+            case 'right':
+                $dx = $xref;
+                break;
+            case 'centre':
+            case 'center':
+                $dx = $xref-$t/2;
+                break;
         }
         // applied patch #18 alignment fixes for tables and images | thank you Emil Totev
         $dx += $options['colGap'];

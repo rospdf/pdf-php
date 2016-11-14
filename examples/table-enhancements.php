@@ -22,7 +22,14 @@ array('num'=>1,'name'=>'gandalf','type'=>'wizard','typeFill'=>array(0,1,0))
 
 $cols = array('num'=>'No', 'type'=>'Type','name'=>'<i>Alias</i>');
 
-$conf = array("evenColumns"=>1, "shaded"=>0, "shadeCol"=>array(1, 1, 0), "shadeCol2"=>array(0.85, 0.85, 0.85), 'xPos'=>'center', 'xOrientation'=>'center', 'gridlines'=>31);
+$conf = array(
+  "evenColumns"=>1, 'maxWidth' => 350, 'shadeHeadingCol'=>array(0.6,0.6,0.5), "shaded"=>0, "shadeCol"=>array(1, 1, 0), "shadeCol2"=>array(0.85, 0.85, 0.85), 'xPos' => 'right','xOrientation' => 'left', 'gridlines'=>31);
+
+// custom column widths
+$conf['cols'] = array(
+                  /*'num' => ['width' => 30],*/
+                  /*'type' => ['width' => 100]*/
+                );
 $pdf->ezTable($data, $cols, "", $conf);
 
 if (isset($_GET['d']) && $_GET['d']){
