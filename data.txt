@@ -56,15 +56,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - fixed reported issue #36 Text truncated while wrapping
 
-3<0.12.22>
-
-- recovered the addTextWrap method
-- corrected temp path for windows systems using php-cgi 
-
-3<0.12.21>
-
-- added image rotation support
-
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
 #NP
