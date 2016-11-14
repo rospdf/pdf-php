@@ -29,6 +29,13 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+
+3<0.12.27>
+
+- PR #42 - added new table features: evenColumns, text color, background color
+- fixed issue #43 - maxWidth is not defined by default
+- no need to define 'showBgCol' when using column background
+
 3<0.12.26>
 
 - fixed deprecated constructor calls (PHP7 compatibility)
@@ -73,8 +80,6 @@ Note that there is no guarantee or warranty, implied or otherwise with this clas
 In order to create simple documents with ease a class extension called 'ezPdf' has been developed, at the moment this includes auto page numbering, tabular data presentation, text wrapping to new pages, etc. This document has been created using mostly ezPdf functions.
 
 The functions of ezpdf are described in the next section, though as it is a class extension, all of the basic functions from the original class are still available.
-
-Please excuse this blatant 'plug', but if your company wishes some customization of these routines for your purposes, R&OS can do this at very reasonable rates, just drop us a line at info@ros.co.nz.
 
 #NP
 1<EZPDF Class Extension>
@@ -349,7 +354,14 @@ The table will start writing from the current writing point, and will proceed un
 
 The return value from the function is the y-position of the writing pointer after the table has been added to the document.
 
-The other options are described here:
+<strong>since 0.12.27 $data can contain the follow keys to colorize cells</strong>
+
+#C
+'[columnName]Fill' => array(r,g,b)  // used to fill a cell background color
+'[columnName]Color' => array(r,g,b) // used to color the cell text
+#c
+
+The other options are described here below
 
 <b>$cols</b> (optional) is an associative array, the keys are the names of the columns from $data to be presented (and in that order), the values are the titles to be given to the columns, if this is not wanted, but you do want later options then '' (the empty string) is a suitable placeholder.
 
@@ -359,8 +371,6 @@ The other options are described here:
 'showHeadings' => 0 or 1 (enable or disable head line)
 'shaded'=> 0,1,2, default is 1 (alternate lines are shaded)
     0->no shading, 2->both sets are shaded
-'showBgCol'=> 0,1 default is 0 (no column background, no bgcolor setting is used in 'cols')
-    1->active bg color column setting and allow bgcolor attribute in 'cols'
 'shadeCol' => (r,g,b) array, defining the colour of the shading, default is (0.8,0.8,0.8)
 'shadeCol2' => (r,g,b) array, defining the colour of the shading of the second set, default is (0.7,0.7,0.7), used when 'shaded' is set to 2.
 'fontSize' => 10
@@ -391,9 +401,9 @@ Below is an example output of ezTable containing the following $data
 #C
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
-,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
+,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'https://github.com/rospdf/pdf-php')
 ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
-,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
+,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'https://github.com/rospdf/pdf-php')
 ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
 );
 #c
@@ -402,7 +412,6 @@ $data = array(
 $pdf->ezTable($data,$cols,'',array(
     'gridlines'=> EZ_GRIDLINE_DEFAULT,
     'shadeHeadingCol'=>array(0.6,0.6,0.5),
-    'showBgCol'=>1,
     'width'=>400,
     'cols'=> array(
         'name'=>array('bgcolor'=>array(0.9,0.9,0.7)),
@@ -414,9 +423,9 @@ $pdf->ezTable($data,$cols,'',array(
 #X
 $data = array(
  array('num'=>1,'name'=>'gandalf','type'=>'wizard')
-,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
+,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'https://github.com/rospdf/pdf-php')
 ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
-,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
+,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'https://github.com/rospdf/pdf-php')
 ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
 );
 $cols = array('num'=>"<b>Number</b>",'name'=>'<b>Name</b>','type'=>'<b>Type</b>');
@@ -424,7 +433,6 @@ $pdf->ezTable($data,$cols,'',array(
     'gridlines'=> EZ_GRIDLINE_DEFAULT,
     'shadeHeadingCol'=>array(0.6,0.6,0.5),
     'alignHeadings'=>'center',
-    'showBgCol'=>1,
     'width'=>400,
     'cols'=> array(
         'name'=>array('bgcolor'=>array(0.9,0.9,0.7)),
@@ -542,10 +550,10 @@ The <i>alink</i> callback allows for simple insertion of links, the format is:
 So as an example:
 
 #C
-$pdf->ezText('&lt;c:alink:http://ros.co.nz/pdf/&gt;R&OS pdf class&lt;/c:alink&gt;');
+$pdf->ezText('&lt;c:alink:https://github.com/rospdf/pdf-php/ pdf class&lt;/c:alink&gt;');
 #c
 
-<c:alink:http://ros.co.nz/pdf/>R&OS pdf class</c:alink>
+<c:alink:https://github.com/rospdf/pdf-php/>R&OS pdf class</c:alink>
 
 <b>Links within the document</b>
 
@@ -1143,12 +1151,12 @@ Creates a clickable rectangular area within the document, which takes the user t
 See the information in the <i>inline codes</i> chapter of the ezPdf section to see and easy way of adding links to your code.
 
 #C
-$pdf->addLink("http://www.ros.co.nz/pdf/",50,100,500,120);
+$pdf->addLink("https://github.com/rospdf/pdf-php/",50,100,500,120);
 $pdf->rectangle(50,100,450,20);
 #c
 #X
 $pdf->ezSetDy(-40,'makeSpace');
-$pdf->addLink("http://www.ros.co.nz/pdf/",50,$pdf->y,500,$pdf->y+20);
+$pdf->addLink("https://github.com/rospdf/pdf-php/",50,$pdf->y,500,$pdf->y+20);
 $pdf->rectangle(50,$pdf->y,450,20);
 #x
 
