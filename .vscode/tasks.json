@@ -1,16 +1,21 @@
 {
     // This task will start php in background (WINDOWS)
     "version": "0.1.0",
-    "command": "cmd",
+    "command": "php",
     "isShellCommand": true,
-    "args": ["/c"],
     "showOutput": "always",
+    "suppressTaskName": true,
     "tasks": [
-        { 
-            "taskName": "Run PHP Server",
-            "suppressTaskName": true,
+        {
+            "taskName": "PHP Local Server (Port 9000)",
             "args": [
-                "php", "-S", "localhost:9000"
+                "-S", "localhost:9000"
+            ]
+        },
+        {
+            "taskName": "PHP Public Server (Port 80)",
+            "args": [
+                "-S", "0.0.0.0:80"
             ]
         }
     ]
