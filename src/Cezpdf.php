@@ -1034,8 +1034,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         $middle = ($this->ez['pageWidth']-$this->ez['rightMargin'])/2+($this->ez['leftMargin'])/2;
         // figure out the maximum widths of the text within each column
         $maxWidth=array();
-        foreach ($cols as $colName=>$colHeading){
-            $maxWidth[$colName]=0;
+        foreach ($cols as $colName=>$colTitle){
+            if(empty($colTitle)) $maxWidth[$colName]=0;
+            $w = $this->ezGetTextWidth($options['fontSize'],(string)$colTitle)*1.01;
+            $maxWidth[$colName]=$w;
         }
         // find the maximum cell widths based on the data
         foreach ($data as $row){
@@ -1046,13 +1048,6 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 if ($w > $maxWidth[$colName]){
                     $maxWidth[$colName]=$w;
                 }
-            }
-        }
-        // and the maximum widths to fit in the headings
-        foreach ($cols as $colName=>$colTitle){
-            $w = $this->ezGetTextWidth($options['fontSize'],(string)$colTitle)*1.01;
-            if ($w > $maxWidth[$colName]){
-                $maxWidth[$colName]=$w;
             }
         }
 
