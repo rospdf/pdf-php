@@ -35,6 +35,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 - PR #42 - added new table features: evenColumns, text color, background color
 - fixed issue #43 - maxWidth is not defined by default
 - no need to define 'showBgCol' when using column background
+- slightly optimized max column width calculation
 
 3<0.12.26>
 
