@@ -1,4 +1,5 @@
 <?php
+
 include_once 'Cpdf.php';
 
 /**
@@ -856,7 +857,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 } else {
                     $justification = 'left';
                 }
-                $this->ezText($colHeading,$size,array('aleft'=> $pos[$colName],'aright'=>($maxWidth[$colName]+$pos[$colName]),'justification'=>$justification));
+		$col = $optionsAll['textCol'];
+                $this->ezText("<c:color:".$col[0].",".$col[1].",".$col[2].">".$colHeading."</c:color>",$size,array('aleft'=> $pos[$colName],'aright'=>($maxWidth[$colName]+$pos[$colName]),'justification'=>$justification));
                 $dy = $y-$this->y;
                 if ($dy>$mx){
                     $mx=$dy;
@@ -991,23 +993,25 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $options=array();
         }
 
-        $defaults = array('shaded'=>1,'showBgCol'=>0,'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7),'fontSize'=>10,'titleFontSize'=>12,
-        'titleGap'=>5,'lineCol'=>array(0,0,0),'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
-        'showHeadings'=>1,'textCol'=>array(0,0,0),'width'=>0,'maxWidth'=>0,'cols'=>array(),'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5,
-        'innerLineThickness'=>1,'outerLineThickness'=>1,'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
-        'shadeHeadingCol'=>array(), 'gridlines' => EZ_GRIDLINE_DEFAULT
+        $defaults = array(
+            /* shading */
+            'shaded'=>1, 'shadeCol'=>array(0.8,0.8,0.8),'shadeCol2'=>array(0.7,0.7,0.7), 'shadeHeadingCol'=> array(),
+            /* font */
+            'fontSize'=>10,'titleFontSize'=>12, 'textCol'=>array(0,0,0),
+            /* border */
+            'gridlines' => EZ_GRIDLINE_DEFAULT, 'lineCol'=>array(0,0,0), 'innerLineThickness'=>1,'outerLineThickness'=>1,
+            /* position, size and padding */
+            'width'=>0,'maxWidth'=>0,'titleGap'=>5,'gap'=>5,'xPos'=>'centre','xOrientation'=>'centre',
+            'minRowSpace'=>-100,'rowGap'=>2,'colGap'=>5, 'splitRows'=>0,'protectRows'=>1,'nextPageY'=>0,
+            /* other */
+            'showHeadings'=>1,'cols'=>array(),'evenColumns'=>0
         );
 
         foreach ($defaults as $key=>$value){
-            if (is_array($value)){
-                if (!isset($options[$key]) || !is_array($options[$key])){
-                    $options[$key]=$value;
-                }
-            } else {
-                if (!isset($options[$key])){
-                    $options[$key]=$value;
-                }
-            }
+            if(!isset($options[$key]))
+                $options[$key] = $value;
+            else if(is_array($value) && !is_array($options[$key]) )
+                $options[$key] = $value;
         }
         
         // @deprecated Compatibility with 'showLines' option
@@ -1030,8 +1034,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         $middle = ($this->ez['pageWidth']-$this->ez['rightMargin'])/2+($this->ez['leftMargin'])/2;
         // figure out the maximum widths of the text within each column
         $maxWidth=array();
-        foreach ($cols as $colName=>$colHeading){
-            $maxWidth[$colName]=0;
+        foreach ($cols as $colName=>$colTitle){
+            if(empty($colTitle)) $maxWidth[$colName]=0;
+            $w = $this->ezGetTextWidth($options['fontSize'],(string)$colTitle)*1.01;
+            $maxWidth[$colName]=$w;
         }
         // find the maximum cell widths based on the data
         foreach ($data as $row){
@@ -1042,13 +1048,6 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 if ($w > $maxWidth[$colName]){
                     $maxWidth[$colName]=$w;
                 }
-            }
-        }
-        // and the maximum widths to fit in the headings
-        foreach ($cols as $colName=>$colTitle){
-            $w = $this->ezGetTextWidth($options['fontSize'],(string)$colTitle)*1.01;
-            if ($w > $maxWidth[$colName]){
-                $maxWidth[$colName]=$w;
             }
         }
 
@@ -1074,6 +1073,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         }
         $pos['_end_']=$t;
 
+        // we need to cache the first version of the calculated columns
+        $cachepos = $pos;
+
+        if($options['maxWidth'] == 0)
+        {
+            $options['maxWidth'] = $this->ez['pageWidth'] - ($this->ez['rightMargin'] + $this->ez['leftMargin']);
+        }
         // if maxWidth is specified, and the table is too wide, and the width has not been set,
         // then set the width.
         if ($options['width']==0 && $options['maxWidth'] && ($t-$x)>$options['maxWidth']){
@@ -1164,7 +1170,53 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $pos['_end_']=$t;
         }
 
-        // now adjust the table to the correct location across the page
+        // if the option is turned on we need to look at recalculating the columns
+        if ($options['evenColumns'] == 1)
+        {
+            // what is the maximum width? it is either specified or the page width between the margins
+            $redistribution = $options['maxWidth'];
+
+            // what are the manually specified column widths?
+            // what is the narrowest auto column? (columns with a specifically defined width are ignored)
+            $manualWidth = 0;
+            $manualCount = 0;
+            $narrowest = 999999999;
+            foreach ($options["cols"] as $colName => $col)
+            {
+                if (isset($col["width"])) // was the width of this column specified?
+                {
+                    $manualCount++;
+                    $manualWidth += $col["width"] * 1;
+                }
+                elseif ($narrowest > $maxWidth[$colName])
+                    $narrowest = $maxWidth[$colName];
+            }
+            // the total width to be redistributed
+            $redistributedWidth = ($redistribution - $manualWidth) / (sizeof($pos) - 1 - $manualCount);
+            // recalculate the x positions of the columnn
+            $new = 0;
+            foreach ($pos as $key => $old)
+            {
+                $pos[$key] = $new;
+                if (isset($options["cols"][$key]["width"]))
+                    $new += $options["cols"][$key]["width"];
+                else
+                    $new += $redistributedWidth;
+            }
+            // recalculate the column widths
+            $last = -1;
+            $newWidth = array();
+            foreach ($pos as $key => $val)
+            {
+                if ($last >= 0)
+                    $newWidth[$lastKey] = ($val - $last) - $options['gap'];
+                $last = $val;
+                $lastKey = $key;
+            }
+            $maxWidth = $newWidth;
+            $t=array_sum($maxWidth) + (sizeof($maxWidth) * 2 * $options["colGap"]);
+        }
+
         switch ($options['xPos']){
             case 'left':
                 $xref = $this->ez['leftMargin'];
@@ -1300,17 +1352,47 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             $firstLine=1;
 
             // open an object here so that the text can be put in over the shading
-            if ($options['shaded'] || $options['showBgCol']){
-                $this->saveState();
-                $textObjectId = $this->openObject();
-                $this->closeObject();
-                $this->addObject($textObjectId);
-                $this->reopenObject($textObjectId);
-            }
+            $this->saveState();
+            $textObjectId = $this->openObject();
+            $this->closeObject();
+            $this->addObject($textObjectId);
+            $this->reopenObject($textObjectId);
 
             $cnt=0;
             $newPage=0;
             foreach ($data as $row){
+                $rowColShading = array();
+                    foreach ($cols as $colName=>$colHeading){
+                        // grab the defined colors for this cell
+                        if (isset($row[$colName."Fill"]))
+                            $fillColor = $row[$colName."Fill"];
+                        else
+                            $fillColor = "";
+
+                        $rowX = $pos[$colName]-($options['gap']/2);
+                        $rowY = $y+$descender+$height; // BUGGY
+                        $rowW = $maxWidth[$colName] + ($options["colGap"]*2);
+
+                        // decide which color to use!
+                        // specified for the cell is first choice
+                        if(count($fillColor) && is_array($fillColor))
+                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$fillColor);
+                        // color of the column is second choice
+                        elseif(isset($options["cols"]) && isset($options["cols"][$colName]) && isset($options["cols"][$colName]["bgcolor"]) && is_array($options["cols"][$colName]["bgcolor"]))
+                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options["cols"][$colName]["bgcolor"]);
+                        // all rows use the same shadeCol
+                        elseif($options['shaded'] == 1  && $cnt%2==1)
+                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options['shadeCol']);
+                        // alternating rows (options 1)
+                        elseif(($options['shaded']==2) && $cnt%2==0)
+                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options['shadeCol']);
+                        // alternating rows (options 2)
+                        elseif(($options['shaded']==2) && $cnt%2==1)
+                            $rowColShading[] = array("x"=> $rowX, "y"=>$rowY, "width"=>$rowW, "color"=>$options['shadeCol2']);
+                        else
+                            $rowColShading[] = array("color"=>array());
+                }
+
                 $cnt++;
                 // the transaction support will be used to prevent rows being split
                 if ($options['splitRows']==0){
@@ -1327,6 +1409,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                 $ok=0;
                 $secondTurn=0;
                 while(!$abortTable && $ok == 0){
+
 
                     $mx=0;
                     $newRow=1;
@@ -1349,11 +1432,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                 }
                               $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
                             }
-                            if ($options['shaded'] || $options['showBgCol']){
-                                $this->closeObject();
-                                $this->restoreState();
-                            }
+                            $this->closeObject();
+                            $this->restoreState();
                             $this->ezNewPage();
+
                             // and the margins may have changed, this is due to the possibility of the columns being turned on
                             // as the columns are managed by manipulating the margins
                             $dm	= $this->ez['leftMargin']-$baseLeftMargin;
@@ -1361,15 +1443,15 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                 $pos[$k]=$v+$dm;
                             }
                             
-                            $x0=$baseX0+$dm;
-                            $x1=$baseX1+$dm;
-                            if ($options['shaded'] || $options['showBgCol']){
-                                $this->saveState();
-                                $textObjectId = $this->openObject();
-                                $this->closeObject();
-                                $this->addObject($textObjectId);
-                                $this->reopenObject($textObjectId);
-                            }
+                            $x0=$baseX0+$dm; // even
+                            $x1=$baseX1+$dm; // even
+
+                            $this->saveState();
+                            $textObjectId = $this->openObject();
+                            $this->closeObject();
+                            $this->addObject($textObjectId);
+                            $this->reopenObject($textObjectId);
+
                             $this->setColor($options['textCol'][0],$options['textCol'][1],$options['textCol'][2],1);
                             $y = ($options['nextPageY'])?$nextPageY:($this->ez['pageHeight']-$this->ez['topMargin']);
                             $y0=$y+$descender;
@@ -1454,7 +1536,18 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                             $just='left';
                                         }
 
-                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
+                                        // grab the defined colors for this cell
+                                        if (isset($row[$colName."Color"]))
+                                            $textColor = $row[$colName."Color"];
+                                        else
+                                            $textColor = "";
+
+                                        // apply the color to the text
+                                        if (is_array($textColor))
+                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$textColor[0].",".$textColor[1].",".$textColor[2].">".$line."</c:color>", $maxWidth[$colName], $just);
+                                        else
+                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$options['textCol'][0].",".$options['textCol'][1].",".$options['textCol'][2].">".$line."</c:color>", $maxWidth[$colName], $just);
+//                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                     }
                                 }
                             }
@@ -1464,35 +1557,28 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                 $mx=$dy-$height*$newPage;
                             }
                         }
-                        // set $row to $leftOvers so that they will be processed onto the new page
-                        $row = $leftOvers;
-                        // now add the shading underneath
-                        if ($options['shaded'] && $cnt%2==0){
-                            $this->closeObject();
-                            $this->setColor($options['shadeCol'][0],$options['shadeCol'][1],$options['shadeCol'][2],1);
-                            $this->filledRectangle($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
-                            $this->reopenObject($textObjectId);
-                        }
 
-                        if ($options['shaded']==2 && $cnt%2==1){
-                            $this->closeObject();
-                            $this->setColor($options['shadeCol2'][0],$options['shadeCol2'][1],$options['shadeCol2'][2],1);
-                            $this->filledRectangle($x0-$options['gap']/2,$y+$descender+$height-$mx,$x1-$x0,$mx);
-                            $this->reopenObject($textObjectId);
-                        }
-
-                        // if option showColColor is set,  then can draw filledrectangle column
-                        if ($options['showBgCol'] == 1) {
-                            foreach ($cols as $colName=>$colTitle){
-                                if ( isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor'])) {
-                                    $arrColColor = $options['cols'][$colName]['bgcolor'];
-                                    $this->closeObject();
-                                    $this->setColor($arrColColor[0],$arrColColor[1],$arrColColor[2],1);
-                                    $this->filledRectangle($pos[$colName]-$options['gap']/2,$y+$descender+$height-$mx,$maxWidth[$colName]+$options['gap'],$mx);
-                                    $this->reopenObject($textObjectId);
-                                }
+                        // apply the colours to the cells in the row
+                        foreach($rowColShading as $shadingDetails)
+                        {
+                            if (sizeof($shadingDetails["color"]))
+                            {
+                                $this->closeObject();
+                                $this->setColor($shadingDetails["color"][0],$shadingDetails["color"][1],$shadingDetails["color"][2],1);
+                                $this->filledRectangle($shadingDetails["x"], $y+$descender+$height-$mx, $shadingDetails["width"], $mx);
+                                $this->reopenObject($textObjectId);
                             }
                         }
+
+                        // set $row to $leftOvers so that they will be processed onto the new page (we need to add the colours to the leftovers)
+                        foreach ($cols as $colName=>$colHeading){
+                            if (isset($row[$colName."Fill"]))
+                                $leftOvers[$colName."Fill"] = $row[$colName."Fill"];
+                            if (isset($row[$colName."Color"]))
+                                $leftOvers[$colName."Color"] = $row[$colName."Color"];
+                        }
+                        $row = $leftOvers;
+
                         if ($options['gridlines'] & EZ_GRIDLINE_ROWS){
                             // then draw a line on the top of each block
                             // $this->closeObject();
@@ -1566,10 +1652,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
              $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
         }
         // close the object for drawing the text on top
-        if ($options['shaded'] || $options['showBgCol']){
-            $this->closeObject();
-            $this->restoreState();
-        }
+        $this->closeObject();
+        $this->restoreState();
 
         $this->y=$y;
         return $y;

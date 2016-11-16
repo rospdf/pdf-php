@@ -69,7 +69,7 @@ class Creport extends Cezpdf {
 // this code has been modified to use ezpdf.
 
 $project_url = "https://github.com/rospdf/";
-$project_version = "0.12.26";
+$project_version = "0.12.27";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
@@ -197,10 +197,11 @@ foreach ($data as $line){
     }
   } else if ($collecting){
     $code.=$line;
-  } else if (((strlen($line)>1 && $line[1]=='<') ) && $line[strlen($line)-1]=='>') {
+  } else if (((strlen($line)>1 && $line[1]=='<') )) {
     // then this is a title
-    $tmp = substr($line,2,strlen($line)-3);
-    $tmp2 = $tmp.'<C:rf:'.$line[0].''.rawurlencode($tmp).'>';
+    $tmp = substr($line,2,strpos($line, '>')-2);
+    $tmp2 = $tmp .'<C:rf:'.$line[0].''.rawurlencode($tmp).'>';
+    $tmp3 = substr($line, strpos($line, '>') + 1);
 
     switch($line[0]){
       case '1':
@@ -218,7 +219,11 @@ foreach ($data as $line){
           $pdf->saveState();
           $pdf->setColor(0.5,0.5,0.5);
           //$pdf->filledRectangle($pdf->ez['leftMargin'],$pdf->y-$pdf->getFontHeight(18)+$pdf->getFontDescender(18),$pdf->ez['pageWidth']-$pdf->ez['leftMargin']-$pdf->ez['rightMargin'],$pdf->getFontHeight(18));
-          $pdf->ezText("# " . $tmp2,18,array('justification'=>'left'));
+          $pdf->ezText("# " . $tmp2,18);
+
+          $w = $pdf->getTextWidth(18, "# " . $tmp2);
+          $pdf->y = $pdf->y + 15;
+          $pdf->ezText($tmp3, 12, array('left' => $w));
           $pdf->restoreState();
           
           if ($pdf->ezPageCount==$thisPageNum){
@@ -270,11 +275,9 @@ foreach($contents as $k=>$v){
 $pdf->restoreState();
 
 if (isset($_GET['d']) && $_GET['d']){
-  $pdfcode = $pdf->ezOutput(1);
-  $pdfcode = str_replace("\n","\n<br>",htmlspecialchars($pdfcode));
-  echo '<html><body>';
-  echo trim($pdfcode);
-  echo '</body></html>';
+  echo "<pre>";
+  echo $pdf->ezOutput(TRUE);
+  echo "</pre>";
 } else {
   $pdf->ezStream();
 }
