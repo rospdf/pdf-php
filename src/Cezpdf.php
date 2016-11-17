@@ -1428,6 +1428,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                             if ($options['gridlines']){
                                 $y1+=$descender;
                                 if (!$options['showHeadings']){
+                                    $y1 += ($options['rowGap'] / 2); // added line
                                     $y0=$y1;
                                 }
                               $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
@@ -1647,6 +1648,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         if ($options['gridlines']){
             $y1+=$descender;
             if (!$options['showHeadings']){
+                $y1 += ($options['rowGap'] / 2); // added line
                 $y0=$y1;
             }
              $this->ezTableDrawLines($pos,$options['gap'], $options['rowGap'],$x0,$x1,$y0,$y1,$y2,$options['lineCol'],$options['innerLineThickness'],$options['outerLineThickness'], $options['gridlines']);
