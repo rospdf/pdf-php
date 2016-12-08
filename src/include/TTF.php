@@ -871,6 +871,9 @@ class TTF {
 	$lsbs = $hmtx['lsbs'];
 	if ($index < $numberOfHMetrics) {
 	    return $metrics[$index];
+	} else if(empty($lsbs)) {
+		// if lsbs is empty, return null instead
+		return array($metrics[$numberOfHMetrics - 1][0], null);
 	} else {
 	    // Get advance width from last element of metrics
 	    return array($metrics[$numberOfHMetrics - 1][0], $lsbs[$index - $numberOfHMetrics]);
