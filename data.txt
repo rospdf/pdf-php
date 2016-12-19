@@ -29,6 +29,11 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.29>
+
+- fixed "Undefined offset" when lsbls is empty in TTF.php
+- PR #47 - Fixes potential PHP notice in Cpdf->uniord()
+
 3<0.12.28>
 
 - fixed issue #45
