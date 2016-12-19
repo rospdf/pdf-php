@@ -1063,7 +1063,7 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             // width avaliable for adjustment
             if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['width']) && $options['cols'][$colName]['width']>0){
                 $t=$t+$options['cols'][$colName]['width'];
-                $maxWidth[$colName] = $options['cols'][$colName]['width']-$options['gap'];
+                $maxWidth[$colName] = $options['cols'][$colName]['width']-($options['gap']*2);
                 $setWidth += $options['cols'][$colName]['width'];
             } else {
                 $t=$t+$w+$options['gap'];
