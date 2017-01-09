@@ -2329,6 +2329,16 @@
     }
 
     /**
+     * sets the CMYK colour for stroke operations
+     */
+    public function setColorCMYK($c,$m,$y,$k,$force=0){
+        if ($c>=0 && ($force || $c!=$this->currentColour['c'] || $m!=$this->currentColour['m'] || $y!=$this->currentColour['y'] || $k!=$this->currentColour['k'])){
+            $this->objects[$this->currentContents]['c'].="\n".($c/100).' '.($m/100).' '.($y/100).' '.($k/100).' k';
+            $this->currentColour=array('c'=>$c,'m'=>$m,'y'=>$y,'k'=>$k);
+        }
+    }
+
+    /**
      * sets the colour for stroke operations
      */
     public function setStrokeColor($r,$g,$b,$force=0){
@@ -2338,6 +2348,44 @@
         }
     }
 
+    /**
+     * sets the CMYK colour for stroke operations
+     */
+    public function setStrokeColorCMYK($c,$m,$y,$k,$force=0){
+        if ($c>=0 && ($force || $c!=$this->currentStrokeColour['c'] || $m!=$this->currentStrokeColour['m'] || $y!=$this->currentStrokeColour['y'] || $k!=$this->currentStrokeColour['k'])){
+            $this->objects[$this->currentContents]['c'].="\n".($c/100).' '.($m/100).' '.($y/100).' '.($k/100).' K';
+            $this->currentStrokeColour=array('c'=>$c,'m'=>$m,'y'=>$y,'k'=>$k);
+        }
+    }
+
+    /**
+     * set the color using hex code
+     */
+	public function setHexColor($hex)
+    {
+		# fill color
+		$color = str_replace('#','',$hex);
+			if(strlen($color)==3){$color=$color{0}.$color{0}.$color{1}.$color{1}.$color{2}.$color{2};}		
+		$r = number_format(hexdec(substr($color,0,2))/255,4);
+		$g = number_format(hexdec(substr($color,2,2))/255,4);
+		$b	= number_format(hexdec(substr($color,4,2))/255,4);
+		$this->setColor($r,$g,$b);
+	}
+
+    /**
+     * set the stroke color using hex code
+     */
+    public function setStrokeHexColor($hex)
+    {
+        # stroke color
+        $color = str_replace('#','',$hex);
+            if(strlen($color)==3){$color=$color{0}.$color{0}.$color{1}.$color{1}.$color{2}.$color{2};}			
+        $r = number_format(hexdec(substr($color,0,2))/255,4);
+        $g = number_format(hexdec(substr($color,2,2))/255,4);
+        $b	= number_format(hexdec(substr($color,4,2))/255,4);
+        $this->setStrokeColor($r,$g,$b);
+    }
+    
     /**
      * draw a line from one set of coordinates to another
      */

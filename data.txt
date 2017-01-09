@@ -29,6 +29,11 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.30>
+
+- added setColorCMYK and setStrokeColorCMYK from issue #53
+- added setHexColor and setStrokeHexColor as well from issue #53
+
 3<0.12.29>
 
 - fixed "Undefined offset" when lsbls is empty in TTF.php
