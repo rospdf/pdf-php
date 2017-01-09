@@ -26,7 +26,11 @@
  * @license  GNU General Public License v3
  * @link     http://pdf-php.sf.net
  */
-class RPDI extends CpdfExtension
+
+use ROSPDF\Cpdf;
+use ROSPDf\CpdfContent;
+
+class RPDI extends ROSPDF\CpdfExtension
 {
     const EOFOffset = 50;
     
@@ -280,7 +284,7 @@ class RPDI extends CpdfExtension
         if (isset($pageObjectId)) {
             $importedPage = &$this->page[$pageObjectId];
             //print_r($importedPage);
-            if (isset($importedPage) && $importedPage['Resources']) {
+            if (isset($importedPage) && isset($importedPage['Resources'])) {
                 // add the imported page Resource entry into global Pages Resource
                 //print_r($importedPage);
                 foreach ($importedPage['Resources'] as $key => $value) {

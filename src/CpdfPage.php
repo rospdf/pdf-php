@@ -60,7 +60,7 @@ class CpdfPage
         // use the mediabox to draw a fully filled rectangle
         $mb = &$this->Mediabox;
 
-        $app = &$this->pages->NewAppearance($mb);
+        $app = $this->pages->NewAppearance($mb);
         $app->page = null;
         $app->SetPageMode(CpdfContent::PMODE_NOPAGE);
         $app->ZIndex = -1;
