@@ -1032,6 +1032,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
         if ($options['nextPageY']) $nextPageY = $this->y;
 
         $middle = ($this->ez['pageWidth']-$this->ez['rightMargin'])/2+($this->ez['leftMargin'])/2;
+
+        if (!$this->numFonts) {
+            $this->selectFont('Helvetica');
+        }
+
         // figure out the maximum widths of the text within each column
         $maxWidth=array();
         foreach ($cols as $colName=>$colTitle){
@@ -1051,6 +1056,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             }
         }
 
+        $minFontWidth = intval($this->fonts[$this->currentFont]['FontBBox'][2] / 1000 * $options['fontSize']);
+
         // calculate the start positions of each of the columns
         $pos=array();
         $x=0;
@@ -1064,6 +1071,10 @@ define('EZ_GRIDLINE_COLUMNS', 1);
             if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['width']) && $options['cols'][$colName]['width']>0){
                 $t=$t+$options['cols'][$colName]['width'];
                 $maxWidth[$colName] = $options['cols'][$colName]['width']-$options['gap'];
+                if($maxWidth[$colName] < $minFontWidth)
+                {
+                    $maxWidth[$colName] = $minFontWidth;
+                }
                 $setWidth += $options['cols'][$colName]['width'];
             } else {
                 $t=$t+$w+$options['gap'];
@@ -1544,10 +1555,11 @@ define('EZ_GRIDLINE_COLUMNS', 1);
                                             $textColor = "";
 
                                         // apply the color to the text
-                                        if (is_array($textColor))
+                                        if (is_array($textColor)) {
                                             $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$textColor[0].",".$textColor[1].",".$textColor[2].">".$line."</c:color>", $maxWidth[$colName], $just);
-                                        else
-                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".$options['textCol'][0].",".$options['textCol'][1].",".$options['textCol'][2].">".$line."</c:color>", $maxWidth[$colName], $just);
+                                        } else {
+                                            $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], "<c:color:".implode(',',$options['textCol']).">".$line."</c:color>", $maxWidth[$colName], $just);
+                                        }
 //                                        $line=$this->addText($pos[$colName],$this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                     }
                                 }

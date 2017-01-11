@@ -2941,7 +2941,7 @@
         if($text == "") return '';
         
         if (!$this->numFonts) {
-            $this->selectFont(dirname(__FILE__) . '/fonts/Helvetica');
+            $this->selectFont('Helvetica');
         }
 
         // if there are any open callbacks, then they should be called, to show the start of the line
