@@ -1,3 +1,0 @@
-[13-Jan-2017 21:16:37 Europe/London] PHP Fatal error:  Class 'PHPUnit_Framework_TestCase' not found in D:\Projekte\WebProgramming\pdf-php\tests\CpdfTest.php on line 6
-[13-Jan-2017 21:16:37 Europe/London] PHP Stack trace:
-[13-Jan-2017 21:16:37 Europe/London] PHP   1. {main}() D:\Projekte\WebProgramming\pdf-php\tests\CpdfTest.php:0
