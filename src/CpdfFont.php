@@ -686,7 +686,7 @@ class CpdfFont
 
         $stream = base64_decode($this->props['CIDtoGID']);
         // compress the CIDMap if compression is enabled
-        if ($this->pages->Compression <> 0) {
+        if ($this->pages->Compression != 0) {
             $stream = gzcompress($stream, $this->pages->Compression);
             $res.= ' /Filter /FlateDecode';
         }

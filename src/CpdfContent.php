@@ -117,6 +117,21 @@ class CpdfContent
         return (count($this->entries) > 0) ? true : false;
     }
 
+    private function outputEntries($entries){
+        $res = '<<';
+        if (is_array($entries)) {
+            foreach ($entries as $k => $v) {
+                if(is_array($v)) {
+                    $res.= " /$k " . $this->outputEntries($v);
+                } else {
+                    $res.= " /$k $v";
+                }
+            }
+        }
+        $res .=' >>';
+        return $res;
+    }
+
     public function Output()
     {
         return $this->contents;
@@ -124,13 +139,11 @@ class CpdfContent
 
     public function OutputAsObject()
     {
-        $res = '<<';
-
         $l = 0;
         $tmp = $this->Output();
         if (!empty($tmp)) {
             // make sure compression is included and declare it properly
-            if (function_exists('gzcompress') && $this->pages->Compression && $this->Compression) {
+            if (function_exists('gzcompress') && $this->pages->Compression != 0 && $this->Compression != 0) {
                 if (isset($this->entries['Filter'])) {
                     $this->AddEntry('Filter', '[/FlateDecode '.$this->entries['Filter'].']');
                 } else {
@@ -146,16 +159,9 @@ class CpdfContent
             }
             $l = strlen($tmp);
             $this->AddEntry('Length', $l);
-            //$res.= ' /Length '.$l;
         }
 
-        if (is_array($this->entries)) {
-            foreach ($this->entries as $k => $v) {
-                $res.= " /$k $v";
-            }
-        }
-
-        $res.= ' >>';
+        $res = $this->outputEntries($this->entries);
 
         if ($l > 0) {
             $res.= " stream\n".$tmp."\nendstream";

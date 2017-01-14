@@ -412,7 +412,7 @@ class CpdfImage extends CpdfContent
 
         $tmp = $this->data;
         // gzcompress
-        if (function_exists('gzcompress') && $this->Compression && $this->ImageType != IMAGETYPE_PNG) {
+        if (function_exists('gzcompress') && $this->Compression != 0 && $this->ImageType != IMAGETYPE_PNG) {
             if (isset($this->entries['Filter'])) {
                 $this->AddEntry('Filter', '[/FlateDecode '.$this->entries['Filter'].']');
             } else {
