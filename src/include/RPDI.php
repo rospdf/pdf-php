@@ -28,9 +28,10 @@
  */
 
 use ROSPDF\Cpdf;
-use ROSPDf\CpdfContent;
+use ROSPDF\CpdfContent;
+use ROSPDF\CpdfEXtension;
 
-class RPDI extends ROSPDF\CpdfExtension
+class RPDI extends CpdfExtension
 {
     const EOFOffset = 50;
     
@@ -131,7 +132,12 @@ class RPDI extends ROSPDF\CpdfExtension
             $t = $this->parseType($this->catalog['Pages']);
             $obj = $this->GetObject($t['value']);
             $this->pages = $obj['entries'];
-            
+        
+            if(isset($this->pages['Resources']) && is_array($this->pages['Resources']['XObject']))
+            {
+                $this->proccessXObjects($this->pages['Resources']['XObject']);
+            }
+
             $t = $this->parseType($this->pages['Kids']);
             
             if ($t['type'] == self::ENTRYTYPE_ARRAY) {
@@ -146,6 +152,30 @@ class RPDI extends ROSPDF\CpdfExtension
                 }
             }
         }
+    }
+
+    protected function proccessXObjects($xObjectDir){
+        foreach($xObjectDir as $k => $v) {
+            $im = $this->parseType($v);
+            $this->processImageObject($im['value']);
+        }
+    }
+
+    protected function processImageObject($objectId){
+        $img = $this->GetObject($objectId, true);
+
+        $cObject = $this->NewContent();
+        $cObject->SetPageMode(CpdfContent::PMODE_NOPAGE);
+        $cObject->Name = "PDFIMPORTIMG_" . $objectId;
+
+        foreach($img['entries'] as $k => $v) {
+            $cObject->AddEntry($k, $v);
+        }
+
+        $cObject->AddRaw($img['stream']);
+
+        // fill the assocation array
+        $this->objectAssoc[$objectId] = $cObject->Name;
     }
     
     
@@ -192,6 +222,45 @@ class RPDI extends ROSPDF\CpdfExtension
             }
         }
         //print_r($this->objectAssoc);
+    }
+    
+    public function OnObjectCallback(&$cObject)
+    {
+        if (($key=array_search($cObject->Name, $this->objectAssoc)) !== false) {
+            $this->rearranged[$key] = $cObject->ObjectId;
+            // reset the temporary name
+            $cObject->Name = null;
+        }
+    }   
+   
+    public function OnPageCallback(&$page)
+    {
+        // TODO: add imported page number here
+        $pageObjectId = &$this->pageToObject[1];
+        if (isset($pageObjectId)) {
+            $importedPage = &$this->page[$pageObjectId];
+            //print_r($importedPage);
+            if (isset($importedPage) && isset($importedPage['Resources'])) {
+                // add the imported page Resource entry into global Pages Resource
+                //print_r($importedPage);
+                foreach ($importedPage['Resources'] as $key => $value) {
+                    if (!isset($this->resources[$key])) {
+                        $ret = $this->valueToDictionary($value);
+                        $this->AddResource($key, $ret);
+                    }
+                }
+            }
+        }
+    }
+
+    public function OnPagesCallback()
+    {
+        if(isset($this->pages['Resources']) && isset($this->pages['Resources']['XObject'])) {
+            $xobjects = &$this->pages['Resources']['XObject'];
+            
+            $res = $this->valueToDictionary($xobjects);
+            $this->resources['XObject'] = $res;
+        }
     }
     
     private function parseContent(&$fullPage)
@@ -248,7 +317,7 @@ class RPDI extends ROSPDF\CpdfExtension
         if (count($a) > 2 && $withStream) {
             $res['entries'] = $this->parseEntry($a[1]);
             //print_r($res);
-            if (isset($res['entries']['Filter'])) {
+            if (isset($res['entries']['Filter']) && $res['entries']['Subtype'] != '/Image') {
                 $res['stream'] = gzuncompress(trim($a[2]));
                 unset($res['entries']['Filter']);
             } else {
@@ -266,35 +335,6 @@ class RPDI extends ROSPDF\CpdfExtension
         }
         $this->objects[$objectId] = $res;
         return $res;
-    }
-    
-    public function OnCallbackObject(&$cObject)
-    {
-        if (($key=array_search($cObject->Name, $this->objectAssoc)) !== false) {
-            $this->rearranged[$key] = $cObject->ObjectId;
-            // reset the temporary name
-            $cObject->Name = null;
-        }
-    }
-    
-    public function OnCallbackPage(&$page)
-    {
-        // TODO: add imported page number here
-        $pageObjectId = &$this->pageToObject[1];
-        if (isset($pageObjectId)) {
-            $importedPage = &$this->page[$pageObjectId];
-            //print_r($importedPage);
-            if (isset($importedPage) && isset($importedPage['Resources'])) {
-                // add the imported page Resource entry into global Pages Resource
-                //print_r($importedPage);
-                foreach ($importedPage['Resources'] as $key => $value) {
-                    if (!isset($this->resources[$key])) {
-                        $ret = $this->valueToDictionary($value);
-                        $this->AddResource($key, $ret);
-                    }
-                }
-            }
-        }
     }
     
     private function valueToDictionary($entryValue)
@@ -500,7 +540,10 @@ class RPDI extends ROSPDF\CpdfExtension
         
         return true;
     }
-       
+    
+    private function convertEntry($entries){
+
+    }
     
     const TOKEN_NONE = 0;
     const TOKEN_NAME = 1;
