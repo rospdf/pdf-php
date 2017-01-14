@@ -117,6 +117,10 @@ class CpdfContent
         return (count($this->entries) > 0) ? true : false;
     }
 
+    public function GetEntry($name){
+        return isset($this->entries[$name]) ? $this->entries[$name] : null;
+    }
+
     private function outputEntries($entries){
         $res = '<<';
         if (is_array($entries)) {
@@ -164,7 +168,7 @@ class CpdfContent
         $res = $this->outputEntries($this->entries);
 
         if ($l > 0) {
-            $res.= " stream\n".$tmp."\nendstream";
+            $res.= "\nstream\n".$tmp."\nendstream";
         }
         $res = "\n".$this->ObjectId." 0 obj\n".$res."\nendobj";
 

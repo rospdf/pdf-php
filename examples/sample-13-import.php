@@ -13,5 +13,12 @@ if(isset($_GET['debug']))
  $pdf->Compression = 0;
  $pdf->ImportPage(1);
  $t = $pdf->NewText();
- $t->AddText('Hello World');
+ $t->SetFont('Helvetica', 14);
+ $t->AddText('Image and Background loaded from imported pdf', 0, 'right');
+ $t->AddText('But this text is from the current script', 0, 'right');
+
+// the below does not yet work as it has conflicts with /Im dict located in XObject
+//$app = $pdf->NewAppearance();
+//$app->AddImage('right', 'top', 'images/test.jpg');
+
  $pdf->Stream('template_test.pdf');

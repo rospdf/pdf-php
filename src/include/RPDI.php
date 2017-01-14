@@ -78,7 +78,12 @@ class RPDI extends CpdfExtension
     /**
      * object XRef
      */
-    private $objectRef;
+    private $objectXRef;
+
+    /**
+     * image references
+     */
+     private $imageRefs;
     
     /**
      * associated array
@@ -100,6 +105,7 @@ class RPDI extends CpdfExtension
         $this->objects = array();
         $this->objectAssoc = array();
         $this->rearranged = array();
+        $this->imageRefs = array();
         
         // open the pdf file
         $this->filestream = fopen($file, 'r');
@@ -162,20 +168,43 @@ class RPDI extends CpdfExtension
     }
 
     protected function processImageObject($objectId){
-        $img = $this->GetObject($objectId, true);
+        $imageObj = $this->GetObject($objectId, true);
 
-        $cObject = $this->NewContent();
-        $cObject->SetPageMode(CpdfContent::PMODE_NOPAGE);
-        $cObject->Name = "PDFIMPORTIMG_" . $objectId;
+        $imgContent = $this->NewContent();
+        $imgContent->SetPageMode(CpdfContent::PMODE_NOPAGE);
+        $imgContent->Name = "PDFIMPORTIMG_" . $objectId;
 
-        foreach($img['entries'] as $k => $v) {
-            $cObject->AddEntry($k, $v);
+        foreach($imageObj['entries'] as $k => $v) {
+            $imgContent->AddEntry($k, $v);
         }
 
-        $cObject->AddRaw($img['stream']);
-
+        $imgContent->AddRaw($imageObj['stream']);
         // fill the assocation array
-        $this->objectAssoc[$objectId] = $cObject->Name;
+        $this->objectAssoc[$objectId] = $imgContent->Name;
+
+
+        if(isset($imageObj['entries']['SMask']))
+        {
+            $t = $this->parseType($imageObj['entries']['SMask']);
+            if($t['type'] == Self::ENTRYTYPE_INDIRECT) {
+                $imgMask = $this->GetObject($t['value'], true);
+
+                $cObject = $this->NewContent();
+                $cObject->SetPageMode(CpdfContent::PMODE_NOPAGE);
+                $cObject->Name = "PDFIMPORTIMG_" . $t['value'];
+
+                foreach($imgMask['entries'] as $k => $v) {
+                    $cObject->AddEntry($k, $v);
+                }
+
+                $cObject->AddRaw($imgMask['stream']);
+
+                // fill the assocation array
+                $this->objectAssoc[$t['value']] = $cObject->Name;
+                
+                $this->imageRefs[$objectId] = &$cObject;
+            }
+        }
     }
     
     
@@ -228,9 +257,23 @@ class RPDI extends CpdfExtension
     {
         if (($key=array_search($cObject->Name, $this->objectAssoc)) !== false) {
             $this->rearranged[$key] = $cObject->ObjectId;
+
+            $subType = $cObject->GetEntry('Subtype');
+            $smask = $cObject->GetEntry('SMask');
+
+            if($subType == '/Image' && isset($smask)) {
+                $this->contentRefs['pages'][$cObject->ObjectId] = array(++$this->ImageNum);
+            }
+
+            $smask = $cObject->GetEntry('SMask');
+            if($smask && isset($this->imageRefs[$key])) {
+                $imgMask = $this->imageRefs[$key];
+                $cObject->AddEntry('SMask', "{$imgMask->ObjectId} 0 R");
+            }
+
             // reset the temporary name
             $cObject->Name = null;
-        }
+        }      
     }   
    
     public function OnPageCallback(&$page)
@@ -255,12 +298,7 @@ class RPDI extends CpdfExtension
 
     public function OnPagesCallback()
     {
-        if(isset($this->pages['Resources']) && isset($this->pages['Resources']['XObject'])) {
-            $xobjects = &$this->pages['Resources']['XObject'];
-            
-            $res = $this->valueToDictionary($xobjects);
-            $this->resources['XObject'] = $res;
-        }
+        // Do something when all pages and objects are rendered
     }
     
     private function parseContent(&$fullPage)
@@ -302,17 +340,23 @@ class RPDI extends CpdfExtension
         
         
         $res = array('stream'=> null, 'entries'=> null);
-        if (!isset($this->objectRef[$objectId])) {
+        if (!isset($this->objectXRef[$objectId])) {
             return null;
         }
         
-        $offset = $this->objectRef[$objectId];
+        $offset = $this->objectXRef[$objectId];
         fseek($this->filestream, $offset, SEEK_SET);
         
-        $buffer = stream_get_line($this->filestream, 4096, "endobj");
+
+        $data = "";
+        do {
+            $buffer = fgets($this->filestream);
+            $data .= $buffer;
+        } while($buffer != "endobj\n");
+     
         $entries = array();
         
-        $a = preg_split("/(stream|endstream)|[0-9]+ 0 obj(\r\n|\n|\r)/", $buffer);
+        $a = preg_split("/(stream|endstream)|[0-9]+ 0 obj(\r\n|\n|\r)/", $data);
         
         if (count($a) > 2 && $withStream) {
             $res['entries'] = $this->parseEntry($a[1]);
@@ -321,7 +365,7 @@ class RPDI extends CpdfExtension
                 $res['stream'] = gzuncompress(trim($a[2]));
                 unset($res['entries']['Filter']);
             } else {
-                $res['stream'] = $a[2];
+                $res['stream'] = trim($a[2]);
             }
             //print_r($res);
         } else {
@@ -503,9 +547,9 @@ class RPDI extends CpdfExtension
                 $xrefhead[1] = 1;
                 $xrefhead[2] -= 1;
             }
-        } elseif (count($this->objectRef) > 0) {
+        } elseif (count($this->objectXRef) > 0) {
             // some checks for linearized xref
-            $k = array_keys($this->objectRef);
+            $k = array_keys($this->objectXRef);
             
             $xrefhead[1] = 1;
             $xrefhead[2] = min($k) - 1;
@@ -516,7 +560,7 @@ class RPDI extends CpdfExtension
         
         if (preg_match_all("/^([0-9]{10}) ([0-9]{5}) (n)/m", $buffer, $regs)) {
             foreach ($regs[0] as $k => $v) {
-                $this->objectRef[$i] = (int)$regs[1][$k];
+                $this->objectXRef[$i] = (int)$regs[1][$k];
                 $i++;
             }
         }
