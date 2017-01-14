@@ -625,8 +625,8 @@ class Cpdf
                 // set the unique PDF objects Id for every content stored in contentObjects
                 $value->ObjectId = ++$this->objectNum;
 
-                if (method_exists($this, 'OnCallbackObject')) {
-                    call_user_func(array($this, 'OnCallbackObject'), $value);
+                if (method_exists($this, 'OnObjectCallback')) {
+                    $this->OnObjectCallback($value);
                 }
 
                 // does the content contain a page?
@@ -729,8 +729,8 @@ class Cpdf
                     $this->Options->AddName($value->Name, $value->ObjectId);
                 }
                 // callback function for each page object
-                if (method_exists($this, 'OnCallbackPage')) {
-                    call_user_func(array($this, 'OnCallbackPage'), $value);
+                if (method_exists($this, 'OnPageCallback')) {
+                    $this->OnPageCallback($value);
                 }
                 // output the page header here
                 foreach ($this->contentRefs['nopage'] as $objectId => $mode) {
@@ -762,6 +762,11 @@ class Cpdf
             }
         }
         // -- END
+
+        if (method_exists($this, 'OnPagesCallback')) {
+            // should only occurs once
+            $this->OnPagesCallback();
+        }
 
         $tmp = "\n$this->ObjectId 0 obj\n";
         $tmp.= "<< /Type /Pages";
