@@ -317,7 +317,7 @@ class RPDI extends CpdfExtension
         if (count($a) > 2 && $withStream) {
             $res['entries'] = $this->parseEntry($a[1]);
             //print_r($res);
-            if (isset($res['entries']['Filter']) && $res['entries']['Subtype'] != '/Image') {
+            if (isset($res['entries']['Filter']) && !isset($res['entries']['Subtype'])) {
                 $res['stream'] = gzuncompress(trim($a[2]));
                 unset($res['entries']['Filter']);
             } else {
