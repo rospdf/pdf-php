@@ -18,7 +18,7 @@ if(isset($_GET['debug']))
  $t->AddText('But this text is from the current script', 0, 'right');
 
 // the below does not yet work as it has conflicts with /Im dict located in XObject
-//$app = $pdf->NewAppearance();
-//$app->AddImage('right', 'top', 'images/test.jpg');
+$app = $pdf->NewAppearance();
+$app->AddImage('right', 'middle', 'images/test.jpg');
 
  $pdf->Stream('template_test.pdf');

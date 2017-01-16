@@ -179,6 +179,7 @@ class RPDI extends CpdfExtension
         }
 
         $imgContent->AddRaw($imageObj['stream']);
+        $imgContent->ImageNum = ++$this->ImageNum;
         // fill the assocation array
         $this->objectAssoc[$objectId] = $imgContent->Name;
 
@@ -261,8 +262,8 @@ class RPDI extends CpdfExtension
             $subType = $cObject->GetEntry('Subtype');
             $smask = $cObject->GetEntry('SMask');
 
-            if($subType == '/Image' && isset($smask)) {
-                $this->contentRefs['pages'][$cObject->ObjectId] = array(++$this->ImageNum);
+            if(isset($cObject->ImageNum) && isset($smask)) {
+                $this->contentRefs['pages'][$cObject->ObjectId] = array($cObject->ImageNum);
             }
 
             $smask = $cObject->GetEntry('SMask');
