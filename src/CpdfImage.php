@@ -30,6 +30,7 @@ class CpdfImage extends CpdfContent
      * Used for PNG only
      */
     private $palette;
+    private $paletteObj;
     /**
      * Used for PNG only
      */
@@ -171,10 +172,11 @@ class CpdfImage extends CpdfContent
                         $this->numColors = 1;
                         break;
                 }
-                //print_r($iChunk);
                 $this->data = $iChunk['idata'];
                 $this->palette = $iChunk['pdata'];
                 $this->transparency = $iChunk['transparency'];
+
+                $this->applyPalette();
 
                 break;
             case IMAGETYPE_GIF:
@@ -343,6 +345,28 @@ class CpdfImage extends CpdfContent
         return $default;
     }
 
+    private function applyPalette(){
+        if(empty($this->palette)) return;
+
+        $this->paletteObj = $this->pages->NewContent();
+        //$this->paletteObj = new CpdfContent($this->pages);
+        //$this->paletteObj->ObjectId = ++$this->pages->objectNum;
+
+        $this->paletteObj->AddRaw($this->palette);
+        // do not compress the palette as it already is compressed
+        // when palette is used as alpha channel fir indexed PNG, ignore the compression
+        $this->paletteObj->Compression = 0;
+
+        $this->paletteObj->AddEntry('Subtype', '/Image');
+        $this->paletteObj->AddEntry('Width', $this->orgWidth);
+        $this->paletteObj->AddEntry('Height', $this->orgHeight);
+
+        $this->paletteObj->AddEntry('Filter', '/FlateDecode');
+        $this->paletteObj->AddEntry('ColorSpace', '/DeviceGray');
+        $this->paletteObj->AddEntry('BitsPerComponent', $this->bits);
+        $this->paletteObj->AddEntry('DecodeParms', '<< /Predictor 15 /Colors 1 /BitsPerComponent '.$this->bits.' /Columns '.$this->orgWidth.' >>');
+    }
+
     /**
      * PDF Output of the Image
      */
@@ -355,8 +379,6 @@ class CpdfImage extends CpdfContent
         $this->AddEntry('Width', $this->orgWidth);
         $this->AddEntry('Height', $this->orgHeight);
 
-        $paletteObj = null;
-
         switch ($this->ImageType) {
             case IMAGETYPE_JPEG:
                 if ($this->channels == 1) {
@@ -368,42 +390,23 @@ class CpdfImage extends CpdfContent
                 $this->AddEntry('BitsPerComponent', $this->bits);
                 break;
             case IMAGETYPE_PNG:
-                if (strlen($this->palette)) {
-                    $paletteObj = new CpdfContent($this->pages);
-                    $paletteObj->ObjectId = ++$this->pages->objectNum;
-
-                    $paletteObj->AddRaw($this->palette);
-                    // do not compress the palette as it already is compressed
-                    // when palette is used as alpha channel fir indexed PNG, ignore the compression
-                    $paletteObj->Compression = 0;
-
-                    $paletteObj->AddEntry('Subtype', '/Image');
-                    $paletteObj->AddEntry('Width', $this->orgWidth);
-                    $paletteObj->AddEntry('Height', $this->orgHeight);
-
-                    $paletteObj->AddEntry('ColorSpace', '/DeviceGray');
-                    $paletteObj->AddEntry('BitsPerComponent', $this->bits);
-                    $paletteObj->AddEntry('DecodeParms', '<< /Predictor 15 /Colors 1 /BitsPerComponent '.$this->bits.' /Columns '.$this->orgWidth.' >>');
-
-                    if (isset($this->transparency)) {
-                        switch ($this->transparency['type']) {
-                            case 'indexed':
-                                // disable transparancy on indexed PNGs for time being
-                                //$tmp=' ['.$this->transparency['data'].' '.$this->transparency['data'].'] ';
-                                //$this->AddEntry('Mask', $tmp);
-                                $this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$paletteObj->ObjectId.' 0 R]');
-                                break;
-                            case 'alpha':
-                                $paletteObj->AddEntry('Filter', '/FlateDecode');
-                                $this->AddEntry('SMask', $paletteObj->ObjectId.' 0 R');
+                if (isset($this->transparency)) {
+                    switch ($this->transparency['type']) {
+                        case 'indexed':
+                            // disable transparancy on indexed PNGs for time being
+                            //$tmp=' ['.$this->transparency['data'].' '.$this->transparency['data'].'] ';
+                            //$this->AddEntry('Mask', $tmp);
+                            if($this->paletteObj)
+                                $this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$this->paletteObj->ObjectId.' 0 R]');
+                            else
                                 $this->AddEntry('ColorSpace', '/'.$this->colorspace);
-                                break;
-                        }
+                            break;
+                        case 'alpha':
+                            $this->AddEntry('SMask', $this->paletteObj->ObjectId.' 0 R');
+                            $this->AddEntry('ColorSpace', '/'.$this->colorspace);
+                            break;
                     }
-                } else {
-                    $this->AddEntry('ColorSpace', '/'.$this->colorspace);
                 }
-
                 $this->AddEntry('BitsPerComponent', $this->bits);
                 $this->AddEntry('Filter', '/FlateDecode');
                 $this->AddEntry('DecodeParms', '<< /Predictor 15 /Colors '.$this->numColors.' /Columns '.$this->orgWidth.' /BitsPerComponent '.$this->bits.'>>');
@@ -436,9 +439,6 @@ class CpdfImage extends CpdfContent
 
         $this->pages->AddXRef($this->ObjectId, strlen($res));
 
-        if (is_object($paletteObj)) {
-            $res.= $paletteObj->OutputAsObject();
-        }
         return $res;
     }
 }
