@@ -1,23 +1,24 @@
 <?php
+
 error_reporting(E_ALL);
-set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
+set_include_path('../src/'.PATH_SEPARATOR.get_include_path());
 date_default_timezone_set('UTC');
 
 include 'Cezpdf.php';
 
-$pdf = new Cezpdf('a4','portrait');
+$pdf = new Cezpdf('a4', 'portrait');
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false){
+if (strpos(PHP_OS, 'WIN') !== false) {
     $pdf->tempPath = 'C:/temp';
 }
 
-if(!isset($_GET['nocrypt'])){
-	// define the encryption mode (either RC4 40bit or RC4 128bit)
-	$user = ( isset($_GET['user']) )?$_GET['user']:'';
-	$owner = ( isset($_GET['owner']) )?$_GET['owner']:'';
-	
-	$mode = (isset($_GET['mode']) && is_numeric($_GET['mode']))?$_GET['mode']:1;
-	$pdf->setEncryption($user, $owner, array(), $mode);
+if (!isset($_GET['nocrypt'])) {
+    // define the encryption mode (either RC4 40bit or RC4 128bit)
+    $user = (isset($_GET['user'])) ? $_GET['user'] : '';
+    $owner = (isset($_GET['owner'])) ? $_GET['owner'] : '';
+
+    $mode = (isset($_GET['mode']) && is_numeric($_GET['mode'])) ? $_GET['mode'] : 1;
+    $pdf->setEncryption($user, $owner, array(), $mode);
 }
 
 // select a font
@@ -33,19 +34,19 @@ $pdf->ezText("\nUse \"?nocrypt\" to disable the encryption\n");
 $pdf->ezText("\nUse \"?user=password\" to set a user password\n");
 $pdf->ezText("\nUse \"?owner=password\" to set a owner password\n");
 
-if(isset($_GET['nocrypt']))
-$pdf->ezText("<b>Not encrypt</b> - nocrypt parameter found");
-
-
-if (isset($_GET['d']) && $_GET['d']){
-  echo $pdf->ezOutput(TRUE);
-} else {
-	if($mode > 1)
-		$encMode = "128BIT";
-	else if($mode > 0)
-		$encMode = "40BIT";
-    else
-        $encMode = "NONE";
-  $pdf->ezStream(array('Content-Disposition'=>"encrypted_".$encMode.(isset($_GET['user'])?"_withUserPW":"").(isset($_GET['owner'])?"_withOwnerPW":""),'attached'=>0));
+if (isset($_GET['nocrypt'])) {
+    $pdf->ezText('<b>Not encrypt</b> - nocrypt parameter found');
 }
-?>
+
+if (isset($_GET['d']) && $_GET['d']) {
+    echo $pdf->ezOutput(true);
+} else {
+    if ($mode > 1) {
+        $encMode = '128BIT';
+    } elseif ($mode > 0) {
+        $encMode = '40BIT';
+    } else {
+        $encMode = 'NONE';
+    }
+    $pdf->ezStream(array('Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : ''), 'attached' => 0));
+}
