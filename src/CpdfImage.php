@@ -347,10 +347,8 @@ class CpdfImage extends CpdfContent
 
     private function applyPalette(){
         if(empty($this->palette)) return;
-
         $this->paletteObj = $this->pages->NewContent();
-        //$this->paletteObj = new CpdfContent($this->pages);
-        //$this->paletteObj->ObjectId = ++$this->pages->objectNum;
+        $this->paletteObj->SetPageMode(self::PMODE_NOPAGE, self::PMODE_NOPAGE);
 
         $this->paletteObj->AddRaw($this->palette);
         // do not compress the palette as it already is compressed
@@ -360,10 +358,9 @@ class CpdfImage extends CpdfContent
         $this->paletteObj->AddEntry('Subtype', '/Image');
         $this->paletteObj->AddEntry('Width', $this->orgWidth);
         $this->paletteObj->AddEntry('Height', $this->orgHeight);
-
-        $this->paletteObj->AddEntry('Filter', '/FlateDecode');
         $this->paletteObj->AddEntry('ColorSpace', '/DeviceGray');
         $this->paletteObj->AddEntry('BitsPerComponent', $this->bits);
+        $this->paletteObj->AddEntry('Filter', '/FlateDecode');
         $this->paletteObj->AddEntry('DecodeParms', '<< /Predictor 15 /Colors 1 /BitsPerComponent '.$this->bits.' /Columns '.$this->orgWidth.' >>');
     }
 
@@ -406,7 +403,10 @@ class CpdfImage extends CpdfContent
                             $this->AddEntry('ColorSpace', '/'.$this->colorspace);
                             break;
                     }
+                } else {
+                    $this->AddEntry('ColorSpace', '/'.$this->colorspace);
                 }
+                
                 $this->AddEntry('BitsPerComponent', $this->bits);
                 $this->AddEntry('Filter', '/FlateDecode');
                 $this->AddEntry('DecodeParms', '<< /Predictor 15 /Colors '.$this->numColors.' /Columns '.$this->orgWidth.' /BitsPerComponent '.$this->bits.'>>');
