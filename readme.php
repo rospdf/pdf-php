@@ -27,7 +27,7 @@ class Creport extends Cezpdf {
 	
 	public $reportContents = array();
 	
-	function Creport($p,$o,$t,$op){
+	public function __construct($p,$o,$t,$op){
 	  parent::__construct($p,$o,$t,$op);
 	  
 	  $this->RegisterCallbackFunc("rf", "rf:?.*?", "appearance");
