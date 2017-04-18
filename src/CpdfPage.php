@@ -44,11 +44,6 @@ class CpdfPage
         $this->entries = array();
     }
 
-    public function MovePage($pagePos = 1)
-    {
-        $this->pages->MovePage($this, $pagePos);
-    }
-
     /**
      * set background color or image
      *
