@@ -1,24 +1,22 @@
 {
-    // This task will start php in background (WINDOWS)
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
     "version": "0.1.0",
-    "command": "cmd",
     "isShellCommand": true,
-    "args": ["/c"],
     "showOutput": "always",
+    "suppressTaskName": true,
     "tasks": [
-        { 
-            "taskName": "Run PHP5 Server (Port 5000)",
+        {
             "suppressTaskName": true,
-            "args": [
-                "php", "-S", "localhost:5000"
-            ]
+            "command": "php",
+            "taskName": "PHP5 (localhost:5000)",
+            "args": ["-S", "localhost:5000"]
         },
-        { 
-            "taskName": "Run PHP7 Server (Port 5000)",
+        {
             "suppressTaskName": true,
-            "args": [
-                "php7", "-S", "localhost:5000"
-            ]
+            "command": "php7",
+            "taskName": "PHP7 (localhost:5000)",
+            "args": ["-S", "localhost:5000"]
         }
     ]
 }
