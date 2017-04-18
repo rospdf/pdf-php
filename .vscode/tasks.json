@@ -7,17 +7,17 @@
     "showOutput": "always",
     "tasks": [
         { 
-            "taskName": "Run PHP5 Server (Port 9000)",
+            "taskName": "Run PHP5 Server (Port 5000)",
             "suppressTaskName": true,
             "args": [
-                "php", "-S", "localhost:9000"
+                "php", "-S", "localhost:5000"
             ]
         },
         { 
-            "taskName": "Run PHP7 Server (Port 9000)",
+            "taskName": "Run PHP7 Server (Port 5000)",
             "suppressTaskName": true,
             "args": [
-                "php7", "-S", "localhost:9000"
+                "php7", "-S", "localhost:5000"
             ]
         }
     ]
