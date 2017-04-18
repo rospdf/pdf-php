@@ -20,6 +20,8 @@ set_time_limit(1800);
 
 require_once './src/Cezpdf.php';
 
+use ROSPDF\CpdfLineStyle;
+
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
 	
@@ -125,7 +127,7 @@ $appFooter->AddLine(0, 20, $appFooter->GetBBox('width'));
 
 //$pdf->ezSetDy(-100);
 
-$mainFont = 'Times-Roman';
+$mainFont = 'Helvetica';
 $codeFont = 'Courier';
 // select a font
 $pdf->selectFont($mainFont);
@@ -244,16 +246,16 @@ foreach ($data as $line){
 $pdf->InsertMode(2);
 $pdf->ezNewPage();
 
-$pdf->ezText("Contents\n",26,array('justification'=>'centre'));
+$pdf->ezText("Table of Contents\n",26,array('justification'=>'centre'));
 $xpos = 520;
 
 foreach($pdf->reportContents as $k=>&$v){
 	switch ($v[2]){
     	case '1':
-      	$pdf->ezText('<c:ilink:'.$v[1].'>'.$v[0].' Page: '.$v[1].'</c:ilink>',16,array('aright'=>$xpos));
+      	$pdf->ezText('<c:ilink:'.$v[1].'>'.$v[0].'</c:ilink><C:dots:1'.$v[1].'>',16,array('aright'=>$xpos));
       	break;
     	case '2':
-      	$pdf->ezText('<c:ilink:'.$v[1].'>'.$v[0].' Page: '.$v[1].'</c:ilink>',12,array('left'=>50,'aright'=>$xpos));
+      	$pdf->ezText('<c:ilink:'.$v[1].'>'.$v[0].'</c:ilink><C:dots:2'.$v[1].'>',12,array('left'=>50,'aright'=>$xpos));
       	break;
 	}
 }

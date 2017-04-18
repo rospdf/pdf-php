@@ -361,8 +361,8 @@ class CpdfExtension extends Cpdf
     {
         $app = &$cb['appearance'];
 
-        $lineStyle = new CpdfLineStyle(0.5, 'butt', '', array(3,1));
-        $app->AddLine(0, 0, $bbox[2] - $bbox[0], 0, $lineStyle);
+        //$lineStyle = new CpdfLineStyle(0.5, 'butt', '', array(3,1));
+        //$app->AddLine(0, 0, $bbox[2] - $bbox[0], 0, $lineStyle);
 
         $annot = $sender->pages->NewAnnotation('link', $bbox, null, new CpdfColor(array(0,0,1)));
         $annot->SetDestination($params[0]);
