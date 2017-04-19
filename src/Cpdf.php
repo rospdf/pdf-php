@@ -327,7 +327,7 @@ class Cpdf extends CpdfEntry
         if ($this->insertPos > 0 && isset($this->pageObjects[$this->insertPos])) {
             $this->CURPAGE->PageNum = $this->insertPos + 1;
 
-            array_splice($this->pageObjects, $this->insertPos, 1, [$this->CURPAGE]);
+            array_splice($this->pageObjects, $this->insertPos, 0, [$this->CURPAGE]);
 
             for($i = $this->insertPos; $i < count($this->pageObjects); $i++) {
                 $this->pageObjects[$i]->PageNum = $i + 1;
@@ -577,6 +577,9 @@ class Cpdf extends CpdfEntry
         $pageCount=count($this->pageObjects);
         $pageRefs = '';
         $result = '';
+
+        $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $this->GetGlobalObjects()));
+
         // -- START assign object ids to all pages
         if ($pageCount > 0) {
             foreach ($this->pageObjects as &$value) {
@@ -584,9 +587,10 @@ class Cpdf extends CpdfEntry
                 $pageRefs.= $value->ObjectId.' 0 R ';
 
                 // content object per page
-                $value->Objects = $this->outputPageObjects($value);
+                $value->Objects = $this->fetchPageObjects($value);
                 $result.= $value->OutputAsObject();
-                $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $value->Objects));
+
+                $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $value->Objects ));
             }
         }
 
@@ -597,10 +601,10 @@ class Cpdf extends CpdfEntry
 
         return $result;
     }
-    
-    private function outputPageObjects(&$page){
-        $filtered = array_filter($this->contentObjects, function($c) use($page){
-            return $c->page === $page && (($c instanceof CpdfAppearance) && $c->Length() > 0);
+
+    private function fetchPageObjects(&$page){
+        $filtered = array_filter($this->contentObjects, function($o) use($page){
+            return ($o->Paging != CpdfContent::PMODE_ALL && ($o->page === $page || $o->Paging == CpdfContent::PMODE_REPEAT)) && ($o->Length() > 0 || $o instanceof CpdfAnnotation);
         });
 
         uasort($filtered, function($a, $b){ return $a->ZIndex < $b->ZIndex ? -1 : 1; });
@@ -609,6 +613,21 @@ class Cpdf extends CpdfEntry
             $o->ObjectId = ++$this->objectNum;
         }
         return $filtered;
+    }
+
+    public function GetGlobalObjects(){
+        if(isset($this->globalObjects))
+            return $this->globalObjects;
+
+        $this->globalObjects = array_filter($this->contentObjects, function($o) {
+            return $o->Paging == CpdfContent::PMODE_ALL;
+        });
+
+        foreach($this->globalObjects as &$o) {
+            $o->ObjectId = ++$this->objectNum;
+        }
+
+        return $this->globalObjects;
     }
 
     /**

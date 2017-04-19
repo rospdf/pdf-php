@@ -102,7 +102,7 @@ class CpdfPage extends CpdfEntry
         if (is_array($noPageAnnotRefs)) {
             $mergedAnnot = $annotRefsPerPage + $noPageAnnotRefs;
         }
-        
+
         if (is_array($this->Mediabox)) {
             $this->AddEntry('MediaBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Mediabox[0], $this->Mediabox[1], $this->Mediabox[2], $this->Mediabox[3]));
         }
@@ -113,16 +113,21 @@ class CpdfPage extends CpdfEntry
             $this->AddEntry('BleedBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Bleedbox[0], $this->Bleedbox[1], $this->Bleedbox[2], $this->Bleedbox[3]));
         }
 
-        if(count($this->Objects) > 0) {
+        $allObjects = $this->Objects + $this->pages->GetGlobalObjects();
+
+        if(count($allObjects) > 0) {
             $contentRefs = [];
             $annotRefs = [];
             Cpdf::DEBUG("### Page {$this->PageNum} Id {$this->ObjectId}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
-            foreach($this->Objects as &$o) {
+            foreach($allObjects as &$o) {
                 Cpdf::DEBUG("- ".get_class($o)." ObjectId {$o->ObjectId} | Paging: {$o->Paging} | Length: {$o->Length()}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
                 if($o instanceof CpdfAppearance) {
                     $contentRefs[] = $o->ObjectId . ' 0 R';
+                    if($o->Paging == CpdfContent::PMODE_REPEAT) {
+                        $o->page = &$this;
+                    }
                 } elseif($o instanceof CpdfAnnotation) {
                     $annotRefs[] = $o->ObjectId . ' 0 R';
                 }

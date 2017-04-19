@@ -752,6 +752,7 @@ class CpdfAppearance extends CpdfContent
     public function Output()
     {
         if (count($this->delayedContent) > 0) {
+            $paging = $this->Paging;
             $this->SetPageMode(CpdfContent::PMODE_ADD, $this->pagingCallback);
 
             $this->contents = '';
@@ -762,6 +763,7 @@ class CpdfAppearance extends CpdfContent
             foreach ($this->delayedContent as $v) {
                 $this->AddText($v[0], $v[1], $v[2], $v[3]);
             }
+            $this->SetPageMode($paging, $this->pagingCallback);
         }
 
         $res = parent::Output();
