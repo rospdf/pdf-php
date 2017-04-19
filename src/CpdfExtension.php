@@ -194,7 +194,6 @@ class CpdfExtension extends Cpdf
     public function Callback($offsetX = 0, $offsetY = 0)
     {
         if (count($this->callbackStack) <= 0) {
-            Cpdf::DEBUG("Callback Stack is empty", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
             return;
         }
 

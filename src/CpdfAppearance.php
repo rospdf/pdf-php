@@ -77,15 +77,12 @@ class CpdfAppearance extends CpdfContent
     public $CallbackNo;
     protected $callbackObjects;
 
-    public $Ressources;
-
     public $JustifyCallback;
 
-    public function __construct(&$pages, $BBox = array(), $color = null, $ressources = '')
+    public function __construct(&$pages, $BBox = array(), $color = null)
     {
         parent::__construct($pages, $BBox);
 
-        $this->Ressources = $ressources;
         $this->JustifyCallback = true;
 
         if (!empty($color)) {
@@ -246,7 +243,7 @@ class CpdfAppearance extends CpdfContent
      */
     public function AddText($text, $width = 0, $justify = 'left', $wordSpaceAdjust = 0)
     {
-        if ($this->Paging == CpdfContent::PMODE_REPEAT) {
+        if ($this->Paging == CpdfContent::PMODE_REPEAT || $this->Paging == CpdfContent::PMODE_LAZY) {
             array_push($this->delayedContent, array($text, $width, $justify, $wordSpaceAdjust));
             return;
         }
@@ -776,9 +773,6 @@ class CpdfAppearance extends CpdfContent
 
     public function OutputAsObject()
     {
-        if (!empty($this->Ressources)) {
-            $this->AddEntry('Resources', $this->Ressources);
-        }
         return parent::OutputAsObject();
     }
 

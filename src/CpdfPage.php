@@ -3,7 +3,7 @@ namespace ROSPDF;
 /**
  * Page class object
  */
-class CpdfPage
+class CpdfPage extends CpdfEntry
 {
     public $ObjectId;
 
@@ -19,13 +19,13 @@ class CpdfPage
     public $Cropbox;
 
     public $Background;
+    public $Objects;
 
     public $Name;
 
-    private $entries;
-
     public function __construct(&$pages, $mediabox, $cropbox = null, $bleedbox = null)
     {
+        $this->AddEntry('Type', '/Page');
 
         if (!isset($cropbox) || (is_array($cropbox) && count($cropbox) != 4)) {
             $cropbox = $mediabox;
@@ -41,7 +41,6 @@ class CpdfPage
         $this->Bleedbox = $bleedbox;
 
         $this->pages = &$pages;
-        $this->entries = array();
     }
 
     /**
@@ -87,16 +86,12 @@ class CpdfPage
         $this->Bleedbox[3] = $tmp;
     }
 
-    public function AddEntry($key, $value)
-    {
-        $this->entries[$key] = $value;
-    }
-
     public function OutputAsObject()
     {
         // the Object Id of the page will be set in CpdfPages->OutputAll()
         $res = "\n".$this->ObjectId . " 0 obj\n";
-        $res.="<< /Type /Page /Parent ".$this->pages->ObjectId." 0 R";
+
+        $this->AddEntry('Parent', $this->pages->ObjectId . ' 0 R');
 
         $annotRefsPerPage = &$this->pages->contentRefs['annot'][$this->ObjectId];
         $noPageAnnotRefs = &$this->pages->contentRefs['nopageA'];
@@ -107,64 +102,45 @@ class CpdfPage
         if (is_array($noPageAnnotRefs)) {
             $mergedAnnot = $annotRefsPerPage + $noPageAnnotRefs;
         }
-
-        $contentRefsPerPage = &$this->pages->contentRefs['content'][$this->ObjectId];
-        $noPageRefs = &$this->pages->contentRefs['nopage'];
-
-        // merge page contents with NO PAGE content (but only those with Paging != 'none' will be displayed)
-        if (!is_array($contentRefsPerPage)) {
-            $contentRefsPerPage = array();
-        }
-
-        if (is_array($noPageRefs)) {
-            $merged = $contentRefsPerPage + $noPageRefs;
-        } else {
-            $merged = $contentRefsPerPage;
-        }
-
-        if (count($mergedAnnot) > 0) {
-            // is a focus sort required for annotations?
-            //uasort($annotRefsPerPage, array($this->pages, 'compareRefs'));
-            $res.=' /Annots [';
-            foreach ($mergedAnnot as $objId => $mode) {
-                $res.= $objId.' 0 R ';
-            }
-            $res.= ']';
-        }
-
+        
         if (is_array($this->Mediabox)) {
-            $res.= ' /MediaBox '.sprintf("[%.3F %.3F %.3F %.3F]", $this->Mediabox[0], $this->Mediabox[1], $this->Mediabox[2], $this->Mediabox[3]);
+            $this->AddEntry('MediaBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Mediabox[0], $this->Mediabox[1], $this->Mediabox[2], $this->Mediabox[3]));
         }
         if (is_array($this->Cropbox)) {
-            $res.= ' /CropBox '.sprintf("[%.3F %.3F %.3F %.3F]", $this->Cropbox[0], $this->Cropbox[1], $this->Cropbox[2], $this->Cropbox[3]);
+            $this->AddEntry('CropBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Cropbox[0], $this->Cropbox[1], $this->Cropbox[2], $this->Cropbox[3]));
         }
         if (is_array($this->Bleedbox)) {
-            $res.= ' /BleedBox '.sprintf("[%.3F %.3F %.3F %.3F]", $this->Bleedbox[0], $this->Bleedbox[1], $this->Bleedbox[2], $this->Bleedbox[3]);
+            $this->AddEntry('BleedBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Bleedbox[0], $this->Bleedbox[1], $this->Bleedbox[2], $this->Bleedbox[3]));
         }
 
-        if (count($merged) > 0) {
-            //sort the content to set object to foreground dependent on the ZIndex property
-            uasort($merged, array($this->pages, 'compareRefs'));
+        if(count($this->Objects) > 0) {
+            $contentRefs = [];
+            $annotRefs = [];
+            Cpdf::DEBUG("### Page {$this->PageNum} Id {$this->ObjectId}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
-            $res.=' /Contents [';
-            // if a Backround is set than put it first into the content entry
-            if (isset($this->Background) && isset($this->Background->ObjectId)) {
-                $res.= $this->Background->ObjectId.' 0 R ';
-            }
-            foreach ($merged as $objId => $mode) {
-                if ($mode[0] != CpdfContent::PMODE_NOPAGE && $mode[0] != CpdfContent::PMODE_REPEAT) {
-                    $res.= $objId.' 0 R ';
+            foreach($this->Objects as &$o) {
+                Cpdf::DEBUG("- ".get_class($o)." ObjectId {$o->ObjectId} | Paging: {$o->Paging} | Length: {$o->Length()}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
+
+                if($o instanceof CpdfAppearance) {
+                    $contentRefs[] = $o->ObjectId . ' 0 R';
+                } elseif($o instanceof CpdfAnnotation) {
+                    $annotRefs[] = $o->ObjectId . ' 0 R';
                 }
             }
-            $res.="]";
+            
+            if(!empty($contentRefs))
+                $this->AddEntry('Contents', '[' . implode(' ', $contentRefs) . ']');
+            if(!empty($annotRefs))
+                $this->AddEntry('Annots', '[' . implode(' ', $annotRefs) . ']');
         }
 
-        foreach ($this->entries as $k => $v) {
-            $res.= " /$k $v";
-        }
+        $res.= $this->outputEntries($this->entries);
 
         $res.=" >>\nendobj";
         $this->pages->AddXRef($this->ObjectId, strlen($res));
+
+
+
         return $res;
     }
 }

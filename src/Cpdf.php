@@ -57,7 +57,7 @@ if(!defined('ROSPDF_TEMPNAM'))
  * $pdf->Stream();
  * </pre>
  */
-class Cpdf
+class Cpdf extends CpdfEntry
 {
     const DEBUG_TEXT = 1;
     const DEBUG_BBOX = 2;
@@ -138,11 +138,6 @@ class Cpdf
      * primitive hashtable for images
      */
     private $hashTable;
-    /**
-     * pdf resources for all pages
-     */
-    protected $resources;
-
     /**
      * Debug output level
      *
@@ -276,7 +271,9 @@ class Cpdf
         $this->xref = array();
         $this->contentObjects = array();
         $this->hashTable = array();
-        $this->resources = array('ProcSet'=>'[/PDF/TEXT/ImageB/ImageC/ImageI]');
+
+        $this->AddEntry('Type', '/Pages');
+        $this->AddResource('ProcSet', '[/PDF/TEXT/ImageB/ImageC/ImageI]');
 
         $this->Metadata = new CpdfMetadata($this);
 
@@ -308,7 +305,7 @@ class Cpdf
     }
 
     private $insertPos = 0;
-    private $pageOffset = array();
+    private $insertOffset = 0;
 
     public function InsertMode($pos = 0)
     {
@@ -328,46 +325,18 @@ class Cpdf
     {
         $this->PageNum++;
         if ($this->insertPos > 0 && isset($this->pageObjects[$this->insertPos])) {
-            if (!isset($this->pageOffset[$this->insertPos])) {
-                $this->pageOffset[$this->insertPos] = 0;
+            $this->CURPAGE->PageNum = $this->insertPos + 1;
+
+            array_splice($this->pageObjects, $this->insertPos, 1, [$this->CURPAGE]);
+
+            for($i = $this->insertPos; $i < count($this->pageObjects); $i++) {
+                $this->pageObjects[$i]->PageNum = $i + 1;
             }
-
-            $inserted = $this->insertPos  + $this->pageOffset[$this->insertPos];
-            $i = $this->PageNum;
-            while ($i > $inserted) {
-                $i--;
-                $tmp = &$this->pageObjects[$i];
-                $tmp->PageNum = $i + 1;
-                $this->pageObjects[$i+1] = $tmp;
-            }
-
-            // set the correct page position for its new page
-            $this->CURPAGE->PageNum = $this->insertPos;
-            // add the newly created page to page objects array
-            $this->pageObjects[$inserted] = $this->CURPAGE;
-
-            $this->pageOffset[$this->insertPos] += 1;
+            $this->insertPos++;
         } else {
             $this->CURPAGE->PageNum = $this->PageNum;
-            $this->pageObjects[$this->PageNum] = $this->CURPAGE;
+            $this->pageObjects[] = $this->CURPAGE;
         }
-    }
-
-    public function PageOffset($fromPage = 0)
-    {
-        if (empty($fromPage)) {
-            $fromPage = $this->PageNum;
-        }
-
-        $offset = 0;
-
-        while ($fromPage-- > 0) {
-            if (isset($this->pageOffset[$fromPage])) {
-                $offset += $this->pageOffset[$fromPage];
-            }
-        }
-
-        return $offset;
     }
 
     /**
@@ -377,7 +346,9 @@ class Cpdf
      */
     public function GetPageByNo($pageNo)
     {
-        return (isset($this->pageObjects[$pageNo]))?$this->pageObjects[$pageNo]:null;
+        $match = array_filter($this->pageObjects, function($p) use($pageNo) { return $p->PageNum === $pageNo; });
+        return (!empty($match))?array_pop($match) : null;
+        //return (isset($this->pageObjects[$pageNo]))?$this->pageObjects[$pageNo]:null;
     }
 
     /**
@@ -467,12 +438,11 @@ class Cpdf
      * TODO: check bounding box if it is working properly
      *
      * @param array $BBox area where should start and end up
-     * @param resources name the resources being used in CpdfAppearances
      * @return CpdfAppearance
      */
-    public function NewAppearance($BBox = array(), $ressources = '')
+    public function NewAppearance($BBox = array())
     {
-        $g = new CpdfAppearance($this, $BBox, $ressources);
+        $g = new CpdfAppearance($this, $BBox);
         //$this->contentObjects[++$this->objectNum] = $g;
         array_push($this->contentObjects, $g);
         return $g;
@@ -512,11 +482,6 @@ class Cpdf
     public function SetEncryption($mode, $user, $owner, $permission)
     {
         $this->encryptionObject = new CpdfEncryption($this, $mode, $user, $owner, $permission);
-    }
-
-    protected function AddResource($key, $value)
-    {
-        $this->resources[$key] = $value;
     }
 
     /**
@@ -594,98 +559,56 @@ class Cpdf
         return $res;
     }
 
-    private function prepareObjects(){
-        if(empty($this->contentObjects)) return;
-
-        Cpdf::DEBUG("Prepare object output: ", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
-        foreach($this->contentObjects as $k => &$value) {
-            $l = $value->Length();
-            $class_name = get_class($value);
-            Cpdf::DEBUG("$k => ".$class_name . " | Name: ".$value->Name." | Paging: ".$value->Paging." | hasPage: ".isset($value->page)." | hasEntries: ".$value->HasEntries()." | Length: ".$l, Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
-
-            if (($l == 0 && !$value->HasEntries()) && $class_name != 'ROSPDF\CpdfImage' && $class_name != 'ROSPDF\CpdfAnnotation') {
-                unset($this->contentObjects[$k]);
-                continue;
-            }
-
-            if (!isset($value->Paging)) {
-                unset($this->contentObjects[$k]);
-                continue;
-            }
-            if ($value->Paging == CpdfContent::PMODE_NONE) {
-                continue;
-            }
-
-            // set the unique PDF objects Id for every content stored in contentObjects
+    private function outputFonts(){
+        $fonts = '';
+        $fontrefs = '';
+        foreach ($this->fontObjects as $value) {
             $value->ObjectId = ++$this->objectNum;
-
-            // does the content contain a page?
-            if (isset($value->page)) {
-                if ($value->Paging == CpdfContent::PMODE_REPEAT) {
-                    $this->objectNum--;
-                    $this->contentRefs['nopage'][$value->ObjectId] = array(CpdfContent::PMODE_REPEAT, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId, $k);
-                    continue;
-                } elseif ($value->Paging == CpdfContent::PMODE_ALL) {
-                    if ($class_name == 'ROSPDF\CpdfAnnotation') {
-                        $this->contentRefs['nopageA'][$value->ObjectId] = array($value->Paging, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
-                    } else {
-                        $this->contentRefs['nopage'][$value->ObjectId] = array($value->Paging, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
-                    }
-                } elseif ($class_name == 'ROSPDF\CpdfImage') {
-                    $this->contentRefs['pages'][$value->ObjectId] = array($value->ImageNum);
-                } elseif ($class_name == 'ROSPDF\CpdfAnnotation') {
-                    $this->contentRefs['annot'][$value->page->ObjectId][$value->ObjectId] = array($value->Paging, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
-                } else {
-                    switch ($value->Paging) {
-                        default:
-                        case CpdfContent::PMODE_ADD:
-                            $this->contentRefs['content'][$value->page->ObjectId][$value->ObjectId] = array($value->Paging, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
-                            break;
-                        case CpdfContent::PMODE_ALL_FROM_HERE:
-                            for ($i=$value->page->PageNum; $i <= $this->PageNum; $i++) {
-                                $page = &$this->GetPageByNo($i);
-                                $this->contentRefs['content'][$page->ObjectId][$value->ObjectId] = array(CpdfContent::PMODE_ADD, (isset($value->ZIndex))? $value->ZIndex : $value->ObjectId);
-                            }
-                            break;
-                    }
-                }
-            }
+            $fontrefs .= ' /'.Cpdf::$FontLabel.$value->FontId.' '.$value->ObjectId.' 0 R';
+            $fonts.= $value->OutputProgram();
         }
+
+        $this->AddResource('Font', '<<'.$fontrefs.' >>');
+        return $fonts;
     }
-    /**
-     * PDF Output of all objects inherited by CpdfContent
-     *
-     * goes thru all content objects and return its result as string.
-     * Add the content references into contentRefs to display it on the appropriate page
-     */
-    private function outputObjects()
-    {
-        if(empty($this->contentObjects)) return;
 
-        $res = '';
-        Cpdf::DEBUG("List of all Objects: ", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
-        foreach ($this->contentObjects as $k => &$value) {
-            if (method_exists($this, 'OnObjectCallback')) {
-                $this->OnObjectCallback($value);
-            }
-            // does the content contain a page?
-            if (isset($value->page)) {
-                if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_OUTPUT)) {
-                    $res.= "\n% contentObject: $k - Class ". get_class($value);
-                }
-                $res.= $value->OutputAsObject();
-            } else {
-                // objects with NO PAGE as parent
-                $res.= $value->OutputAsObject();
-                $this->contentRefs['nopage'][$value->ObjectId] = array('nopage', -1);
-            }
+    private function outputPages(){
+        // num of pages
+        $pageCount=count($this->pageObjects);
+        $pageRefs = '';
+        $result = '';
+        // -- START assign object ids to all pages
+        if ($pageCount > 0) {
+            foreach ($this->pageObjects as &$value) {
+                $value->ObjectId = ++$this->objectNum;
+                $pageRefs.= $value->ObjectId.' 0 R ';
 
-            if (isset($value->Name)) {
-                $bbox = $value->GetBBox();
-                $this->Options->AddName($value->Name, $value->page->ObjectId, $bbox[3]);
+                // content object per page
+                $value->Objects = $this->outputPageObjects($value);
+                $result.= $value->OutputAsObject();
+                $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $value->Objects));
             }
         }
-        return $res;
+
+        if (!empty($pageRefs)) {
+            $this->AddEntry('Count', $pageCount);
+            $this->AddEntry('Kids', '['.$pageRefs.']');
+        }
+
+        return $result;
+    }
+    
+    private function outputPageObjects(&$page){
+        $filtered = array_filter($this->contentObjects, function($c) use($page){
+            return $c->page === $page && (($c instanceof CpdfAppearance) && $c->Length() > 0);
+        });
+
+        uasort($filtered, function($a, $b){ return $a->ZIndex < $b->ZIndex ? -1 : 1; });
+
+        foreach($filtered as &$o) {
+            $o->ObjectId = ++$this->objectNum;
+        }
+        return $filtered;
     }
 
     /**
@@ -698,99 +621,37 @@ class Cpdf
         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_OUTPUT)) {
             $this->Compression = 0;
         }
-
+        // output the PDF header
         $res = $this->outputHeader();
-
-        // num of pages
-        $pageCount=count($this->pageObjects);
-        $pageRefs = '';
-        // -- START assign object ids to all pages
-        if ($pageCount > 0) {
-            foreach ($this->pageObjects as $value) {
-                $value->ObjectId = ++$this->objectNum;
-                $pageRefs.= $value->ObjectId.' 0 R ';
-            }
-        }
-        // -- END
-
         // static outlines
         $res.= $this->outputOutline();
 
-        // -- START Font output
-        $fonts = '';
-        $fontrefs = '';
-        foreach ($this->fontObjects as $value) {
-            $value->ObjectId = ++$this->objectNum;
-            $fontrefs .= ' /'.Cpdf::$FontLabel.$value->FontId.' '.$value->ObjectId.' 0 R';
-            $fonts.= $value->OutputProgram();
-        }
-        // -- END Font output
+        $pages = $this->outputPages();
 
         // -- START Object output
         // set the object Ids
-        $this->prepareObjects();
+        //$this->prepareObjects();
+
         // go thru all object (inclusive objects without any page as parent - like backgrounds)
-        $objects = $this->outputObjects();
+        //$objects = $this->outputObjects();
+
         // -- END Object output
-        $contentObjectLastIndex = count($this->contentObjects) - 1;
+        /*$contentObjectLastIndex = count($this->contentObjects) - 1;
         // -- START Page content
         $pages = '';
+        */
         $repeatContent = '';
-        if ($pageCount > 0) {
-            foreach ($this->pageObjects as &$value) {
-                if (!empty($value->Name)) {
-                    $this->Options->AddName($value->Name, $value->ObjectId);
-                }
-                // callback function for each page object
-                if (method_exists($this, 'OnPageCallback')) {
-                    $this->OnPageCallback($value);
-                }
-                // output the page header here
-                foreach ($this->contentRefs['nopage'] as $objectId => $mode) {
-                    if ($mode[0] == CpdfContent::PMODE_REPEAT) {
-                        $o = $this->contentObjects[$mode[2]];
-                        $o->ClearEntries();
-
-                        $o->ObjectId = ++$this->objectNum;
-                        $o->page = $value;
-                        $repeatContent.= $o->OutputAsObject();
-                        for ($i = $contentObjectLastIndex + 1; $i < count($this->contentObjects); $i++) {
-                            $co = &$this->contentObjects[$i];
-                            $class_name = get_class($co);
-
-                            $co->ObjectId = ++$this->objectNum;
-                            $repeatContent.= $co->OutputAsObject();
-                            $contentObjectLastIndex++;
-
-                            if ($class_name == 'CpdfAnnotation') {
-                                $this->contentRefs['annot'][$value->ObjectId] [$co->ObjectId] = array(CpdfContent::PMODE_ADD, $o->ObjectId);
-                            } else {
-                                $this->contentRefs['content'][$value->ObjectId] [$co->ObjectId] = array(CpdfContent::PMODE_ADD, $o->ObjectId);
-                            }
-                        }
-                        $this->contentRefs['content'][$value->ObjectId][$o->ObjectId] = array(CpdfContent::PMODE_ADD, $o->ObjectId);
-                    }
-                }
-                $pages.= $value->OutputAsObject();
-            }
-        }
-        // -- END
 
         if (method_exists($this, 'OnPagesCallback')) {
             // should only occurs once
             $this->OnPagesCallback();
         }
 
+        $fonts = $this->outputFonts();
+
         $tmp = "\n$this->ObjectId 0 obj\n";
-        $tmp.= "<< /Type /Pages";
 
         // -- START Resource Header
-        // according to pdf ref we can put all procsets by default
-
-        // add font refs into resource
-        if (!empty($fontrefs)) {
-            $this->AddResource('Font', '<<'.$fontrefs.' >>');
-        }
         // add xobject refs, mostly images into resources
         if (isset($this->contentRefs['pages'])) {
             $imagerefs = '<<';
@@ -801,23 +662,13 @@ class Cpdf
             $this->AddResource('XObject', $imagerefs);
         }
 
-        $tmp.= ' /Resources <<';
-        foreach ($this->resources as $k => $v) {
-            $tmp.= " /$k $v";
-        }
-        $tmp.= ' >>';
-        // -- END Resource Header
-
-        // -- START Page Header
-        if (!empty($pageRefs)) {
-            $tmp.= ' /Count '.$pageCount.' /Kids ['.$pageRefs.']';
-        }
+        $tmp.= $this->outputEntries($this->entries);
         // -- END Page Header
-        $tmp.= " >>\nendobj";
+        $tmp.= "\nendobj";
         $this->AddXRef($this->ObjectId, strlen($tmp));
 
         // put PAGES and ALL OBJECTS into result
-        $res.= $tmp.$pages.$fonts.$objects.$repeatContent;
+        $res.= $tmp.$pages.$fonts.$repeatContent;
 
         if (isset($this->encryptionObject)) {
             $this->encryptionObject->ObjectId = ++$this->objectNum;
@@ -836,9 +687,11 @@ class Cpdf
             }
         }
         $this->Options->ObjectId = ++$this->objectNum;
+
         $res.= $this->Options->OutputAsObject();
+        $res.= $this->outputTrailer();
         // -- END output catalog
-        return $res.$this->outputTrailer();
+        return $res;
     }
 
     /**
@@ -932,24 +785,6 @@ class Cpdf
 
         $text = strtr($text, array(')' => '\\)', '(' => '\\(', '\\' => '\\\\', chr(8) => '\\b', chr(9) => '\\t', chr(10) => '\\n', chr(12) => '\\f' ,chr(13) => '\\r', '&lt;'=>'<', '&gt;'=>'>', '&amp;'=>'&'));
         return $text;
-    }
-
-    /**
-     * Sort order for content references to verify which object has the highest ZIndex
-     * and should be on focus
-     */
-    public function compareRefs($a, $b)
-    {
-        if (isset($a[1]) && !isset($b[1])) {
-            return 1;
-        } elseif (!isset($a[1]) && isset($b[1])) {
-            return -1;
-        }
-
-        if (isset($a[1]) && isset($b[1])) {
-            return ($a[1] < $b[1]) ? -1 : 1;
-        }
-        return 0;
     }
 
     /**

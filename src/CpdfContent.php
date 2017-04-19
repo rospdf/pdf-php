@@ -1,7 +1,7 @@
 <?php
 namespace ROSPDF;
 
-class CpdfContent
+class CpdfContent extends CpdfEntry
 {
     public $Paging;
     /**
@@ -33,6 +33,8 @@ class CpdfContent
      */
     const PMODE_REPEAT = 8;
 
+    const PMODE_LAZY = 16;
+
     /**
      * used for destination names
      */
@@ -62,7 +64,6 @@ class CpdfContent
     public $page;
 
     protected $contents;
-    protected $entries;
 
     public function __construct(&$pages)
     {
@@ -72,7 +73,7 @@ class CpdfContent
         //$this->transferGlobalSettings();
 
         $this->contents = '';
-        $this->entries = array();
+        $this->ZIndex = 0;
 
         $this->BreakPage = self::PB_BLEEDBOX;
         $this->BreakColumn = false;
@@ -83,16 +84,6 @@ class CpdfContent
     public function AddRaw($str)
     {
         $this->contents .= $str;
-    }
-
-    public function AddEntry($k, $value)
-    {
-        $this->entries[$k] = $value;
-    }
-
-    public function ClearEntries()
-    {
-        $this->entries = array();
     }
 
     /**
@@ -111,31 +102,7 @@ class CpdfContent
     {
         return strlen($this->contents);
     }
-
-    public function HasEntries()
-    {
-        return (count($this->entries) > 0) ? true : false;
-    }
-
-    public function GetEntry($name){
-        return isset($this->entries[$name]) ? $this->entries[$name] : null;
-    }
-
-    private function outputEntries($entries){
-        $res = '<<';
-        if (is_array($entries)) {
-            foreach ($entries as $k => $v) {
-                if(is_array($v)) {
-                    $res.= " /$k " . $this->outputEntries($v);
-                } else {
-                    $res.= " /$k $v";
-                }
-            }
-        }
-        $res .=' >>';
-        return $res;
-    }
-
+    
     public function Output()
     {
         return $this->contents;
