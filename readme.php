@@ -21,6 +21,7 @@ set_time_limit(1800);
 require_once './src/Cezpdf.php';
 
 use ROSPDF\CpdfLineStyle;
+use ROSPDF\Cpdf;
 
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf {
@@ -33,7 +34,7 @@ class Creport extends Cezpdf {
 	  $this->RegisterCallbackFunc("rf", "rf:?.*?", "appearance");
 	  $this->RegisterCallbackFunc("dots", "dots:?.*?", "appearance");
 	  
-	  //$this->Compression = 0;
+	  $this->Compression = 0;
 	}
 
 	public function rf(&$sender, &$cb, $bbox, $params){
@@ -51,7 +52,7 @@ class Creport extends Cezpdf {
 		// label name
 		$lbl = rawurldecode(substr($params[0],1));
 		
-		array_push($this->reportContents, array($lbl, &$this->CURPAGE->PageNum, $lvl));
+		array_push($this->reportContents, array($lbl, $sender->page->PageNum, $lvl));
 		
 		//$sender->page->Name = "tocpage".$sender->page->PageNum;
 		
@@ -107,40 +108,37 @@ $project_url = "http://pdf-php.sf.net";
 $project_version = "0.13.0";
 
 $pdf = new Creport('a4','portrait', 'none', null);
-//Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
+
+//Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_BBOX;
+
+if(isset($_GET['debug']))
+	Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
 
 $start = microtime(true);
 
 $pdf->ezSetMargins(50,70,50,50);
 
 // put a line top and bottom on all the pages
-$appFooter = $pdf->NewAppearance(array('adduy'=> 10,'ly'=> 20));
-$appFooter->SetPageMode(\ROSPDF\CpdfContent::PMODE_ALL);
+$appFooter = $pdf->NewAppearance();
+$appFooter->SetPageMode(\ROSPDF\CpdfContent::PMODE_REPEAT);
 
-$appFooter->AddLine(0, $appFooter->GetBBox('height'), $appFooter->GetBBox('width'));
-$appFooter->UpdateBBox(array('uy'=> 40), TRUE);
+$appFooter->AddLine(0, 5, $appFooter->GetBBox('width'));
 
+$appFooter->UpdateBBox(array('ly'=>0,'uy'=> 40), TRUE);
 $appFooter->SetFont("Helvetica", 8);
-$appFooter->AddText($project_url . " - Version " .$project_version);
+$appFooter->AddText('<C:pager> ' . $project_url . " - Version " .$project_version);
 
-$appFooter->AddLine(0, 20, $appFooter->GetBBox('width'));
-
-//$pdf->ezSetDy(-100);
+$appFooter->AddLine(0, 5, $appFooter->GetBBox('width'));
 
 $mainFont = 'Helvetica';
 $codeFont = 'Courier';
 // select a font
 $pdf->selectFont($mainFont);
 
+$pdf->ezImage('ros.jpg', 0, 200);
 $pdf->ezText("PHP Pdf Creation\n",30,array('justification'=>'centre'));
 $pdf->ezText("Module-free creation of Pdf documents\nfrom within PHP\n",20,array('justification'=>'centre'));
 $pdf->ezText("developed by R&OS Ltd",18,array('justification'=>'centre'));
-//$pdf->ezText("<c:alink:$project_url>$project_url</c:alink>\n\nVersion $project_version",18,array('justification'=>'centre'));
-
-//$pdf->ezSetDy(-100);
-// modified to use the local file if it can
-//$pdf->openHere('Fit');
-
 
 function ros_logo(&$pdf,$x,$y,$height,$wl=0,$wr=0){
 	global $project_url;
@@ -158,18 +156,15 @@ function ros_logo(&$pdf,$x,$y,$height,$wl=0,$wr=0){
 	$app->UpdateBBox(array('addlx'=> 50, 'addux'=> -50));
 	$app->LineGap = ($app->GetFontDescender() * 2);
 	$app->AddText("R&OS");
-	
-	$app->SetFont('Helvetica', 8, 'b');
+
+  $app->SetFont('Helvetica', 8, 'b');
 	$app->AddColor(0.6,0,0);
 	$app->AddText($project_url, 0, "right");
 }
 
 ros_logo($pdf,150,$pdf->y-100,80,150,200);
-$pdf->selectFont($mainFont);
 
-if (file_exists('ros.jpg')){
-  //$pdf->addJpegFromFile('ros.jpg',199,$pdf->y,200,0);
-}
+$pdf->selectFont($mainFont);
 
 //-----------------------------------------------------------
 // load up the document content
@@ -240,10 +235,7 @@ foreach ($data as $line){
 
 }
 
-//$pdf->ezStopPageNumbers(1,1);
-
-// now add the table of contents, including internal links
-$pdf->InsertMode(2);
+/*$pdf->InsertMode(1);
 $pdf->ezNewPage();
 
 $pdf->ezText("Table of Contents\n",26,array('justification'=>'centre'));
@@ -258,8 +250,7 @@ foreach($pdf->reportContents as $k=>&$v){
       	$pdf->ezText('<c:ilink:'.$v[1].'>'.$v[0].'</c:ilink><C:dots:2'.$v[1].'>',12,array('left'=>50,'aright'=>$xpos));
       	break;
 	}
-}
-$pdf->PageOffset(10);
+}*/
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);

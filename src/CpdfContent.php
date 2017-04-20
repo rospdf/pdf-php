@@ -9,10 +9,6 @@ class CpdfContent extends CpdfEntry
      */
     public $Compression;
     /**
-     * page mode 'none' cause the content to NOT output the object at all
-     */
-    const PMODE_NONE = -1;
-    /**
      * page mode 'NOPAGE' used for general objects, like background appearances (or images)
      */
     const PMODE_NOPAGE = 0;
@@ -32,7 +28,9 @@ class CpdfContent extends CpdfEntry
      * repeat the content at runtime (only works for AddText) - useful to display page number on every page
      */
     const PMODE_REPEAT = 8;
-
+    /**
+     * output the content after page object id are defined
+     */
     const PMODE_LAZY = 16;
 
     /**

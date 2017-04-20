@@ -116,15 +116,6 @@ class CpdfImage extends CpdfContent
         switch ($this->ImageType) {
             case IMAGETYPE_JPEG:
                 $this->data = file_get_contents($this->source);
-
-                if ($this->channels == 1) {
-                    $this->colorspace = '/DeviceGray';
-                } else {
-                    $this->colorspace = '/DeviceRGB';
-                }
-
-                $entries['Filter'] = '/DCTDecode';
-
                 break;
             case IMAGETYPE_PNG:
                 $data = file_get_contents($this->source);

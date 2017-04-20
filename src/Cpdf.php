@@ -106,12 +106,6 @@ class Cpdf extends CpdfEntry
      */
     private $fontObjects;
     /**
-     * Contains all content and annotation (incl. repeating) references
-     * @var Array
-     */
-    public $contentRefs;
-
-    /**
      * array containing length of all available objects (filled at the very end)
      */
     private $xref;
@@ -133,6 +127,10 @@ class Cpdf extends CpdfEntry
      * contains all content objects
      */
     protected $contentObjects;
+    /**
+     * contains all repeating objects
+     */
+    protected $repeatObjects;
 
     /**
      * primitive hashtable for images
@@ -260,13 +258,6 @@ class Cpdf extends CpdfEntry
 
         $this->pageObjects = array();
         $this->fontObjects = array();
-        $this->repeatingRefs = array();
-        $this->contentRefs = array(
-                                'annot' => array(),
-                                'content' => array(),
-                                'nopage' => array(),
-                                'nopageA' => array()
-                            );
 
         $this->xref = array();
         $this->contentObjects = array();
@@ -305,7 +296,6 @@ class Cpdf extends CpdfEntry
     }
 
     private $insertPos = 0;
-    private $insertOffset = 0;
 
     public function InsertMode($pos = 0)
     {
@@ -332,6 +322,7 @@ class Cpdf extends CpdfEntry
             for($i = $this->insertPos; $i < count($this->pageObjects); $i++) {
                 $this->pageObjects[$i]->PageNum = $i + 1;
             }
+
             $this->insertPos++;
         } else {
             $this->CURPAGE->PageNum = $this->PageNum;
@@ -580,18 +571,43 @@ class Cpdf extends CpdfEntry
 
         $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $this->GetGlobalObjects()));
 
+        $mediaObjects = $this->GetMediaObjects();
+        $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $mediaObjects ));
+
+        $imagerefs = [];
+        foreach($mediaObjects as $o) {
+            if($o instanceof CpdfImage && $o->Paging == CpdfContent::PMODE_ADD) {
+                $imagerefs[] = '/'.Cpdf::$ImageLabel.$o->ImageNum." {$o->ObjectId} 0 R";
+            }
+        }
+
         // -- START assign object ids to all pages
         if ($pageCount > 0) {
-            foreach ($this->pageObjects as &$value) {
-                $value->ObjectId = ++$this->objectNum;
-                $pageRefs.= $value->ObjectId.' 0 R ';
-
-                // content object per page
-                $value->Objects = $this->fetchPageObjects($value);
-                $result.= $value->OutputAsObject();
-
-                $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $value->Objects ));
+            
+            // give all pages an Object Id first
+            foreach($this->pageObjects as &$page) {
+                $page->ObjectId = ++$this->objectNum;
+                $pageRefs.= $page->ObjectId.' 0 R ';
             }
+
+            $this->prepareRepeatingObjects();
+
+            // output the pages
+            foreach($this->pageObjects as &$page) {
+                $page->Objects = $this->fetchPageObjects($page);
+                $result.= $page->OutputAsObject();
+            }
+
+            foreach($this->pageObjects as &$page) {
+                if(empty($page->Objects)) continue;
+                $result.= implode('', array_map(function($o) use($page){
+                    return $o->OutputAsObject();
+                }, $page->Objects));
+            }
+        }
+        
+        if(!empty($imagerefs)) {
+            $this->AddResource('XObject', '<< '.implode(' ', $imagerefs).' >>');
         }
 
         if (!empty($pageRefs)) {
@@ -602,17 +618,53 @@ class Cpdf extends CpdfEntry
         return $result;
     }
 
-    private function fetchPageObjects(&$page){
-        $filtered = array_filter($this->contentObjects, function($o) use($page){
-            return ($o->Paging != CpdfContent::PMODE_ALL && ($o->page === $page || $o->Paging == CpdfContent::PMODE_REPEAT)) && ($o->Length() > 0 || $o instanceof CpdfAnnotation);
+    private function prepareRepeatingObjects(){
+        $repeatingObjects = array_filter($this->contentObjects, function($o) {
+            return $o->Paging == CpdfContent::PMODE_REPEAT;
         });
 
+        if(empty($repeatingObjects)) return;
+
+        foreach($this->pageObjects as &$page) {
+            foreach($repeatingObjects as $o){
+                $clone = Cpdf::DoClone($o);
+                $clone->page = &$page;
+                $this->repeatObjects[] = $clone;
+            }
+        }
+    }
+
+    private function fetchPageObjects(&$page){
+        $filtered = array_filter($this->contentObjects, function($o) use($page){
+            return ($o->Paging == CpdfContent::PMODE_ADD && $o->page === $page) && ($o->Length() > 0 || $o instanceof CpdfAnnotation);
+        });
+
+        // add the repeating objects to the filtered result
+        if(!empty($this->repeatObjects)) {
+            $filtered = array_merge($filtered, array_filter($this->repeatObjects, function($o) use($page){ return $o->page == $page; }));
+        }
+        
         uasort($filtered, function($a, $b){ return $a->ZIndex < $b->ZIndex ? -1 : 1; });
 
         foreach($filtered as &$o) {
             $o->ObjectId = ++$this->objectNum;
         }
         return $filtered;
+    }
+
+    public function GetMediaObjects(){
+        if(isset($this->mediaObjects))
+            return $this->mediaObjects;
+
+        $this->mediaObjects = array_filter($this->contentObjects, function($o){
+            return $o instanceof CpdfImage || $o->Paging == CpdfContent::PMODE_NOPAGE;
+        });
+
+        foreach($this->mediaObjects as &$o) {
+            $o->ObjectId = ++$this->objectNum;
+        }
+
+        return $this->mediaObjects;
     }
 
     public function GetGlobalObjects(){
@@ -672,14 +724,14 @@ class Cpdf extends CpdfEntry
 
         // -- START Resource Header
         // add xobject refs, mostly images into resources
-        if (isset($this->contentRefs['pages'])) {
+        /*if (isset($this->contentRefs['pages'])) {
             $imagerefs = '<<';
             foreach ($this->contentRefs['pages'] as $key => $value) {
                 $imagerefs.=' /'.Cpdf::$ImageLabel.$value[0]." $key 0 R";
             }
             $imagerefs.= ' >>';
             $this->AddResource('XObject', $imagerefs);
-        }
+        }*/
 
         $tmp.= $this->outputEntries($this->entries);
         // -- END Page Header

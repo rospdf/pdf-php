@@ -55,7 +55,7 @@ class CpdfPage extends CpdfEntry
         $mb = &$this->Mediabox;
 
         $app = $this->pages->NewAppearance($mb);
-        $app->page = null;
+        //$app->page = &$this;
         $app->SetPageMode(CpdfContent::PMODE_NOPAGE);
         $app->ZIndex = -1;
 
@@ -93,16 +93,6 @@ class CpdfPage extends CpdfEntry
 
         $this->AddEntry('Parent', $this->pages->ObjectId . ' 0 R');
 
-        $annotRefsPerPage = &$this->pages->contentRefs['annot'][$this->ObjectId];
-        $noPageAnnotRefs = &$this->pages->contentRefs['nopageA'];
-
-        if (!is_array($annotRefsPerPage)) {
-            $annotRefsPerPage = array();
-        }
-        if (is_array($noPageAnnotRefs)) {
-            $mergedAnnot = $annotRefsPerPage + $noPageAnnotRefs;
-        }
-
         if (is_array($this->Mediabox)) {
             $this->AddEntry('MediaBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Mediabox[0], $this->Mediabox[1], $this->Mediabox[2], $this->Mediabox[3]));
         }
@@ -113,10 +103,15 @@ class CpdfPage extends CpdfEntry
             $this->AddEntry('BleedBox', sprintf("[%.3F %.3F %.3F %.3F]", $this->Bleedbox[0], $this->Bleedbox[1], $this->Bleedbox[2], $this->Bleedbox[3]));
         }
 
-        $allObjects = $this->Objects + $this->pages->GetGlobalObjects();
+        $allObjects = $this->Objects + $this->pages->GetGlobalObjects();       
 
         if(count($allObjects) > 0) {
             $contentRefs = [];
+
+            if($this->Background) {
+                $contentRefs[] = $this->Background->ObjectId . ' 0 R';
+            }
+
             $annotRefs = [];
             Cpdf::DEBUG("### Page {$this->PageNum} Id {$this->ObjectId}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
@@ -125,26 +120,21 @@ class CpdfPage extends CpdfEntry
 
                 if($o instanceof CpdfAppearance) {
                     $contentRefs[] = $o->ObjectId . ' 0 R';
-                    if($o->Paging == CpdfContent::PMODE_REPEAT) {
-                        $o->page = &$this;
-                    }
                 } elseif($o instanceof CpdfAnnotation) {
                     $annotRefs[] = $o->ObjectId . ' 0 R';
                 }
             }
-            
-            if(!empty($contentRefs))
-                $this->AddEntry('Contents', '[' . implode(' ', $contentRefs) . ']');
-            if(!empty($annotRefs))
-                $this->AddEntry('Annots', '[' . implode(' ', $annotRefs) . ']');
         }
+
+        if(!empty($contentRefs))
+            $this->AddEntry('Contents', '[' . implode(' ', $contentRefs) . ']');
+        if(!empty($annotRefs))
+            $this->AddEntry('Annots', '[' . implode(' ', $annotRefs) . ']');
 
         $res.= $this->outputEntries($this->entries);
 
         $res.=" >>\nendobj";
         $this->pages->AddXRef($this->ObjectId, strlen($res));
-
-
 
         return $res;
     }

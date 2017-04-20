@@ -366,8 +366,8 @@ class CpdfExtension extends Cpdf
         $annot = $sender->pages->NewAnnotation('link', $bbox, null, new CpdfColor(array(0,0,1)));
         $annot->SetDestination($params[0]);
 
-        $c = count($cb);
-        $cb['link' + $c] = $annot;
+        //$c = count($cb);
+        //$cb["link$c"] = $annot;
         return false;
     }
 }

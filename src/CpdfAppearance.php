@@ -307,7 +307,7 @@ class CpdfAppearance extends CpdfContent
                         // reset the font color for the next page
                         $this->setColor();
 
-                        $this->BBox = $this->initialBBox;
+                        //$this->BBox = $this->initialBBox;
 
                         $p = $this->pages->GetPageByNo($this->page->PageNum + 1);
                         if (!isset($p) || $this->pages->IsInsertMode()) {
@@ -752,10 +752,9 @@ class CpdfAppearance extends CpdfContent
     public function Output()
     {
         if (count($this->delayedContent) > 0) {
-            $paging = $this->Paging;
             $this->SetPageMode(CpdfContent::PMODE_ADD, $this->pagingCallback);
 
-            $this->contents = '';
+            //$this->contents = '';
             $this->callbackObject = null;
             $this->y = $this->BBox[3];
             $this->y -= $this->fontHeight + $this->fontDescender;
@@ -763,7 +762,6 @@ class CpdfAppearance extends CpdfContent
             foreach ($this->delayedContent as $v) {
                 $this->AddText($v[0], $v[1], $v[2], $v[3]);
             }
-            $this->SetPageMode($paging, $this->pagingCallback);
         }
 
         $res = parent::Output();
@@ -896,7 +894,6 @@ class CpdfAppearance extends CpdfContent
 
     private function addTextDirectives1(&$text, $width = 0, $justification = 'left', &$wordSpaceAdjust = 0, $first = false)
     {
-        $cb = array();
         $len = mb_strlen($text, 'UTF-8');
         $orgLength = $len;
 

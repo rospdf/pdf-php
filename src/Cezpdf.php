@@ -865,10 +865,15 @@ class Cezpdf extends CpdfExtension
      */
     public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $border = '')
     {
-        $w = null;
-        if ($resize == 'full') {
-            $w = '15%';
+        if (!isset($this->ezAppearance) || $this->ezAppearance->page !== $this->CURPAGE) {
+            $this->ezAppearance = $this->NewAppearance();
         }
+
+        $w = null;
+        if($width > 0)
+        {
+            $w = $width;
+        }  
 
         $this->ezAppearance->AddImage($just, $this->ezAppearance->y, $image, $w);
     }
