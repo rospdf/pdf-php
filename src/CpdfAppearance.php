@@ -991,7 +991,7 @@ class CpdfAppearance extends CpdfContent
 
                 $i += $found['end'] + 1;
             } else {
-                $tm = $this->CURFONT->getTextLength($this->fontSize, $textPart, ($width - $lineWidth), $this->angle, $wordSpaceAdjust);
+                $tm = $this->CURFONT->getTextLength($this->fontSize, $textPart, ($width - $lineWidth), $this->angle, 0);
                 //print_r($tm);
                 if ($tm[2] >= 0) {
                     $lineWidth += $tm[0];
