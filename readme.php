@@ -235,7 +235,7 @@ foreach ($data as $line){
 
 }
 
-/*$pdf->InsertMode(1);
+$pdf->InsertMode(2);
 $pdf->ezNewPage();
 
 $pdf->ezText("Table of Contents\n",26,array('justification'=>'centre'));
@@ -250,7 +250,7 @@ foreach($pdf->reportContents as $k=>&$v){
       	$pdf->ezText('<c:ilink:'.$v[1].'>'.$v[0].'</c:ilink><C:dots:2'.$v[1].'>',12,array('left'=>50,'aright'=>$xpos));
       	break;
 	}
-}*/
+}
 
 if (isset($_GET['d']) && $_GET['d']){
   $pdfcode = $pdf->ezOutput(1);

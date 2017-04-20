@@ -113,15 +113,15 @@ class Cpdf extends CpdfEntry
     /**
      * internal counter for pdf object numbers
      */
-    public $objectNum = 2;
+    protected $objectNum = 2;
     /**
      * internal counter for pages
      */
-    public $PageNum = 0;
+    protected $PageNum = 0;
     /**
      * internal counter for images
      */
-    public $ImageNum = 0;
+    protected $ImageNum = 0;
 
     /**
      * contains all content objects
@@ -314,20 +314,28 @@ class Cpdf extends CpdfEntry
     private function insertPage()
     {
         $this->PageNum++;
+        $this->CURPAGE->ObjectId = ++$this->objectNum;
+
         if ($this->insertPos > 0 && isset($this->pageObjects[$this->insertPos])) {
-            $this->CURPAGE->PageNum = $this->insertPos + 1;
 
-            array_splice($this->pageObjects, $this->insertPos, 0, [$this->CURPAGE]);
+            $insertedPos = $this->insertPos;
 
-            for($i = $this->insertPos; $i < count($this->pageObjects); $i++) {
-                $this->pageObjects[$i]->PageNum = $i + 1;
+            $rest = array_filter($this->pageObjects, function($p) use($insertedPos) {
+                return $p->PageNum >= $insertedPos;
+            });
+
+            foreach($rest as &$page) {
+                if($this->CURPAGE === $page) continue;
+                $page->PageNum += 1;
             }
 
+            $this->CURPAGE->PageNum = $this->insertPos;
             $this->insertPos++;
         } else {
             $this->CURPAGE->PageNum = $this->PageNum;
-            $this->pageObjects[] = $this->CURPAGE;
         }
+
+        $this->pageObjects[] = $this->CURPAGE;
     }
 
     /**
@@ -569,10 +577,8 @@ class Cpdf extends CpdfEntry
         $pageRefs = '';
         $result = '';
 
-        $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $this->GetGlobalObjects()));
-
+        $globalObjects = $this->GetGlobalObjects();
         $mediaObjects = $this->GetMediaObjects();
-        $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $mediaObjects ));
 
         $imagerefs = [];
         foreach($mediaObjects as $o) {
@@ -583,20 +589,21 @@ class Cpdf extends CpdfEntry
 
         // -- START assign object ids to all pages
         if ($pageCount > 0) {
-            
-            // give all pages an Object Id first
-            foreach($this->pageObjects as &$page) {
-                $page->ObjectId = ++$this->objectNum;
-                $pageRefs.= $page->ObjectId.' 0 R ';
-            }
-
             $this->prepareRepeatingObjects();
 
+            uasort($this->pageObjects, function($a, $b) { return $a->PageNum < $b->PageNum ? -1 : 1; });
+
+            $pageRefs = array_map(function($p){ return $p->ObjectId . ' 0 R'; },$this->pageObjects);
+
+            uasort($this->pageObjects, function($a, $b){ return $a->ObjectId < $b->ObjectId ? -1 : 1; });
             // output the pages
             foreach($this->pageObjects as &$page) {
                 $page->Objects = $this->fetchPageObjects($page);
                 $result.= $page->OutputAsObject();
             }
+
+            // add global objects AND media objects into the document
+            $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $globalObjects + $mediaObjects));
 
             foreach($this->pageObjects as &$page) {
                 if(empty($page->Objects)) continue;
@@ -612,7 +619,7 @@ class Cpdf extends CpdfEntry
 
         if (!empty($pageRefs)) {
             $this->AddEntry('Count', $pageCount);
-            $this->AddEntry('Kids', '['.$pageRefs.']');
+            $this->AddEntry('Kids', '['.implode(' ', $pageRefs).']');
         }
 
         return $result;
