@@ -9,7 +9,7 @@ $pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 if(isset($_GET['debug']))
     Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;
 
-//$pdf->Compression = 9;
+$pdf->Compression = 0;
 $pdf->CURPAGE->SetBackground(array(0.6, 0.9, 0.9));
 // use Appearance object for images and drawings
 $app = $pdf->NewAppearance();
