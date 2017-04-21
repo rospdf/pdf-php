@@ -1,32 +1,5 @@
 <?php
 /**
- * Create pdf documents without additional modules.
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see http://www.gnu.org/licenses/
- *
- * @category Documents
- *
- * @version  0.13.0
- *
- * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
- * @copyright 2013 The author(s)
- * @license  GNU General Public License v3
- *
- * @link     http://pdf-php.sf.net
- */
-
-/**
  * draw all lines to ezTable output.
  */
 define('EZ_GRIDLINE_ALL', 31);
@@ -59,44 +32,15 @@ define('EZ_GRIDLINE_ROWS', 2);
  */
 define('EZ_GRIDLINE_COLUMNS', 1);
 
-/**
- * Helper class to create pdf documents via ROS PDF class called 'Cpdf'.
- *
- * This class will take the basic interaction facilities of the Cpdf class
- * and make more useful functions so that the user does not have to
- * know all the ins and outs of pdf presentation to produce something pretty.
- * <pre>
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see http://www.gnu.org/licenses/
- * </pre>
- *
- * @category Documents
- *
- * @version $Id: Cezpdf.php 266 2014-01-13 08:13:42Z ole1986 $
- *
- * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
- * @author Ole Koeckemann <ole1986@users.sourceforge.net>
- * @copyright 2014 The authors
- * @license GNU General Public License v3
- *
- * @link http://pdf-php.sf.net
- */
 require_once 'CpdfExtension.php';
 
 use ROSPDF\Cpdf;
 use ROSPDF\CpdfExtension;
 use ROSPDF\CpdfLineStyle;
 
+/**
+ * Helper class to create pdf documents via ROS PDF class called 'Cpdf'.
+ */
 class Cezpdf extends CpdfExtension
 {
     /**

@@ -1,30 +1,4 @@
 <?php
-/**
- * Create pdf documents without additional modules.
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see http://www.gnu.org/licenses/
- *
- * @category Documents
- *
- * @version  0.13.0 (>=php5)
- *
- * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
- * @copyright 2013 The author(s)
- * @license  GNU General Public License v3
- *
- * @link     http://pdf-php.sf.net
- */
 
 namespace ROSPDF;
 
@@ -49,19 +23,9 @@ if (!defined('ROSPDF_TEMPDIR')) {
 if (!defined('ROSPDF_TEMPNAM')) {
     define('ROSPDF_TEMPNAM', get_current_user());
 }
+
 /**
  * Main PDF class to add object from different classes and mange the output.
- *
- * Example usage:
- * <pre>
- * $pdf = new Cpdf(Cpdf::$Layout['A4']);
- * $textObject = $pdf->NewText();
- * $textObject->AddText("Hello World");
- * $textObject->AddText("Hello World",0, 'center');
- * $textObject->AddText("Hello World",0, 'right');
- *
- * $pdf->Stream();
- * </pre>
  */
 class Cpdf extends CpdfEntry
 {
@@ -569,14 +533,16 @@ class Cpdf extends CpdfEntry
     private function outputFonts()
     {
         $fonts = '';
-        $fontrefs = '';
+        $fontrefs = [];
         foreach ($this->fontObjects as $value) {
             $value->ObjectId = ++$this->objectNum;
-            $fontrefs .= ' /'.self::$FontLabel.$value->FontId.' '.$value->ObjectId.' 0 R';
+            $fontrefs[] = '/'.self::$FontLabel.$value->FontId.' '.$value->ObjectId.' 0 R';
             $fonts .= $value->OutputProgram();
         }
 
-        $this->AddResource('Font', '<<'.$fontrefs.' >>');
+        if (!empty($fontrefs)) {
+            $this->AddResource('Font', '<<'.implode(' ', $fontrefs).' >>');
+        }
 
         return $fonts;
     }
@@ -766,18 +732,7 @@ class Cpdf extends CpdfEntry
 
         $tmp = "\n$this->ObjectId 0 obj\n";
 
-        // -- START Resource Header
-        // add xobject refs, mostly images into resources
-        /*if (isset($this->contentRefs['pages'])) {
-            $imagerefs = '<<';
-            foreach ($this->contentRefs['pages'] as $key => $value) {
-                $imagerefs.=' /'.Cpdf::$ImageLabel.$value[0]." $key 0 R";
-            }
-            $imagerefs.= ' >>';
-            $this->AddResource('XObject', $imagerefs);
-        }*/
-
-        $tmp .= $this->outputEntries($this->entries);
+        $tmp .= $this->OutputEntries();
         // -- END Page Header
         $tmp .= "\nendobj";
         $this->AddXRef($this->ObjectId, strlen($tmp));

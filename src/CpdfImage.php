@@ -356,9 +356,12 @@ class CpdfImage extends CpdfContent
         $this->paletteObj->AddEntry('Subtype', '/Image');
         $this->paletteObj->AddEntry('Width', $this->orgWidth);
         $this->paletteObj->AddEntry('Height', $this->orgHeight);
-        $this->paletteObj->AddEntry('ColorSpace', '/DeviceGray');
+        
+        if ($this->transparency['type'] != 'indexed') {
+            $this->paletteObj->AddEntry('ColorSpace', '/DeviceGray');
+            $this->paletteObj->AddEntry('Filter', '/FlateDecode');
+        }
         $this->paletteObj->AddEntry('BitsPerComponent', $this->bits);
-        $this->paletteObj->AddEntry('Filter', '/FlateDecode');
         $this->paletteObj->AddEntry('DecodeParms', '<< /Predictor 15 /Colors 1 /BitsPerComponent '.$this->bits.' /Columns '.$this->orgWidth.' >>');
     }
 

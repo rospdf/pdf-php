@@ -142,7 +142,7 @@ class CpdfContent extends CpdfEntry
             $this->AddEntry('Length', $l);
         }
 
-        $res = $this->outputEntries($this->entries);
+        $res = $this->OutputEntries();
 
         if ($l > 0) {
             $res .= "\nstream\n".$tmp."\nendstream";

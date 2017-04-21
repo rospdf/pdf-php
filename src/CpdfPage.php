@@ -138,9 +138,9 @@ class CpdfPage extends CpdfEntry
             $this->AddEntry('Annots', '['.implode(' ', $annotRefs).']');
         }
 
-        $res .= $this->outputEntries($this->entries);
+        $res .= $this->OutputEntries();
 
-        $res .= " >>\nendobj";
+        $res .= "\nendobj";
         $this->pages->AddXRef($this->ObjectId, strlen($res));
 
         return $res;
