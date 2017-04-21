@@ -27,7 +27,7 @@ use ROSPDF\Cpdf;
 class Creport extends Cezpdf {
 	
 	public $reportContents = array();
-	
+
 	public function __construct($p,$o,$t,$op){
 	  parent::__construct($p,$o,$t,$op);
 	  
@@ -108,6 +108,7 @@ $project_url = "http://pdf-php.sf.net";
 $project_version = "0.13.0";
 
 $pdf = new Creport('a4','portrait', 'none', null);
+$pdf->CURPAGE->Name = "title";
 
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_BBOX;
 
@@ -120,7 +121,7 @@ $pdf->ezSetMargins(50,70,50,50);
 
 // put a line top and bottom on all the pages
 $appFooter = $pdf->NewAppearance();
-$appFooter->SetPageMode(\ROSPDF\CpdfContent::PMODE_REPEAT);
+$appFooter->SetPageMode(\ROSPDF\CpdfContent::PMODE_REPEAT, ['title','toc']);
 
 $appFooter->AddLine(0, 5, $appFooter->GetBBox('width'));
 
@@ -237,6 +238,7 @@ foreach ($data as $line){
 
 $pdf->InsertMode(2);
 $pdf->ezNewPage();
+$pdf->CURPAGE->Name = "toc";
 
 $pdf->ezText("Table of Contents\n",26,array('justification'=>'centre'));
 $xpos = 520;

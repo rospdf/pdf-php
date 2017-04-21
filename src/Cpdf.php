@@ -96,10 +96,9 @@ class Cpdf extends CpdfEntry
      */
     public $encryptionObject;
     /**
-     * Contains all CpdfPage objects as an array
-     * @var Array
+     * @property CpdfPage[] Contains all Cpdfage objects as an array
      */
-    private $pageObjects;
+    protected $pageObjects;
     /**
      * Contains all CpdfFont objects as an array
      * @var Array
@@ -316,7 +315,7 @@ class Cpdf extends CpdfEntry
         $this->PageNum++;
         $this->CURPAGE->ObjectId = ++$this->objectNum;
 
-        if ($this->insertPos > 0 && isset($this->pageObjects[$this->insertPos])) {
+        if ($this->insertPos > 0) {
 
             $insertedPos = $this->insertPos;
 
@@ -335,7 +334,7 @@ class Cpdf extends CpdfEntry
             $this->CURPAGE->PageNum = $this->PageNum;
         }
 
-        $this->pageObjects[] = $this->CURPAGE;
+        $this->pageObjects[strval($this->CURPAGE->ObjectId)] = $this->CURPAGE;
     }
 
     /**
@@ -343,10 +342,12 @@ class Cpdf extends CpdfEntry
      *
      * @return CpdfPage page object or null
      */
-    public function GetPageByNo($pageNo)
+    public function GetPageById($objectId)
     {
-        $match = array_filter($this->pageObjects, function($p) use($pageNo) { return $p->PageNum === $pageNo; });
-        return (!empty($match))?array_pop($match) : null;
+        return (isset($this->pageObjects[$objectId])) ? $this->pageObjects[$objectId] : null;
+
+        /*$match = array_filter($this->pageObjects, function($p) use($pageNo) { return $p->ObjectId === $pageNo; });
+        return (!empty($match))?array_pop($match) : null;*/
         //return (isset($this->pageObjects[$pageNo]))?$this->pageObjects[$pageNo]:null;
     }
 
@@ -595,7 +596,7 @@ class Cpdf extends CpdfEntry
 
             $pageRefs = array_map(function($p){ return $p->ObjectId . ' 0 R'; },$this->pageObjects);
 
-            uasort($this->pageObjects, function($a, $b){ return $a->ObjectId < $b->ObjectId ? -1 : 1; });
+            ksort($this->pageObjects);
             // output the pages
             foreach($this->pageObjects as &$page) {
                 $page->Objects = $this->fetchPageObjects($page);
@@ -634,8 +635,11 @@ class Cpdf extends CpdfEntry
 
         foreach($this->pageObjects as &$page) {
             foreach($repeatingObjects as $o){
+                if($o->IsIgnored($page)) continue;
+
                 $clone = Cpdf::DoClone($o);
                 $clone->page = &$page;
+
                 $this->repeatObjects[] = $clone;
             }
         }

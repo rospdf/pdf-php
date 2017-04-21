@@ -151,11 +151,8 @@ class CpdfAnnotation extends CpdfContent
             // its an external url or an internal destination link
             if (!empty($this->url)) {
                 $res.= ' /A << /S /URI /URI ('.$this->url.') >>';
-            } elseif (($pageNum=intval($this->target)) > 0) {
-                $page = $this->pages->GetPageByNo($pageNum);
-                if (is_object($page)) {
-                    $res.=' /Dest ['.$page->ObjectId.' 0 R /Fit]';
-                }
+            } elseif (($objectId=intval($this->target)) > 0) {
+                $res.=' /Dest ['.$objectId.' 0 R /Fit]';
             } elseif (!empty($this->target)) {
                 $res.=' /Dest /'.$this->target;
             }

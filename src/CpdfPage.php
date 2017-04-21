@@ -116,6 +116,7 @@ class CpdfPage extends CpdfEntry
             Cpdf::DEBUG("### Page {$this->PageNum} Id {$this->ObjectId}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
             foreach($allObjects as &$o) {
+                if($o->IsIgnored($this)) continue;
                 Cpdf::DEBUG("- ".get_class($o)." ObjectId {$o->ObjectId} | Paging: {$o->Paging} | Length: {$o->Length()}", Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
                 if($o instanceof CpdfAppearance) {

@@ -312,12 +312,10 @@ class CpdfAppearance extends CpdfContent
                             $this->BBox = $this->initialBBox;
                         }
 
-                        $p = $this->pages->GetPageByNo($this->page->PageNum + 1);
-                        if (!isset($p) || $this->pages->IsInsertMode()) {
-                            $p = $this->pages->NewPage($this->page->Mediabox, $this->page->Cropbox, $this->page->Bleedbox);
-                            // put background as reference to the new page
-                            $p->Background = $this->page->Background;
-                        }
+                        $p = $this->pages->NewPage($this->page->Mediabox, $this->page->Cropbox, $this->page->Bleedbox);
+                        // put background as reference to the new page
+                        $p->Background = $this->page->Background;
+                        $p->Name = $this->page->Name;
 
                         $this->page = $p;
 
@@ -755,7 +753,7 @@ class CpdfAppearance extends CpdfContent
     public function Output()
     {
         if (count($this->delayedContent) > 0) {
-            $this->SetPageMode(CpdfContent::PMODE_ADD, $this->pagingCallback);
+            $this->SetPageMode(CpdfContent::PMODE_ADD);
 
             //$this->contents = '';
             $this->callbackObject = null;

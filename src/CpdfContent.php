@@ -3,11 +3,6 @@ namespace ROSPDF;
 
 class CpdfContent extends CpdfEntry
 {
-    public $Paging;
-    /**
-     * Individual Compression for every single Content output
-     */
-    public $Compression;
     /**
      * page mode 'NOPAGE' used for general objects, like background appearances (or images)
      */
@@ -21,10 +16,6 @@ class CpdfContent extends CpdfEntry
      */
     const PMODE_ALL = 2;
     /**
-     * add the content to all pages after current
-     */
-    const PMODE_ALL_FROM_HERE = 4;
-    /**
      * repeat the content at runtime (only works for AddText) - useful to display page number on every page
      */
     const PMODE_REPEAT = 8;
@@ -33,49 +24,65 @@ class CpdfContent extends CpdfEntry
      */
     const PMODE_LAZY = 16;
 
-    /**
-     * used for destination names
-     */
-    public $Name;
-
-    protected $pagingCallback;
-
     const PB_BLEEDBOX = 1;
     const PB_BBOX = 2;
     const PB_CELL = 4;
     const PB_COLUMN = 8;
 
-    public $BreakPage;
+    public $Paging;
+    /**
+     * @property integer individual compression strengh for this objects (0 = skip, 9 = highest)
+     */
+    public $Compression;
 
     public $ObjectId;
+
+    /**
+     * @property string the name of the current object
+     */
+    public $Name;
+    /**
+     * @property integer possible options on how to break pages
+     */
+    public $BreakPage;
+
+    /**
+     * @property int numeric value to set this object to foreground or background
+     */
     public $ZIndex;
 
     /**
-     * Main Cpdf class object
-     * @var Cpdf
-     */
-    public $pages;
-    /**
-     * current page object
-     * @var CpdfPage
+     * @property CpdfPage the current page object
      */
     public $page;
 
+    /**
+     * @property Cpdf the Cpdf object
+     */
+    public $pages;
+
+    /**
+     * @property string the pdf content
+     */
     protected $contents;
+
+    /**
+     * @property array page names to be ignored by this object
+     */
+     protected $ignorePages = [];
 
     public function __construct(&$pages)
     {
         $this->pages = &$pages;
         $this->page = $pages->CURPAGE;
         $this->Compression = $pages->Compression;
-        //$this->transferGlobalSettings();
 
         $this->contents = '';
         $this->ZIndex = 0;
 
         $this->BreakPage = self::PB_BLEEDBOX;
 
-        $this->SetPageMode(self::PMODE_ADD, self::PMODE_ADD);
+        $this->SetPageMode(self::PMODE_ADD);
     }
 
     public function AddRaw($str)
@@ -87,12 +94,16 @@ class CpdfContent extends CpdfEntry
      * Set page option for content and callbacks to define when the object should be displayed
      *
      * @param string $content paging mode for content objects (default: PMODE_ADD)
-     * @param string $callbacks paging mode for the nested callbacks (default: PMODE_ADD)
+     * @param mixed $ignoreInPage page names to be ignored by this object
      */
-    public function SetPageMode($pm_content, $pm_callbacks = 1)
+    public function SetPageMode($pm_content, $ignoreInPage = null)
     {
         $this->Paging = $pm_content;
-        $this->pagingCallback = $pm_callbacks;
+        $this->ignorePages = (array)$ignoreInPage;
+    }
+
+    public function IsIgnored(&$page){
+        return in_array($page->Name, $this->ignorePages);
     }
 
     public function Length()
