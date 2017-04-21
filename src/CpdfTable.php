@@ -4,7 +4,6 @@ namespace ROSPDF;
 
 class CpdfTable extends CpdfAppearance
 {
-
     const DRAWLINE_ALL = 31;
     const DRAWLINE_DEFAULT = 29;
     const DRAWLINE_TABLE = 24;
@@ -36,7 +35,7 @@ class CpdfTable extends CpdfAppearance
 
     private $app;
 
-    public function __construct(&$pages, $bbox = array(), $nColumns = 2, $bgColor = array(), $lineStyle = null, $drawLines = CpdfTable::DRAWLINE_TABLE)
+    public function __construct(&$pages, $bbox = array(), $nColumns = 2, $bgColor = array(), $lineStyle = null, $drawLines = self::DRAWLINE_TABLE)
     {
         parent::__construct($pages, $bbox, '');
 
@@ -64,7 +63,7 @@ class CpdfTable extends CpdfAppearance
 
         // FOR DEBUGGING - DISPLAY A RED COLORED BOUNDING BOX
         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_TABLE)) {
-            $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], $this->BBox[1] - $this->BBox[3])." S Q";
+            $this->contents .= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], $this->BBox[1] - $this->BBox[3]).' S Q';
         }
 
         $this->BBox[1] = $this->BBox[3];
@@ -74,7 +73,7 @@ class CpdfTable extends CpdfAppearance
     }
 
     /**
-     * set the width for each column
+     * set the width for each column.
      */
     public function SetColumnWidths()
     {
@@ -87,11 +86,11 @@ class CpdfTable extends CpdfAppearance
         if (count($widths) > 0) {
             $usedWidth = 0;
             $j = 0;
-            for ($i=0; $i < $this->numCells; $i++) {
+            for ($i = 0; $i < $this->numCells; ++$i) {
                 if (isset($widths[$i])) {
                     $this->columnWidths[$i] = $widths[$i];
                     $usedWidth += $widths[$i];
-                    $j++;
+                    ++$j;
                 }
             }
 
@@ -100,7 +99,7 @@ class CpdfTable extends CpdfAppearance
                 $restWidth = $maxWidth - $usedWidth;
                 $restPerCell = $restWidth / $restColumns;
 
-                for ($i=0; $i < $this->numCells; $i++) {
+                for ($i = 0; $i < $this->numCells; ++$i) {
                     if (!isset($this->columnWidths[$i])) {
                         $this->columnWidths[$i] = $restPerCell;
                     }
@@ -110,7 +109,7 @@ class CpdfTable extends CpdfAppearance
             // calculate the cell max width (incl. border weight)
             $cellWidth = $maxWidth / $this->numCells;
 
-            if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_TABLE)) {
+            if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_TABLE)) {
                 $cellWidth -= $this->lineWeight / 2;
             }
 
@@ -123,8 +122,9 @@ class CpdfTable extends CpdfAppearance
     private function getHalfLineWeight($drawMode = 0)
     {
         if ($this->getLineWeight($drawMode) > 0) {
-            return ($this->lineWeight / 2);
+            return $this->lineWeight / 2;
         }
+
         return 0;
     }
 
@@ -136,6 +136,7 @@ class CpdfTable extends CpdfAppearance
         if (Cpdf::IsDefined($this->DrawLine, $drawMode)) {
             return $this->lineWeight;
         }
+
         return 0;
     }
 
@@ -152,7 +153,7 @@ class CpdfTable extends CpdfAppearance
         }
 
         if (!isset($this->CURFONT)) {
-            $this->SetFont("Helvetica");
+            $this->SetFont('Helvetica');
         }
 
         if (!isset($this->maxCellY)) {
@@ -163,16 +164,17 @@ class CpdfTable extends CpdfAppearance
         $this->y -= $this->fontHeight + $this->fontDescender;
 
         // to recover the column style on page break, store it globally
-        $this->columnStyle[$this->cellIndex] = array('justify' => $justify,'backgroundColor'=>$backgroundColor, 'padding'=>$padding);
+        $this->columnStyle[$this->cellIndex] = array('justify' => $justify, 'backgroundColor' => $backgroundColor, 'padding' => $padding);
 
         // force page break before writting any text content as it does not fit to the current font size
         if ($this->y < $this->initialBBox[1] && Cpdf::IsDefined($this->BreakPage, CpdfContent::PB_CELL)) {
             $this->pageBreak = true;
             $this->pageBreakCells[$this->cellIndex] = $text;
-            $this->cellIndex++;
+            ++$this->cellIndex;
             if ($this->cellIndex >= $this->numCells) {
                 $this->endRow(true);
             }
+
             return;
         }
 
@@ -181,31 +183,31 @@ class CpdfTable extends CpdfAppearance
 
         $lw = $this->getLineWeight();
         // amend the margin to display table border completely
-        if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_TABLE)) {
+        if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_TABLE)) {
             if ($this->cellIndex == 0) {
-                Cpdf::SetBBox(array('addlx'=> $lw), $this->BBox);
+                Cpdf::SetBBox(array('addlx' => $lw), $this->BBox);
             } elseif ($this->cellIndex + 1 >= $this->numCells) {
-                Cpdf::SetBBox(array('addux'=> -$lw), $this->BBox);
+                Cpdf::SetBBox(array('addux' => -$lw), $this->BBox);
             }
         }
 
         // some text offset if column line is shown
-        if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_COLUMN) && $this->cellIndex + 1 < $this->numCells) {
-            Cpdf::SetBBox(array('addux'=> -$lw), $this->BBox);
+        if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_COLUMN) && $this->cellIndex + 1 < $this->numCells) {
+            Cpdf::SetBBox(array('addux' => -$lw), $this->BBox);
         }
 
         $this->AddText($text, 0, $justify);
 
         // recover BBox UX when column line has been printed
-        if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_COLUMN) && $this->cellIndex + 1 < $this->numCells) {
-            Cpdf::SetBBox(array('addux'=> $lw), $this->BBox);
+        if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_COLUMN) && $this->cellIndex + 1 < $this->numCells) {
+            Cpdf::SetBBox(array('addux' => $lw), $this->BBox);
         }
 
         if (!isset($this->maxCellY) || $paddingBBox[1] < $this->maxCellY) {
             $this->maxCellY = $paddingBBox[1];
         }
 
-        $this->cellIndex++;
+        ++$this->cellIndex;
         if ($this->cellIndex >= $this->numCells) {
             $this->endRow();
         } else {
@@ -217,7 +219,7 @@ class CpdfTable extends CpdfAppearance
     private function endRow($endOfTable = false)
     {
         // a bit more space between rows when line is shown
-        if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_ROW)) {
+        if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_ROW)) {
             $this->maxCellY -= $this->getLineWeight();
         }
 
@@ -230,18 +232,18 @@ class CpdfTable extends CpdfAppearance
 
         // increase the row number
         if (!$endOfTable) {
-            $this->rowIndex++;
+            ++$this->rowIndex;
         }
 
         // reset x position
         $this->BBox[0] = $this->initialBBox[0];
 
         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_ROWS)) {
-            $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], ($maxCellY) - $this->BBox[3])." S Q % DEBUG OUTPUT";
+            $this->contents .= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], ($maxCellY) - $this->BBox[3]).' S Q % DEBUG OUTPUT';
         }
 
         // draw the row border
-        if (!$endOfTable && ( (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_ROW) && $this->rowIndex > 2) || Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_HEADERROW) && $this->rowIndex == 2)) {
+        if (!$endOfTable && ((Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_ROW) && $this->rowIndex > 2) || Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_HEADERROW) && $this->rowIndex == 2)) {
             $tmp = $this->app->BBox;
 
             //$offset = $this->BBox[1] - $this->BBox[3];
@@ -256,22 +258,22 @@ class CpdfTable extends CpdfAppearance
         // draw cell background color
         if (!$endOfTable) {
             $cellBBox = $this->BBox;
-            $cellxstart = $cellBBox[0] + $this->getHalfLineWeight(CpdfTable::DRAWLINE_TABLE_V);
+            $cellxstart = $cellBBox[0] + $this->getHalfLineWeight(self::DRAWLINE_TABLE_V);
 
-            for ($i=0; $i < $this->numCells; $i++) {
+            for ($i = 0; $i < $this->numCells; ++$i) {
                 $cellxend = $cellxstart + $this->columnWidths[$i];
 
                 $columnStyle = &$this->columnStyle[$i];
 
                 if (is_array($columnStyle['backgroundColor']) && count($columnStyle['backgroundColor']) >= 3) {
                     if ($i + 1 == $this->numCells) {
-                        $cellxend -= $this->getLineWeight(CpdfTable::DRAWLINE_TABLE_V);
+                        $cellxend -= $this->getLineWeight(self::DRAWLINE_TABLE_V);
                     }
 
                     $this->pages->DoCall($this, 'background', $this->BBox, $this->columnStyle[$i]);
-                    Cpdf::SetBBox(array( 'ly'=> $maxCellY,
+                    Cpdf::SetBBox(array('ly' => $maxCellY,
                                                 'lx' => $cellxstart,
-                                                'ux' => $cellxend
+                                                'ux' => $cellxend,
                                             ), $cellBBox);
                     $this->pages->DoTrigger($this, 'background', $cellBBox);
                 }
@@ -280,13 +282,13 @@ class CpdfTable extends CpdfAppearance
         }
 
         // draw the column border
-        if (!$endOfTable && Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_COLUMN)) {
+        if (!$endOfTable && Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_COLUMN)) {
             $tmp = $this->app->BBox;
             $this->app->BBox = $this->BBox;
             $height = $this->getFontDescender() - $this->getFontHeight();
 
             $nx = 0;
-            for ($i=0; $i < ($this->numCells - 1); $i++) {
+            for ($i = 0; $i < ($this->numCells - 1); ++$i) {
                 $nx += $this->columnWidths[$i];
                 $this->app->AddLine($nx, 0, 0, $height, null);
             }
@@ -322,7 +324,7 @@ class CpdfTable extends CpdfAppearance
             }
 
             if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_TABLE)) {
-                $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->initialBBox[0], $this->initialBBox[3], $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[1] - $this->initialBBox[3])." S Q % DEBUG OUTPUT";
+                $this->contents .= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->initialBBox[0], $this->initialBBox[3], $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[1] - $this->initialBBox[3]).' S Q % DEBUG OUTPUT';
             }
 
             $this->BBox[3] = $this->initialBBox[3];
@@ -342,14 +344,14 @@ class CpdfTable extends CpdfAppearance
 
             if (count($this->pageBreakCells) > 0) {
                 $pcells = $this->pageBreakCells;
-                $this->pageBreakCells= array();
+                $this->pageBreakCells = array();
 
-                for ($i = 0; $i < $this->numCells; $i++) {
+                for ($i = 0; $i < $this->numCells; ++$i) {
                     $columnStyle = &$this->columnStyle[$i];
                     if (isset($pcells[$i])) {
                         $this->AddCell($pcells[$i], $columnStyle['justify'], $columnStyle['backgroundColor'], $columnStyle['padding']);
                     } else {
-                        $this->AddCell("", $columnStyle['justify'], $columnStyle['backgroundColor'], $columnStyle['padding']);
+                        $this->AddCell('', $columnStyle['justify'], $columnStyle['backgroundColor'], $columnStyle['padding']);
                     }
                 }
             }
@@ -375,14 +377,14 @@ class CpdfTable extends CpdfAppearance
             $newY = $this->maxCellY - $this->initialBBox[1] - ($this->lineWeight / 2) + $this->fontDescender;
             $height = $this->initialBBox[3] - $this->maxCellY + $this->lineWeight - $this->fontDescender;
 
-            if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_TABLE)) {
+            if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_TABLE)) {
                 $this->app->AddRectangle(0, $newY, $this->initialBBox[2] - $this->initialBBox[0], $height, $filled, $this->lineStyle);
             } elseif ($filled) {
                 $this->app->AddRectangle(0, $newY, $this->initialBBox[2] - $this->initialBBox[0], $height, $filled, null);
             }
             $bbox[1] = $this->BBox[1] + $this->fontDescender;
         } else {
-            if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_TABLE)) {
+            if (Cpdf::IsDefined($this->DrawLine, self::DRAWLINE_TABLE)) {
                 $this->app->AddRectangle(0, 0, $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[3] - $this->initialBBox[1], $filled, $this->lineStyle);
             } elseif ($filled) {
                 $this->app->AddRectangle(0, 0, $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[3] - $this->initialBBox[1], $filled, $this->lineStyle);
@@ -395,7 +397,7 @@ class CpdfTable extends CpdfAppearance
     }
 
     /**
-     * End the table and return bounding box to define next Appearance or text object
+     * End the table and return bounding box to define next Appearance or text object.
      */
     public function EndTable()
     {
@@ -407,4 +409,3 @@ class CpdfTable extends CpdfAppearance
         $this->y = $bbox[1];
     }
 }
-?>

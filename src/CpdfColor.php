@@ -1,7 +1,9 @@
 <?php
+
 namespace ROSPDF;
+
 /**
- * Color class object for RGB and CYMK
+ * Color class object for RGB and CYMK.
  */
 class CpdfColor
 {
@@ -42,31 +44,31 @@ class CpdfColor
     }
 
     /**
-     * PDF output of the color
+     * PDF output of the color.
      */
     public function Output($asArray = true, $withColorspace = false)
     {
-        $res='';
+        $res = '';
 
         if (is_array($this->colorArray)) {
             foreach ($this->colorArray as $v) {
-                $res.= sprintf("%.3F ", $v);
+                $res .= sprintf('%.3F ', $v);
             }
 
             if ($withColorspace) {
                 if (count($this->colorArray) >= 4) { // DeviceCMYK
-                    $res.= ($this->stroke)?'K':'k';
+                    $res .= ($this->stroke) ? 'K' : 'k';
                 } elseif (count($this->colorArray) >= 3) { // DeviceRGB
-                    $res.= ($this->stroke)?'RG':'rg';
+                    $res .= ($this->stroke) ? 'RG' : 'rg';
                 } else {
-                    $res.= ($this->stroke)?'G':'g';
+                    $res .= ($this->stroke) ? 'G' : 'g';
                 }
             }
         } else {
             $res = '0';
         }
-        $res = ($asArray)?'['.$res.']':$res;
+        $res = ($asArray) ? '['.$res.']' : $res;
+
         return $res;
     }
 }
-?>

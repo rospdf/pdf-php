@@ -49,7 +49,7 @@ class TTF
         $entrySelector = self::getUshort($b, $off);
         $rangeShift = self::getUshort($b, $off);
         $this->tables = array();
-        for ($i = 0; $i < $numTables; $i++) {
+        for ($i = 0; $i < $numTables; ++$i) {
             $name = self::getRaw($b, $off, 4);
             $checksum = self::getUlong($b, $off);
             $offset = self::getUlong($b, $off);
@@ -71,8 +71,10 @@ class TTF
     {
         if (isset($this->tables[$name])) {
             $entry = $this->tables[$name];
+
             return substr($this->b, $entry['offset'], $entry['length']);
         }
+
         return null;
     }
 
@@ -101,6 +103,7 @@ class TTF
         $head['fontDirectionHint'] = self::getShort($b, $off);
         $head['indexToLocFormat'] = self::getShort($b, $off);
         $head['glyphDataFormat'] = self::getShort($b, $off);
+
         return $head;
     }
 
@@ -125,6 +128,7 @@ class TTF
         self::setShort($b, $off, $head['fontDirectionHint']);
         self::setShort($b, $off, $head['indexToLocFormat']);
         self::setShort($b, $off, $head['glyphDataFormat']);
+
         return $b;
     }
 
@@ -139,7 +143,7 @@ class TTF
         $name['nameRecords'] = array();
 
         $tmp = $name['offset'];
-        for ($i = 0; $i < $name['count']; $i++) {
+        for ($i = 0; $i < $name['count']; ++$i) {
             $name['nameRecords'][$i] = array();
             $name['nameRecords'][$i]['platformID'] = self::getUshort($b, $off);
             $name['nameRecords'][$i]['platformSpecificID'] = self::getUshort($b, $off);
@@ -152,6 +156,7 @@ class TTF
 
             //$name['nameRecords'][$i]['value2'] = $tmp;
         }
+
         return $name;
     }
 
@@ -173,6 +178,7 @@ class TTF
         $off += 10; // Skip reserved
         $hhea['metricDataFormat'] = self::getShort($b, $off);
         $hhea['numberOfHMetrics'] = self::getUShort($b, $off);
+
         return $hhea;
     }
 
@@ -193,6 +199,7 @@ class TTF
         $off += 10; // Skip reserved
         self::setShort($b, $off, $hhea['metricDataFormat']);
         self::setUshort($b, $off, $hhea['numberOfHMetrics']);
+
         return $b;
     }
 
@@ -216,6 +223,7 @@ class TTF
         $maxp['maxSizeOfInstructions'] = self::getUshort($b, $off);
         $maxp['maxComponentElements'] = self::getUshort($b, $off);
         $maxp['maxComponentDepth'] = self::getUshort($b, $off);
+
         return $maxp;
     }
 
@@ -238,6 +246,7 @@ class TTF
         self::setUshort($b, $off, $maxp['maxSizeOfInstructions']);
         self::setUshort($b, $off, $maxp['maxComponentElements']);
         self::setUshort($b, $off, $maxp['maxComponentDepth']);
+
         return $b;
     }
 
@@ -247,14 +256,15 @@ class TTF
         $b = $this->getTableRaw('loca'); // Get raw bytes for 'loca' table
         $off = 0;
         if ($indexToLocFormat == 0) {
-            for ($i = 0; $i < $numGlyphs + 1; $i++) {
+            for ($i = 0; $i < $numGlyphs + 1; ++$i) {
                 $loca[] = 2 * self::getUshort($b, $off);
             }
         } else {
-            for ($i = 0; $i < $numGlyphs + 1; $i++) {
+            for ($i = 0; $i < $numGlyphs + 1; ++$i) {
                 $loca[] = self::getUlong($b, $off);
             }
         }
+
         return $loca;
     }
 
@@ -265,17 +275,18 @@ class TTF
             // Short offsets
             $b = str_repeat(chr(0), 2 * $cnt);
             $off = 0;
-            for ($i = 0; $i < $cnt; $i++) {
+            for ($i = 0; $i < $cnt; ++$i) {
                 self::setUshort($b, $off, $loca[$i] / 2);
             }
         } else {
             // Long offsets
             $b = str_repeat(chr(0), 4 * $cnt);
             $off = 0;
-            for ($i = 0; $i < $cnt; $i++) {
+            for ($i = 0; $i < $cnt; ++$i) {
                 self::setUlong($b, $off, $loca[$i]);
             }
         }
+
         return $b;
     }
 
@@ -285,15 +296,16 @@ class TTF
         $lsbs = array(); // To return
         $b = $this->getTableRaw('hmtx'); // Get raw bytes for 'hmtx' table
         $off = 0;
-        for ($i = 0; $i < $numberOfHMetrics; $i++) {
+        for ($i = 0; $i < $numberOfHMetrics; ++$i) {
             $advanceWidth = self::getUFword($b, $off);
             $lsb = self::getFword($b, $off);
             $metrics[] = array($advanceWidth, $lsb);
         }
-        for ($i = $numberOfHMetrics; $i < $numGlyphs; $i++) {
+        for ($i = $numberOfHMetrics; $i < $numGlyphs; ++$i) {
             $lsb = self::getFword($b, $off);
             $lsbs[] = $lsb;
         }
+
         return array('metrics' => $metrics, 'lsbs' => $lsbs);
     }
 
@@ -303,16 +315,17 @@ class TTF
         $cntLsbs = count($lsbs);
         $b = str_repeat(chr(0), 4 * $cntMetrics + 2 * $cntLsbs);
         $off = 0;
-        for ($i = 0; $i < $cntMetrics; $i++) {
+        for ($i = 0; $i < $cntMetrics; ++$i) {
             $advanceWidth = $metrics[$i][0];
             $lsb = $metrics[$i][1];
             self::setUFword($b, $off, $advanceWidth);
             self::setFword($b, $off, $lsb);
         }
-        for ($i = 0; $i < $cntLsbs; $i++) {
+        for ($i = 0; $i < $cntLsbs; ++$i) {
             $lsb = $lsbs[$i];
             self::setFword($b, $off, $lsb);
         }
+
         return $b;
     }
 
@@ -322,9 +335,10 @@ class TTF
         $b = $this->getTableRaw('glyf'); // Get raw bytes for 'glyf' table
 
         $num = count($loca) - 1;
-        for ($i = 0; $i < $num; $i++) {
+        for ($i = 0; $i < $num; ++$i) {
             $glyf[] = substr($b, $loca[$i], $loca[$i + 1] - $loca[$i]);
         }
+
         return $glyf;
     }
 
@@ -332,9 +346,10 @@ class TTF
     {
         $b = '';
         $num = count($glyf);
-        for ($i = 0; $i < $num; $i++) {
+        for ($i = 0; $i < $num; ++$i) {
             $b .= $glyf[$i];
         }
+
         return $b;
     }
 
@@ -350,19 +365,19 @@ class TTF
         $platformIDs = array();
         $platformSpecificIDs = array();
         $offsets = array();
-        for ($i = 0; $i < $numTables; $i++) {
+        for ($i = 0; $i < $numTables; ++$i) {
             $platformIDs[] = self::getUshort($b, $off);
             $platformSpecificIDs[] = self::getUshort($b, $off);
             $offsets[] = self::getUlong($b, $off);
         }
-        for ($i = 0; $i < $numTables; $i++) {
+        for ($i = 0; $i < $numTables; ++$i) {
             $off0 = $off = $offsets[$i];
             $format = self::getUshort($b, $off);
             $length = self::getUshort($b, $off);
             $version = self::getUshort($b, $off);
             if ($format == 0) {
                 $glyphIdArray = array();
-                for ($cid = 0; $cid < 256; $cid++) {
+                for ($cid = 0; $cid < 256; ++$cid) {
                     $glyphIdArray[] = self::getByte($b, $off);
                 }
                 $cmap['tables'][] = array('platformID' => $platformIDs[$i],
@@ -370,7 +385,7 @@ class TTF
                       'format' => $format,
                       'length' => $length,
                       'version' => $version,
-                      'glyphIdArray' => $glyphIdArray);
+                      'glyphIdArray' => $glyphIdArray, );
             } elseif ($format == 2) {
                 throw new Exception('cmap format is 2');
             } elseif ($format == 4) {
@@ -385,17 +400,17 @@ class TTF
                 $idDeltaArray = array();
                 $idRangeOffsetArray = array();
                 $glyphIdArray = array();
-                for ($seg = 0; $seg < $segCount; $seg++) {
-                        $endCountArray[] = self::getUshort($b, $off);
+                for ($seg = 0; $seg < $segCount; ++$seg) {
+                    $endCountArray[] = self::getUshort($b, $off);
                 }
                 $off += 2; // Skip reserved
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     $startCountArray[] = self::getUshort($b, $off);
                 }
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     $idDeltaArray[] = self::getUshort($b, $off);
                 }
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     $idRangeOffsetArray[] = self::getUshort($b, $off);
                 }
                 while ($off < $off0 + $length) {
@@ -411,13 +426,13 @@ class TTF
                   'startCountArray' => $startCountArray,
                   'idDeltaArray' => $idDeltaArray,
                   'idRangeOffsetArray' => $idRangeOffsetArray,
-                  'glyphIdArray' => $glyphIdArray);
+                  'glyphIdArray' => $glyphIdArray, );
             } elseif ($format == 6) {
                 $firstCode = self::getUshort($b, $off);
                 $entryCount = self::getUshort($b, $off);
                 $glyphIdArray = array();
-                for ($cid = $firstCode; $cid < $firstCode + $entryCount; $cid++) {
-                        $glyphIdArray[] = self::getUshort($b, $off);
+                for ($cid = $firstCode; $cid < $firstCode + $entryCount; ++$cid) {
+                    $glyphIdArray[] = self::getUshort($b, $off);
                 }
                 $cmap['tables'][] = array('platformID' => $platformIDs[$i],
                   'platformSpecificID' => $platformSpecificIDs[$i],
@@ -426,14 +441,14 @@ class TTF
                   'version' => $version,
                   'firstCode' => $firstCode,
                   'entryCount' => $entryCount,
-                  'glyphIdArray' => $glyphIdArray);
+                  'glyphIdArray' => $glyphIdArray, );
             } else {
                 $off -= 6; // go back and check for 8.0, 10.0 and 12.0 formats
                 $format = self::getFixed($b, $off);
                 $length = self::getUlong($b, $off);
                 $language = self::getUlong($b, $off);
                 if ($format == '8.0') {
-                        throw new Exception('cmap format is 8.0');
+                    throw new Exception('cmap format is 8.0');
                 } elseif ($format == '10.0') {
                     throw new Exception('cmap format is 10.0');
                 } elseif ($format == '12.0') {
@@ -441,7 +456,7 @@ class TTF
                     $startCharCodes = array();
                     $endCharCodes = array();
                     $startGlyphCodes = array();
-                    for ($grp = 0; $grp < $nGroups; $grp++) {
+                    for ($grp = 0; $grp < $nGroups; ++$grp) {
                         $startCharCodes[] = self::getUlong($b, $off);
                         $endCharCodes[] = self::getUlong($b, $off);
                         $startGlyphCodes[] = self::getUlong($b, $off);
@@ -453,12 +468,13 @@ class TTF
                           'version' => $version,
                           'startCharCodes' => $startCharCodes,
                           'endCharCodes' => $endCharCodes,
-                          'startGlyphCodes' => $startGlyphCodes);
+                          'startGlyphCodes' => $startGlyphCodes, );
                 } else {
                     throw new Exception('Internal error: unknwon cmap format');
                 }
             }
         }
+
         return $cmap;
     }
 
@@ -484,8 +500,8 @@ class TTF
             } else {
                 throw new Exception('Internal error');
             }
-                $sz += $length;
-                $lengths[] = $length;
+            $sz += $length;
+            $lengths[] = $length;
         }
 
         $b = str_repeat(chr(0), $sz);
@@ -514,7 +530,7 @@ class TTF
                 self::setUshort($b, $off, $length);
                 self::setUshort($b, $off, $version);
                 $glyphIdArray = $table['glyphIdArray'];
-                for ($cid = 0; $cid < count($glyphIdArray); $cid++) {
+                for ($cid = 0; $cid < count($glyphIdArray); ++$cid) {
                     self::setByte($b, $off, $glyphIdArray[$cid]);
                 }
             } elseif ($format == 4) {
@@ -535,20 +551,20 @@ class TTF
                 self::setUshort($b, $off, $binarySearchRegisters['SearchRange']);
                 self::setUshort($b, $off, $binarySearchRegisters['EntrySelector']);
                 self::setUshort($b, $off, $binarySearchRegisters['RangeShift']);
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     self::setUshort($b, $off, $endCountArray[$seg]);
                 }
                 self::setUshort($b, $off, 0); // Reserved
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     self::setUshort($b, $off, $startCountArray[$seg]);
                 }
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     self::setUshort($b, $off, $idDeltaArray[$seg]);
                 }
-                for ($seg = 0; $seg < $segCount; $seg++) {
+                for ($seg = 0; $seg < $segCount; ++$seg) {
                     self::setUshort($b, $off, $idRangeOffsetArray[$seg]);
                 }
-                for ($cid = 0; $cid < count($glyphIdArray); $cid++) {
+                for ($cid = 0; $cid < count($glyphIdArray); ++$cid) {
                     self::setUshort($b, $off, $glyphIdArray[$cid]);
                 }
             } elseif ($format == 6) {
@@ -558,8 +574,8 @@ class TTF
                 self::setUshort($b, $off, $table['firstCode']);
                 self::setUshort($b, $off, $table['entryCount']);
                 $glyphIdArray = $table['glyphIdArray'];
-                for ($cid = 0; $cid < count($glyphIdArray); $cid++) {
-                        self::setShort($b, $off, $glyphIdArray[$cid]);
+                for ($cid = 0; $cid < count($glyphIdArray); ++$cid) {
+                    self::setShort($b, $off, $glyphIdArray[$cid]);
                 }
             } elseif ($format == '12.0') {
                 $startCharCodes = $table['startCharCodes'];
@@ -570,16 +586,17 @@ class TTF
                 self::setUlong($b, $off, $length);
                 self::setUlong($b, $off, 0);
                 self::setUlong($b, $off, $nGroups);
-                for ($grp = 0; $grp < $nGroups; $grp++) {
-                        self::setUlong($b, $off, $startCharCodes[$grp]);
-                        self::setUlong($b, $off, $endCharCodes[$grp]);
-                        self::setUlong($b, $off, $startGlyphCodes[$grp]);
+                for ($grp = 0; $grp < $nGroups; ++$grp) {
+                    self::setUlong($b, $off, $startCharCodes[$grp]);
+                    self::setUlong($b, $off, $endCharCodes[$grp]);
+                    self::setUlong($b, $off, $startGlyphCodes[$grp]);
                 }
             } else {
                 throw new Exception('Internal error');
             }
-                $offset += $lengths[$i++];
+            $offset += $lengths[$i++];
         }
+
         return $b;
     }
 
@@ -601,12 +618,12 @@ class TTF
 
         if (!$headOnly) {
             if ($post['formatType'] == '1.0') {
-                ; // Nothing more
+                // Nothing more
             } elseif ($post['formatType'] == '2.0') {
                 // Collect numGlyphs, glyphNameIndex array and glyphNames (Pascal strings)
                 $numGlyphs = self::getUshort($b, $off);
                 $glyphNameIndex = array();
-                for ($i = 0; $i < $numGlyphs; $i++) {
+                for ($i = 0; $i < $numGlyphs; ++$i) {
                     $glyphNameIndex[] = self::getUshort($b, $off);
                 }
                 $glyphNames = array();
@@ -619,7 +636,7 @@ class TTF
                 // 'gn' will contain either a number (for Macintosh standard order glyph name)
                 // or a string (otherwise)
                 $gn = array();
-                for ($i = 0; $i < count($glyphNameIndex); $i++) {
+                for ($i = 0; $i < count($glyphNameIndex); ++$i) {
                     $index = $glyphNameIndex[$i];
                     if ($index >= 0 && $index <= 257) {
                         $gn[] = $index;
@@ -631,11 +648,12 @@ class TTF
                 }
                 $post['glyphNames'] = $gn;
             } elseif ($post['formatType'] == '3.0') {
-                ; // Nothing more
+                // Nothing more
             } else {
                 throw new Exception(sprintf('Internal error - formatType is %s', $post['formatType']));
             }
         }
+
         return $post;
     }
 
@@ -644,18 +662,18 @@ class TTF
         // Calculate size
         $sz = 32; // Standard header for all formatTypes
         if ($post['formatType'] == '1.0') {
-            ; // Nothing more
+            // Nothing more
         } elseif ($post['formatType'] == '2.0') {
             $gn = $post['glyphNames'];
             $sz += 2; // for numberOfGlyphs
             $sz += 2 * count($gn); // for glyphNameIndex
-            for ($i = 0; $i < count($gn); $i++) {
+            for ($i = 0; $i < count($gn); ++$i) {
                 if (is_string($gn[$i])) {
                     $sz += 1 + strlen($gn[$i]);
                 }
             }
         } elseif ($post['formatType'] == '3.0') {
-            ; // Nothing more
+            // Nothing more
         } else {
             throw new Exception(sprintf('Internal error - formatType is %s', $post['formatType']));
         }
@@ -672,13 +690,13 @@ class TTF
         self::setUlong($b, $off, $post['minMemType1']);
         self::setUlong($b, $off, $post['maxMemType1']);
         if ($post['formatType'] == '1.0') {
-            ; // Nothing more
+            // Nothing more
         } elseif ($post['formatType'] == '2.0') {
             $gn = $post['glyphNames'];
             $numGlyphs = count($gn);
             $glyphNames = array();
             self::setUshort($b, $off, $numGlyphs); // Push numGlyphs
-            for ($i = 0; $i < $numGlyphs; $i++) {
+            for ($i = 0; $i < $numGlyphs; ++$i) {
                 if (is_string($gn[$i])) {
                     self::setUshort($b, $off, count($glyphNames) + 258);
                     $glyphNames[] = $gn[$i];
@@ -687,28 +705,27 @@ class TTF
                     self::setUshort($b, $off, $gn[$i]);
                 }
             }
-            for ($i = 0; $i < count($glyphNames); $i++) {
+            for ($i = 0; $i < count($glyphNames); ++$i) {
                 $len = strlen($glyphNames[$i]);
                 self::setByte($b, $off, $len);
                 self::setRaw($b, $off, $glyphNames[$i], $len);
             }
         } elseif ($post['formatType'] == '3.0') {
-            ; // Nothing more
+            // Nothing more
         } else {
             throw new Exception(sprintf('Internal error - formatType is %s', $post['formatType']));
         }
+
         return $b;
     }
 
-    private static $tableNamesOrderedByRank = array
-    ('head', 'hhea', 'maxp', 'OS/2', 'hmtx', 'LTSH', 'VDMX', 'hdmx', 'cmap', 'fpgm',
+    private static $tableNamesOrderedByRank = array('head', 'hhea', 'maxp', 'OS/2', 'hmtx', 'LTSH', 'VDMX', 'hdmx', 'cmap', 'fpgm',
      'prep', 'cvt ', 'loca', 'glyf', 'kern', 'name', 'post', 'gasp', 'PCLT', 'GDEF',
-     'GPOS', 'GSUB', 'JSTF', 'DSIG');
+     'GPOS', 'GSUB', 'JSTF', 'DSIG', );
 
-    private static $tableNamesOrderedByName = array
-    ('DSIG', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'LTSH', 'OS/2', 'PCLT', 'VDMX', 'cmap',
+    private static $tableNamesOrderedByName = array('DSIG', 'GDEF', 'GPOS', 'GSUB', 'JSTF', 'LTSH', 'OS/2', 'PCLT', 'VDMX', 'cmap',
      'cvt ', 'fpgm', 'gasp', 'glyf', 'hdmx', 'head', 'hhea', 'hmtx', 'kern', 'loca',
-     'maxp', 'name', 'post', 'prep');
+     'maxp', 'name', 'post', 'prep', );
 
     public static function marshalAll($tables)
     {
@@ -771,6 +788,7 @@ class TTF
         }
         $off = $offsets['head'] + 8;
         self::setUlong($sb, $off, $checksum);
+
         return $sb;
     }
 
@@ -787,6 +805,7 @@ class TTF
                 return $table;
             }
         }
+
         return null;
     }
 
@@ -807,7 +826,7 @@ class TTF
             $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
             $glyphIdArray = $encodingTable['glyphIdArray'];
 
-            for ($seg = 0; $seg < $segCount; $seg++) {
+            for ($seg = 0; $seg < $segCount; ++$seg) {
                 $endCount = $endCountArray[$seg];
                 $startCount = $startCountArray[$seg];
                 $idDelta = $idDeltaArray[$seg];
@@ -819,7 +838,8 @@ class TTF
                     } else {
                         $gid = $idDelta + $charCode;
                     }
-                        return $gid %= 65536;
+
+                    return $gid %= 65536;
                 }
             }
         } elseif ($format == 6) {
@@ -832,6 +852,7 @@ class TTF
         } else {
             throw new Exception('Internal error');
         }
+
         return -1;
     }
 
@@ -840,10 +861,10 @@ class TTF
         $format = $encodingTable['format'];
         if ($format == 0) {
             $glyphIdArray = $encodingTable['glyphIdArray'];
-            for ($charCode = 0; $charCode < count($glyphIdArray); $charCode++) {
+            for ($charCode = 0; $charCode < count($glyphIdArray); ++$charCode) {
                 $gid0 = $glyphIdArray[$i];
                 if ($gid == $gid0) {
-                    return sprintf("%d", $charCode);
+                    return sprintf('%d', $charCode);
                 }
             }
         } elseif ($format == 4) {
@@ -854,21 +875,21 @@ class TTF
             $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
             $glyphIdArray = $encodingTable['glyphIdArray'];
 
-            for ($seg = 0; $seg < $segCount; $seg++) {
+            for ($seg = 0; $seg < $segCount; ++$seg) {
                 $endCount = $endCountArray[$seg];
                 $startCount = $startCountArray[$seg];
                 $idDelta = $idDeltaArray[$seg];
                 $idRangeOffset = $idRangeOffsetArray[$seg];
-                for ($charCode = $startCount; $charCode <= $endCount; $charCode++) {
+                for ($charCode = $startCount; $charCode <= $endCount; ++$charCode) {
                     if ($idRangeOffset != 0) {
                         $j = $charCode - $startCount + $seg + $idRangeOffset / 2 - $segCount;
                         $gid0 = $glyphIdArray[$j];
                     } else {
                         $gid0 = $idDelta + $charCode;
                     }
-                        $gid0 %= 65536;
+                    $gid0 %= 65536;
                     if ($gid == $gid0) {
-                        return sprintf("%d", $charCode);
+                        return sprintf('%d', $charCode);
                     }
                 }
             }
@@ -876,15 +897,16 @@ class TTF
             $firstCode = $encodingTable['firstCode'];
             $entryCount = $encodingTable['entryCount'];
             $glyphIdArray = $encodingTable['glyphIdArray'];
-            for ($charCode = $firstCode; $charCode < $firstCode + $entryCount; $charCode++) {
+            for ($charCode = $firstCode; $charCode < $firstCode + $entryCount; ++$charCode) {
                 $gid0 = $glyphIdArray[$charCode - $firstCode];
                 if ($gid == $gid0) {
-                    return sprintf("%d", $charCode);
+                    return sprintf('%d', $charCode);
                 }
             }
         } else {
             throw new Exception('Internal error');
         }
+
         return null;
     }
 
@@ -915,7 +937,7 @@ class TTF
         if ($numberOfContours >= 0) {
             // Collect the endPoints of contours. Save the last endPoint
             $endPointsOfContours = array();
-            for ($i = 0; $i < $numberOfContours; $i++) {
+            for ($i = 0; $i < $numberOfContours; ++$i) {
                 $lastEndPoint = self::getUshort($description, $off);
                 $endPointsOfContours[] = $lastEndPoint;
             }
@@ -928,14 +950,14 @@ class TTF
             $flags = array();
             while (count($flags) <= $lastEndPoint) {
                 $flag = ord($description{$off});
-                $off++;
+                ++$off;
                 if (($flag & 0x08) != 0) {
                     $num = ord($description{$off}) + 1;
-                    $off++;
+                    ++$off;
                 } else {
                     $num = 1;
                 }
-                for ($j = 0; $j < $num; $j++) {
+                for ($j = 0; $j < $num; ++$j) {
                     $flags[] = $flag;
                 }
             }
@@ -951,7 +973,7 @@ class TTF
              'xMax' => $xMax, 'yMax' => $yMax,
              'endPointsOfContours' => $endPointsOfContours,
              'instructions' => $instructions,
-             'flags' => $flags, 'xs' => $xs, 'ys' => $ys);
+             'flags' => $flags, 'xs' => $xs, 'ys' => $ys, );
         } else {
             $components = array();
 
@@ -984,38 +1006,38 @@ class TTF
                     echo sprintf("arg1=[%s], arg2=[%s], arg1and2=[%s]\n", $argument1, $argument2, $arg1and2);
                     echo sprintf("flags=0x%02x, glyphIndex=%d\n", $flags, $glyphIndex);
                     if (($flags & self::ARG_1_AND_2_ARE_WORDS) != 0) {
-                        echo " arg1and2areWords";
+                        echo ' arg1and2areWords';
                     }
                     if (($flags & self::ARGS_ARE_XY_VALUES) != 0) {
-                        echo " argsAreXyValues";
+                        echo ' argsAreXyValues';
                     }
                     if (($flags & self::ROUND_XY_TO_GRID) != 0) {
-                        echo " roundXyToGrid";
+                        echo ' roundXyToGrid';
                     }
                     if (($flags & self::WE_HAVE_A_SCALE) != 0) {
-                        echo " weHaveAScale";
+                        echo ' weHaveAScale';
                     }
                     if (($flags & self::MORE_COMPONENTS) != 0) {
-                        echo " moreComponents";
+                        echo ' moreComponents';
                     }
                     if (($flags & self::WE_HAVE_AN_X_AND_Y_SCALE) != 0) {
-                        echo " weHaveAnXandYscale";
+                        echo ' weHaveAnXandYscale';
                     }
                     if (($flags & self::WE_HAVE_A_TWO_BY_TWO) != 0) {
-                        echo " weHaveATwoByTwo";
+                        echo ' weHaveATwoByTwo';
                     }
                     if (($flags & self::WE_HAVE_INSTRUCTIONS) != 0) {
-                        echo " weHaveInstructions";
+                        echo ' weHaveInstructions';
                     }
                     if (($flags & self::USE_MY_METRICS) != 0) {
-                        echo " useMyMetrics";
+                        echo ' useMyMetrics';
                     }
                     echo "\n\n";
                 }
 
                 $components[] = array('flags' => $flags, 'glyphIndex' => $glyphIndex,
                       'argument1' => $argument1, 'argument2' => $argument2, 'arg1and2' => $arg1and2,
-                      'scale' => $scale, 'xscale' => $xscale, 'yscale' => $yscale, 'scale01' => $scale01, 'scale10' => $scale10);
+                      'scale' => $scale, 'xscale' => $xscale, 'yscale' => $yscale, 'scale01' => $scale01, 'scale10' => $scale10, );
             } while (($flags & self::MORE_COMPONENTS) != 0);
             if (($flags & self::WE_HAVE_INSTRUCTIONS) != 0) {
                 $numInstr = self::getUshort($description, $off);
@@ -1023,11 +1045,12 @@ class TTF
             } else {
                 $instructions = '';
             }
-                return array('numberOfContours' => $numberOfContours,
+
+            return array('numberOfContours' => $numberOfContours,
                  'xMin' => $xMin, 'yMin' => $yMin,
                  'xMax' => $xMax, 'yMax' => $yMax,
                  'components' => $components,
-                 'instructions' => $instructions);
+                 'instructions' => $instructions, );
         }
     }
 
@@ -1064,9 +1087,9 @@ class TTF
                 $off += 8;
             }
         } while (($flags & self::MORE_COMPONENTS) != 0);
+
         return $description;
     }
-
 
     // Calculate searchRange, entrySelector and rangeShift
     private static function calculateBinarySearchRegisters($count, $size, $logSize)
@@ -1074,10 +1097,11 @@ class TTF
         $entrySelector = -$logSize;
         $searchRange = 1;
         while (2 * $searchRange < $count * $size) {
-            $entrySelector++;
+            ++$entrySelector;
             $searchRange *= 2;
         }
         $rangeShift = $count * $size - $searchRange;
+
         return array('SearchRange' => $searchRange, 'EntrySelector' => $entrySelector, 'RangeShift' => $rangeShift);
     }
 
@@ -1095,6 +1119,7 @@ class TTF
             $ret += self::getUlong($data, $off);
         }
         $ret = bcmod($ret, '4294967296');
+
         return $ret;
     }
 
@@ -1113,6 +1138,7 @@ class TTF
     {
         $num = ord($b[$off++]);
         $num = 256 * $num + ord($b[$off++]);
+
         return $num;
     }
 
@@ -1125,6 +1151,7 @@ class TTF
     private static function getShort($b, &$off)
     {
         $num = self::getUshort($b, $off);
+
         return $num < 32768 ? $num : $num - 65536;
     }
 
@@ -1141,6 +1168,7 @@ class TTF
         $ret = bcadd($ret, bcmul(ord($b[$off++]), '65536'));
         $ret = bcadd($ret, bcmul(ord($b[$off++]), '256'));
         $ret = bcadd($ret, ord($b[$off++]));
+
         return $ret;
     }
 
@@ -1155,7 +1183,8 @@ class TTF
     public static function getLong($b, &$off)
     {
         $ret = self::getUlong($b, $off);
-        return bccomp($ret, '2147483648') <  0 ? $ret : bcsub($ret, '4294967296');
+
+        return bccomp($ret, '2147483648') < 0 ? $ret : bcsub($ret, '4294967296');
     }
 
     public static function getFixed($b, &$off)
@@ -1172,11 +1201,11 @@ class TTF
         $fraction = $b3 * 256 + $b4;
 
         if ($fraction == 0) {
-            return sprintf("%d.0", $mantissa); // Append one zero
+            return sprintf('%d.0', $mantissa); // Append one zero
         } else {
-            $tmp = sprintf("%.6f", $fraction / 65536);
+            $tmp = sprintf('%.6f', $fraction / 65536);
             $tmp = substr($tmp, 2); // Remove leading "0."
-            return sprintf("%d.%s", $mantissa, $tmp);
+            return sprintf('%d.%s', $mantissa, $tmp);
         }
     }
 
@@ -1237,12 +1266,13 @@ class TTF
 
         if ($fraction == 0) {
             // Append only one zero
-            $ret = sprintf("%d.0", $mantissa);
+            $ret = sprintf('%d.0', $mantissa);
         } else {
-            $tmp = sprintf("%.6f", $fraction / 16384);
+            $tmp = sprintf('%.6f', $fraction / 16384);
             $tmp = substr($tmp, 2); // Remove leading "0."
-            $ret = sprintf("%d.%s", $mantissa, $tmp);
+            $ret = sprintf('%d.%s', $mantissa, $tmp);
         }
+
         return $ret;
     }
 
@@ -1250,6 +1280,7 @@ class TTF
     {
         $ret = substr($b, $off, $num);
         $off += $num;
+
         return $ret;
     }
 
@@ -1276,18 +1307,18 @@ class TTF
 
         if ($fraction == 0) {
             // Append only one zero
-            return sprintf("%d.0", $mantissa);
+            return sprintf('%d.0', $mantissa);
         } else {
-            $tmp = sprintf("%.6f", $fraction / 65536);
+            $tmp = sprintf('%.6f', $fraction / 65536);
             $tmp = substr($tmp, 2); // Remove leading ".0"
-            return sprintf("%d.%s", $mantissa, $tmp);
+            return sprintf('%d.%s', $mantissa, $tmp);
         }
     }
 
     private static function getCoordinates($code, &$off, $flags, $mask1, $mask2)
     {
         $ret = array();
-        for ($i = 0; $i < count($flags); $i++) {
+        for ($i = 0; $i < count($flags); ++$i) {
             $flag = $flags[$i];
             $bit1 = $flag & $mask1;
             $bit4 = $flag & $mask2;
@@ -1315,8 +1346,9 @@ class TTF
                     $val = $b;
                 }
             }
-                $ret[] = $val;
+            $ret[] = $val;
         }
+
         return $ret;
     }
 }

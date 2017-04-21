@@ -1,26 +1,27 @@
 <?php
+
 namespace ROSPDF;
 
 class CpdfContent extends CpdfEntry
 {
     /**
-     * page mode 'NOPAGE' used for general objects, like background appearances (or images)
+     * page mode 'NOPAGE' used for general objects, like background appearances (or images).
      */
     const PMODE_NOPAGE = 0;
     /**
-     * add the content to the current page
+     * add the content to the current page.
      */
     const PMODE_ADD = 1;
     /**
-     * add the content to all pages
+     * add the content to all pages.
      */
     const PMODE_ALL = 2;
     /**
-     * repeat the content at runtime (only works for AddText) - useful to display page number on every page
+     * repeat the content at runtime (only works for AddText) - useful to display page number on every page.
      */
     const PMODE_REPEAT = 8;
     /**
-     * output the content after page object id are defined
+     * output the content after page object id are defined.
      */
     const PMODE_LAZY = 16;
 
@@ -31,7 +32,7 @@ class CpdfContent extends CpdfEntry
 
     public $Paging;
     /**
-     * @property integer individual compression strengh for this objects (0 = skip, 9 = highest)
+     * @property int individual compression strengh for this objects (0 = skip, 9 = highest)
      */
     public $Compression;
 
@@ -42,7 +43,7 @@ class CpdfContent extends CpdfEntry
      */
     public $Name;
     /**
-     * @property integer possible options on how to break pages
+     * @property int possible options on how to break pages
      */
     public $BreakPage;
 
@@ -66,9 +67,9 @@ class CpdfContent extends CpdfEntry
      */
     protected $contents;
 
-    /**
-     * @property array page names to be ignored by this object
-     */
+     /**
+      * @property array page names to be ignored by this object
+      */
      protected $ignorePages = [];
 
     public function __construct(&$pages)
@@ -91,18 +92,19 @@ class CpdfContent extends CpdfEntry
     }
 
     /**
-     * Set page option for content and callbacks to define when the object should be displayed
+     * Set page option for content and callbacks to define when the object should be displayed.
      *
-     * @param string $content paging mode for content objects (default: PMODE_ADD)
-     * @param mixed $ignoreInPage page names to be ignored by this object
+     * @param string $content      paging mode for content objects (default: PMODE_ADD)
+     * @param mixed  $ignoreInPage page names to be ignored by this object
      */
     public function SetPageMode($pm_content, $ignoreInPage = null)
     {
         $this->Paging = $pm_content;
-        $this->ignorePages = (array)$ignoreInPage;
+        $this->ignorePages = (array) $ignoreInPage;
     }
 
-    public function IsIgnored(&$page){
+    public function IsIgnored(&$page)
+    {
         return in_array($page->Name, $this->ignorePages);
     }
 
@@ -110,7 +112,7 @@ class CpdfContent extends CpdfEntry
     {
         return strlen($this->contents);
     }
-    
+
     public function Output()
     {
         return $this->contents;
@@ -143,7 +145,7 @@ class CpdfContent extends CpdfEntry
         $res = $this->outputEntries($this->entries);
 
         if ($l > 0) {
-            $res.= "\nstream\n".$tmp."\nendstream";
+            $res .= "\nstream\n".$tmp."\nendstream";
         }
         $res = "\n".$this->ObjectId." 0 obj\n".$res."\nendobj";
 
@@ -152,4 +154,3 @@ class CpdfContent extends CpdfEntry
         return $res;
     }
 }
-?>

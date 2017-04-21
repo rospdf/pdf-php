@@ -1,6 +1,6 @@
 <?php
 /**
- * Create pdf documents without additional modules
+ * Create pdf documents without additional modules.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,35 +16,41 @@
  *  along with this program.  If not, see http://www.gnu.org/licenses/
  *
  * @category Documents
- * @package  Cpdf
- * @version  0.13.0 (>=php5)
- * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
  *
+ * @version  0.13.0 (>=php5)
+ *
+ * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
  * @copyright 2013 The author(s)
  * @license  GNU General Public License v3
+ *
  * @link     http://pdf-php.sf.net
  */
 
 namespace ROSPDF;
+
 // include TTF and TTFsubset classes
 require_once 'include/TTFsubset.php';
 
-if(!defined('ROSPDF_SKIP_AUTOLOAD')) {
+if (!defined('ROSPDF_SKIP_AUTOLOAD')) {
     spl_autoload_register(function ($class) {
-        if(strpos($class,'ROSPDF\\Cpdf') === false) return;
-        
+        if (strpos($class, 'ROSPDF\\Cpdf') === false) {
+            return;
+        }
+
         $parts = explode('\\', $class);
         error_log("Loading $class...");
-        require_once end($parts) . '.php';
+        require_once end($parts).'.php';
     });
 }
 
-if(!defined('ROSPDF_TEMPDIR'))
+if (!defined('ROSPDF_TEMPDIR')) {
     define('ROSPDF_TEMPDIR', sys_get_temp_dir());
-if(!defined('ROSPDF_TEMPNAM'))
+}
+if (!defined('ROSPDF_TEMPNAM')) {
     define('ROSPDF_TEMPNAM', get_current_user());
+}
 /**
- * Main PDF class to add object from different classes and mange the output
+ * Main PDF class to add object from different classes and mange the output.
  *
  * Example usage:
  * <pre>
@@ -67,7 +73,7 @@ class Cpdf extends CpdfEntry
     const DEBUG_MSG_ERR = 48; // DEBUG_MSG_WARN IS INCLUDED HERE
     const DEBUG_OUTPUT = 64;
     const DEBUG_ALL = 127;
-    
+
     public $ObjectId = 2;
     public $PDFVersion = 1.3;
 
@@ -75,178 +81,161 @@ class Cpdf extends CpdfEntry
     public $FontSubset = false;
 
     /**
-     * The current page object
-     * @var CpdfPage
+     * @property CpdfPage The current page object.
      */
     public $CURPAGE;
     /**
-     * additional options
-     * @var CpdfOption
+     * @property CpdfOption additional options.
      */
     public $Options;
     /**
-     * Meta info
-     * @var CpdfMetadata
+     * @property CpdfMetadata Meta info additionally stored in the pdf.
      */
     public $Metadata;
 
     /**
-     * encryption object
-     * @var CpdfEncryption
+     * @property CpdfEncryption encryption object being used in this pdf.
      */
     public $encryptionObject;
     /**
-     * @property CpdfPage[] Contains all Cpdfage objects as an array
+     * @property CpdfPage[] List of all pages being used.
      */
     protected $pageObjects;
     /**
-     * Contains all CpdfFont objects as an array
-     * @var Array
+     * @property CpdfFont[] List of all font objects used in this pdf.
      */
     private $fontObjects;
     /**
-     * array containing length of all available objects (filled at the very end)
+     * @property array xref used in pdf trailer containing length of all available objects.
      */
     private $xref;
 
     /**
-     * internal counter for pdf object numbers
+     * @property int incrementaion object id counter.
      */
     public $objectNum = 2;
     /**
-     * internal counter for pages
+     * @property int internal counter for pages.
      */
     protected $PageNum = 0;
     /**
-     * internal counter for images
+     * @property int internal counter for images.
      */
     protected $ImageNum = 0;
-
     /**
-     * contains all content objects
+     * @property CpdfContent[] contains all content objects (CpdfAppearance).
      */
     protected $contentObjects;
     /**
-     * contains all repeating objects
+     * @property CpdfContent[] contains all repeating objects.
      */
     protected $repeatObjects;
-
     /**
-     * primitive hashtable for images
+     * primitive hashtable for images.
      */
     private $hashTable;
     /**
-     * Debug output level
-     *
-     * Use the constants Cpdf::DEBUG_* to define the level
-     * @default DEBUG_MSG_ERR show errors only
+     * @property int Debug output level. Use the constants Cpdf::DEBUG_* to define the level.
      */
     public static $DEBUGLEVEL = 48;
-
     /**
-     * Force the use of CMYK instead of RGB colors
+     * @property bool Force the use of CMYK instead of RGB colors.
      */
     public static $ForceCMYK = false;
 
     /**
-     * prefix used for font label
-     * @var String
+     * @property string prefix used for font label.
      */
     public static $FontLabel = 'F';
 
     /**
-     * prefix used for pdf image label
-     * @var String
+     * @property string prefix used for pdf image label.
      */
     public static $ImageLabel = 'Im';
 
     /**
-     * Target encoding for non-unicode text output
+     * @property string Target encoding for non-unicode text output.
      */
     public static $TargetEncoding = 'CP1252';
 
     /**
-     * timeout when the font cache expires
+     * @property mixed timeout when the font cache expires.
      */
     public static $CacheTimeout = '30 minutes';
 
     /**
-     * Default timezone
+     * @property string Default timezone.
      */
     public static $Locale = 'UTC';
 
     /**
-     * stores the absolute path of the font directory
+     * @property string stores the absolute path of the font directory (default: src/fonts).
      */
     public $FontPath;
 
     /**
-     * allowed tags for custom callbacks used in Cpdf
+     * @property string regex to allowed tags for custom callbacks.
      */
     public $AllowedTags = 'b|strong|i';
 
     /**
-     * FileIdentifier
-     * @var String
+     * @property string FileIdentifier.
      */
     public $FileIdentifier = '';
 
     /**
-     * Compression level (default: -1)
-     *
-     * If set to zero (0) compression is disabled
+     * @property int Compression level (default: -1 / 0 = skip / 9 = highest).
      */
     public $Compression = -1;
 
     /**
-     * all possible core fonts (case-sensitive)
+     * @property array all supported core fonts (case-sensitive).
      */
     public static $CoreFonts = ['Courier', 'Courier-Bold', 'Courier-Oblique', 'Courier-BoldOblique',
                                 'Helvetica', 'Helvetica-Bold', 'Helvetica-Oblique', 'Helvetica-BoldOblique',
                                 'Times-Roman', 'Times-Bold', 'Times-Italic', 'Times-BoldItalic',
-                                'Symbol', 'ZapfDingbats'];
-
+                                'Symbol', 'ZapfDingbats', ];
     /**
-     * Default font families
+     * @property array default font families.
      */
-    public $DefaultFontFamily = ['helvetica' => ['b'=>'helvetica-bold', 'i'=>'helvetica-oblique', 'bi'=>'helvetica-boldoblique','ib'=>'helvetica-boldoblique'],
-                                 'courier' =>   ['b'=>'courier-bold', 'i'=>'courier-oblique', 'bi'=>'courier-boldoblique', 'ib'=>'courier-boldoblique'],
-                                 'times-roman' => ['b'=>'times-bold', 'i'=>'times-Italic', 'bi'=>'times-bolditalic', 'ib'=>'times-bolditalic']];
-
+    public $DefaultFontFamily = ['helvetica' => ['b' => 'helvetica-bold', 'i' => 'helvetica-oblique', 'bi' => 'helvetica-boldoblique', 'ib' => 'helvetica-boldoblique'],
+                                 'courier' => ['b' => 'courier-bold', 'i' => 'courier-oblique', 'bi' => 'courier-boldoblique', 'ib' => 'courier-boldoblique'],
+                                 'times-roman' => ['b' => 'times-bold', 'i' => 'times-Italic', 'bi' => 'times-bolditalic', 'ib' => 'times-bolditalic'], ];
     /**
-     * Some Page layouts
+     * @property array some default page layouts.
      */
-    public static $Layout = [   '4A0' => [0,0,4767.87,6740.79],  '2A0' => [0,0,3370.39,4767.87],
-                                'A0' => [0,0,2383.94,3370.39], 'A1' => [0,0,1683.78,2383.94],
-                                'A2' => [0,0,1190.55,1683.78], 'A3' => [0,0,841.89,1190.55],
-                                'A4' => [0,0,595.28,841.89], 'A5' => [0,0,419.53,595.28],
-                                'A6' => [0,0,297.64,419.53], 'A7' => [0,0,209.76,297.64],
-                                'A8' => [0,0,147.40,209.76], 'A9' => [0,0,104.88,147.40],
-                                'A10' => [0,0,73.70,104.88], 'B0' => [0,0,2834.65,4008.19],
-                                'B1' => [0,0,2004.09,2834.65], 'B2' => [0,0,1417.32,2004.09],
-                                'B3' => [0,0,1000.63,1417.32], 'B4' => [0,0,708.66,1000.63],
-                                'B5' => [0,0,498.90,708.66], 'B6' => [0,0,354.33,498.90],
-                                'B7' => [0,0,249.45,354.33], 'B8' => [0,0,175.75,249.45],
-                                'B9' => [0,0,124.72,175.75], 'B10' => [0,0,87.87,124.72],
-                                'C0' => [0,0,2599.37,3676.54], 'C1' => [0,0,1836.85,2599.37],
-                                'C2' => [0,0,1298.27,1836.85], 'C3' => [0,0,918.43,1298.27],
-                                'C4' => [0,0,649.13,918.43], 'C5' => [0,0,459.21,649.13],
-                                'C6' => [0,0,323.15,459.21], 'C7' => [0,0,229.61,323.15],
-                                'C8' => [0,0,161.57,229.61], 'C9' => [0,0,113.39,161.57],
-                                'C10' => [0,0,79.37,113.39], 'RA0' => [0,0,2437.80,3458.27],
-                                'RA1' => [0,0,1729.13,2437.80], 'RA2' => [0,0,1218.90,1729.13],
-                                'RA3' => [0,0,864.57,1218.90], 'RA4' => [0,0,609.45,864.57],
-                                'SRA0' => [0,0,2551.18,3628.35], 'SRA1' => [0,0,1814.17,2551.18],
-                                'SRA2' => [0,0,1275.59,1814.17], 'SRA3' => [0,0,907.09,1275.59],
-                                'SRA4' => [0,0,637.80,907.09], 'LETTER' => [0,0,612.00,792.00],
-                                'LEGAL' => [0,0,612.00,1008.00], 'EXECUTIVE' => [0,0,521.86,756.00],
-                                'FOLIO' => [0,0,612.00,936.00] ];
+    public static $Layout = ['4A0' => [0, 0, 4767.87, 6740.79],  '2A0' => [0, 0, 3370.39, 4767.87],
+                                'A0' => [0, 0, 2383.94, 3370.39], 'A1' => [0, 0, 1683.78, 2383.94],
+                                'A2' => [0, 0, 1190.55, 1683.78], 'A3' => [0, 0, 841.89, 1190.55],
+                                'A4' => [0, 0, 595.28, 841.89], 'A5' => [0, 0, 419.53, 595.28],
+                                'A6' => [0, 0, 297.64, 419.53], 'A7' => [0, 0, 209.76, 297.64],
+                                'A8' => [0, 0, 147.40, 209.76], 'A9' => [0, 0, 104.88, 147.40],
+                                'A10' => [0, 0, 73.70, 104.88], 'B0' => [0, 0, 2834.65, 4008.19],
+                                'B1' => [0, 0, 2004.09, 2834.65], 'B2' => [0, 0, 1417.32, 2004.09],
+                                'B3' => [0, 0, 1000.63, 1417.32], 'B4' => [0, 0, 708.66, 1000.63],
+                                'B5' => [0, 0, 498.90, 708.66], 'B6' => [0, 0, 354.33, 498.90],
+                                'B7' => [0, 0, 249.45, 354.33], 'B8' => [0, 0, 175.75, 249.45],
+                                'B9' => [0, 0, 124.72, 175.75], 'B10' => [0, 0, 87.87, 124.72],
+                                'C0' => [0, 0, 2599.37, 3676.54], 'C1' => [0, 0, 1836.85, 2599.37],
+                                'C2' => [0, 0, 1298.27, 1836.85], 'C3' => [0, 0, 918.43, 1298.27],
+                                'C4' => [0, 0, 649.13, 918.43], 'C5' => [0, 0, 459.21, 649.13],
+                                'C6' => [0, 0, 323.15, 459.21], 'C7' => [0, 0, 229.61, 323.15],
+                                'C8' => [0, 0, 161.57, 229.61], 'C9' => [0, 0, 113.39, 161.57],
+                                'C10' => [0, 0, 79.37, 113.39], 'RA0' => [0, 0, 2437.80, 3458.27],
+                                'RA1' => [0, 0, 1729.13, 2437.80], 'RA2' => [0, 0, 1218.90, 1729.13],
+                                'RA3' => [0, 0, 864.57, 1218.90], 'RA4' => [0, 0, 609.45, 864.57],
+                                'SRA0' => [0, 0, 2551.18, 3628.35], 'SRA1' => [0, 0, 1814.17, 2551.18],
+                                'SRA2' => [0, 0, 1275.59, 1814.17], 'SRA3' => [0, 0, 907.09, 1275.59],
+                                'SRA4' => [0, 0, 637.80, 907.09], 'LETTER' => [0, 0, 612.00, 792.00],
+                                'LEGAL' => [0, 0, 612.00, 1008.00], 'EXECUTIVE' => [0, 0, 521.86, 756.00],
+                                'FOLIO' => [0, 0, 612.00, 936.00], ];
 
     /**
-     * Initialize the pdf class
-     * @param Array $mediabox Bounding box defining the Mediabox
-     * @param Array $cropbox Bounding box defining the Cropbox
-     * @param Array $bleedbox Bounding box defining the Bleedbox
+     * Initialize the pdf class.
+     *
+     * @param array $mediabox Bounding box defining the Mediabox
+     * @param array $cropbox  Bounding box defining the Cropbox
+     * @param array $bleedbox Bounding box defining the Bleedbox
      */
     public function __construct($mediabox, $cropbox = null, $bleedbox = null)
     {
@@ -267,7 +256,7 @@ class Cpdf extends CpdfEntry
 
         $this->Metadata = new CpdfMetadata($this);
 
-        $this->FontPath =  dirname(__FILE__).'/fonts';
+        $this->FontPath = dirname(__FILE__).'/fonts';
 
         $this->FileIdentifier = md5('ROSPDF'.microtime());
 
@@ -276,7 +265,8 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * create a new page
+     * create a new page.
+     *
      * @param array $mediabox layout of the page
      * @param array $cropbox
      * @param array $bleedbox
@@ -307,29 +297,30 @@ class Cpdf extends CpdfEntry
 
     public function IsInsertMode()
     {
-        return ($this->insertPos > 0)? true : false;
+        return ($this->insertPos > 0) ? true : false;
     }
 
     private function insertPage()
     {
-        $this->PageNum++;
+        ++$this->PageNum;
         $this->CURPAGE->ObjectId = ++$this->objectNum;
 
         if ($this->insertPos > 0) {
-
             $insertedPos = $this->insertPos;
 
-            $rest = array_filter($this->pageObjects, function($p) use($insertedPos) {
+            $rest = array_filter($this->pageObjects, function ($p) use ($insertedPos) {
                 return $p->PageNum >= $insertedPos;
             });
 
-            foreach($rest as &$page) {
-                if($this->CURPAGE === $page) continue;
+            foreach ($rest as &$page) {
+                if ($this->CURPAGE === $page) {
+                    continue;
+                }
                 $page->PageNum += 1;
             }
 
             $this->CURPAGE->PageNum = $this->insertPos;
-            $this->insertPos++;
+            ++$this->insertPos;
         } else {
             $this->CURPAGE->PageNum = $this->PageNum;
         }
@@ -338,7 +329,7 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * get the page object by passing the page number
+     * get the page object by passing the page number.
      *
      * @return CpdfPage page object or null
      */
@@ -353,7 +344,7 @@ class Cpdf extends CpdfEntry
 
     /**
      * create a new font
-     * return CpdfFont
+     * return CpdfFont.
      */
     public function NewFont($fontName, $isUnicode)
     {
@@ -363,6 +354,7 @@ class Cpdf extends CpdfEntry
             // objectID will be set in output
             $this->fontObjects[$f] = $font;
             $font->FontId = count($this->fontObjects);
+
             return $font;
         } else {
             return $this->fontObjects[$f];
@@ -370,26 +362,27 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * Create new ANSI or Unicode text
+     * Create new ANSI or Unicode text.
      *
      * TODO: Make use of Encoding parameter and allow defining a "differences" array
      *
-     * @param array $bbox Bounding box where the text should be places
-     * @param bool $unicode defines if the text input is either ANSI or UNICODE text
+     * @param array $bbox    Bounding box where the text should be places
+     * @param bool  $unicode defines if the text input is either ANSI or UNICODE text
      * @param string manuelly set the encoding - used only for ANSI text
      *
      * @return CpdfAppearance return newly created CpdfAppearance object
      */
-    public function NewText($bbox = null, $color = array(0,0,0))
+    public function NewText($bbox = null, $color = array(0, 0, 0))
     {
         $t = new CpdfAppearance($this, $bbox, $color);
 
         array_push($this->contentObjects, $t);
+
         return $t;
     }
 
     /**
-     * Add a new content object
+     * Add a new content object.
      *
      * Espacially used for RAW input
      *
@@ -399,23 +392,28 @@ class Cpdf extends CpdfEntry
     {
         $c = new CpdfContent($this);
         array_push($this->contentObjects, $c);
+
         return $c;
     }
 
     /**
-     * Create a new table
+     * Create a new table.
+     *
      * @return CpdfTable
      */
     public function NewTable($bbox = array(), $columns = 2, $backgroundColor = null, $lineStyle = null, $drawLines = CpdfTable::DRAWLINE_TABLE)
     {
         $t = new CpdfTable($this, $bbox, $columns, $backgroundColor, $lineStyle, $drawLines);
         array_push($this->contentObjects, $t);
+
         return $t;
     }
 
     /**
-     * Add a new image
+     * Add a new image.
+     *
      * @param string $source file path
+     *
      * @return CpdfImage
      */
     public function NewImage($source)
@@ -428,16 +426,18 @@ class Cpdf extends CpdfEntry
         } else {
             $i = &$this->hashTable[$source];
         }
+
         return $i;
     }
 
     /**
-     * Add a new appearance
+     * Add a new appearance.
      *
      * TODO: Add polygons and circles into CpdfAppearance class
      * TODO: check bounding box if it is working properly
      *
      * @param array $BBox area where should start and end up
+     *
      * @return CpdfAppearance
      */
     public function NewAppearance($BBox = array())
@@ -445,18 +445,21 @@ class Cpdf extends CpdfEntry
         $g = new CpdfAppearance($this, $BBox);
         //$this->contentObjects[++$this->objectNum] = $g;
         array_push($this->contentObjects, $g);
+
         return $g;
     }
     /**
-     * Add a new Annotation
+     * Add a new Annotation.
      *
      * Espacially used for external and internal links
      *
      * TODO: Implement audio and video comments
-     * @param string $annoType annotation type - can be either text, freetext or link (later sound, and video will be added)
-     * @param array $bbox bounding box where the annotation 'click' is located
-     * @param CpdfBorderStyle $border defines the border style
+     *
+     * @param string          $annoType annotation type - can be either text, freetext or link (later sound, and video will be added)
+     * @param array           $bbox     bounding box where the annotation 'click' is located
+     * @param CpdfBorderStyle $border   defines the border style
      * @param CpdfColor defines the color
+     *
      * @return CpdfAnnotation
      */
     public function NewAnnotation($annoType, $bbox, $border, $color)
@@ -466,11 +469,12 @@ class Cpdf extends CpdfEntry
 
         //$this->contentObjects[++$this->objectNum] = $annot;
         array_push($this->contentObjects, $annot);
+
         return $annot;
     }
 
     /**
-     * Setup the encryption
+     * Setup the encryption.
      *
      * Encryption up to 128bit is supported (PDF-1.4)
      *
@@ -485,7 +489,7 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * INTERNAL PURPOSE - PAGING
+     * INTERNAL PURPOSE - PAGING.
      */
     public function addObject(&$contentObject, $before = false)
     {
@@ -498,7 +502,7 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * INTERNAL PURPOSE - XREF
+     * INTERNAL PURPOSE - XREF.
      */
     public function AddXRef($id, $length)
     {
@@ -506,49 +510,51 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * Output the header info
+     * Output the header info.
      */
     private function outputHeader()
     {
         $res = '%PDF-'.sprintf("%.1F\n%s", $this->PDFVersion, "%\xe2\xe3\xcf\xd3");
         $this->AddXRef(0, strlen($res));
+
         return $res;
     }
     /**
-     * Output the trailer info
+     * Output the trailer info.
      */
     private function outputTrailer()
     {
         $res = "\nxref\n0 ".($this->objectNum + 1);
 
-        $res.="\n0000000000 65535 f \n";
+        $res .= "\n0000000000 65535 f \n";
         $pos = 0;
         ksort($this->xref);
 
         foreach ($this->xref as $k => $l) {
             $pos += $l;
             if ($this->objectNum > $k) {
-                $res.=substr('0000000000', 0, 10-strlen($pos+1)).($pos+1)." 00000 n \n";
+                $res .= substr('0000000000', 0, 10 - strlen($pos + 1)).($pos + 1)." 00000 n \n";
             }
         }
 
-        $res.= "trailer\n<< /Size ".($this->objectNum + 1)." /Root ".$this->Options->ObjectId." 0 R";
+        $res .= "trailer\n<< /Size ".($this->objectNum + 1).' /Root '.$this->Options->ObjectId.' 0 R';
 
         if (isset($this->Metadata)) {
-            $res.= ' /Info '.$this->Metadata->ObjectId.' 0 R';
+            $res .= ' /Info '.$this->Metadata->ObjectId.' 0 R';
         }
 
         if (isset($this->encryptionObject)) {
-            $res.= ' /Encrypt '.$this->encryptionObject->ObjectId.' 0 R';
+            $res .= ' /Encrypt '.$this->encryptionObject->ObjectId.' 0 R';
         }
-        $res.= ' /ID [<'.$this->FileIdentifier.'><'.$this->FileIdentifier.'>]';
-        $res.= " >>";
-        $res.="\nstartxref\n".($pos+1)."\n%%EOF\n";
+        $res .= ' /ID [<'.$this->FileIdentifier.'><'.$this->FileIdentifier.'>]';
+        $res .= ' >>';
+        $res .= "\nstartxref\n".($pos + 1)."\n%%EOF\n";
+
         return $res;
     }
 
     /**
-     * PDF Output of outlines (dummy)
+     * PDF Output of outlines (dummy).
      *
      * TODO: Implement Pdf outlines
      */
@@ -556,25 +562,29 @@ class Cpdf extends CpdfEntry
     {
         $res = "\n1 0 obj\n<< /Type /Outlines /Count 0 >>\nendobj";
         $this->AddXRef(1, strlen($res));
+
         return $res;
     }
 
-    private function outputFonts(){
+    private function outputFonts()
+    {
         $fonts = '';
         $fontrefs = '';
         foreach ($this->fontObjects as $value) {
             $value->ObjectId = ++$this->objectNum;
-            $fontrefs .= ' /'.Cpdf::$FontLabel.$value->FontId.' '.$value->ObjectId.' 0 R';
-            $fonts.= $value->OutputProgram();
+            $fontrefs .= ' /'.self::$FontLabel.$value->FontId.' '.$value->ObjectId.' 0 R';
+            $fonts .= $value->OutputProgram();
         }
 
         $this->AddResource('Font', '<<'.$fontrefs.' >>');
+
         return $fonts;
     }
 
-    private function outputPages(){
+    private function outputPages()
+    {
         // num of pages
-        $pageCount=count($this->pageObjects);
+        $pageCount = count($this->pageObjects);
         $pageRefs = '';
         $result = '';
 
@@ -582,9 +592,9 @@ class Cpdf extends CpdfEntry
         $mediaObjects = $this->GetMediaObjects();
 
         $imagerefs = [];
-        foreach($mediaObjects as $o) {
-            if($o instanceof CpdfImage && $o->Paging == CpdfContent::PMODE_ADD) {
-                $imagerefs[] = '/'.Cpdf::$ImageLabel.$o->ImageNum." {$o->ObjectId} 0 R";
+        foreach ($mediaObjects as $o) {
+            if ($o instanceof CpdfImage && $o->Paging == CpdfContent::PMODE_ADD) {
+                $imagerefs[] = '/'.self::$ImageLabel.$o->ImageNum." {$o->ObjectId} 0 R";
             }
         }
 
@@ -592,29 +602,37 @@ class Cpdf extends CpdfEntry
         if ($pageCount > 0) {
             $this->prepareRepeatingObjects();
 
-            uasort($this->pageObjects, function($a, $b) { return $a->PageNum < $b->PageNum ? -1 : 1; });
+            uasort($this->pageObjects, function ($a, $b) {
+                return $a->PageNum < $b->PageNum ? -1 : 1;
+            });
 
-            $pageRefs = array_map(function($p){ return $p->ObjectId . ' 0 R'; },$this->pageObjects);
+            $pageRefs = array_map(function ($p) {
+                return $p->ObjectId.' 0 R';
+            }, $this->pageObjects);
 
             ksort($this->pageObjects);
             // output the pages
-            foreach($this->pageObjects as &$page) {
+            foreach ($this->pageObjects as &$page) {
                 $page->Objects = $this->fetchPageObjects($page);
-                $result.= $page->OutputAsObject();
+                $result .= $page->OutputAsObject();
             }
 
             // add global objects AND media objects into the document
-            $result.= implode('', array_map(function($c){ return $c->OutputAsObject(); }, $globalObjects + $mediaObjects));
+            $result .= implode('', array_map(function ($c) {
+                return $c->OutputAsObject();
+            }, $globalObjects + $mediaObjects));
 
-            foreach($this->pageObjects as &$page) {
-                if(empty($page->Objects)) continue;
-                $result.= implode('', array_map(function($o) use($page){
+            foreach ($this->pageObjects as &$page) {
+                if (empty($page->Objects)) {
+                    continue;
+                }
+                $result .= implode('', array_map(function ($o) use ($page) {
                     return $o->OutputAsObject();
                 }, $page->Objects));
             }
         }
-        
-        if(!empty($imagerefs)) {
+
+        if (!empty($imagerefs)) {
             $this->AddResource('XObject', '<< '.implode(' ', $imagerefs).' >>');
         }
 
@@ -626,18 +644,23 @@ class Cpdf extends CpdfEntry
         return $result;
     }
 
-    private function prepareRepeatingObjects(){
-        $repeatingObjects = array_filter($this->contentObjects, function($o) {
+    private function prepareRepeatingObjects()
+    {
+        $repeatingObjects = array_filter($this->contentObjects, function ($o) {
             return $o->Paging == CpdfContent::PMODE_REPEAT;
         });
 
-        if(empty($repeatingObjects)) return;
+        if (empty($repeatingObjects)) {
+            return;
+        }
 
-        foreach($this->pageObjects as &$page) {
-            foreach($repeatingObjects as $o){
-                if($o->IsIgnored($page)) continue;
+        foreach ($this->pageObjects as &$page) {
+            foreach ($repeatingObjects as $o) {
+                if ($o->IsIgnored($page)) {
+                    continue;
+                }
 
-                $clone = Cpdf::DoClone($o);
+                $clone = self::DoClone($o);
                 $clone->page = &$page;
 
                 $this->repeatObjects[] = $clone;
@@ -645,48 +668,58 @@ class Cpdf extends CpdfEntry
         }
     }
 
-    private function fetchPageObjects(&$page){
-        $filtered = array_filter($this->contentObjects, function($o) use($page){
+    private function fetchPageObjects(&$page)
+    {
+        $filtered = array_filter($this->contentObjects, function ($o) use ($page) {
             return ($o->Paging == CpdfContent::PMODE_ADD && $o->page === $page) && ($o->Length() > 0 || $o instanceof CpdfAnnotation);
         });
 
         // add the repeating objects to the filtered result
-        if(!empty($this->repeatObjects)) {
-            $filtered = array_merge($filtered, array_filter($this->repeatObjects, function($o) use($page){ return $o->page == $page; }));
+        if (!empty($this->repeatObjects)) {
+            $filtered = array_merge($filtered, array_filter($this->repeatObjects, function ($o) use ($page) {
+                return $o->page == $page;
+            }));
         }
-        
-        uasort($filtered, function($a, $b){ return $a->ZIndex < $b->ZIndex ? -1 : 1; });
 
-        foreach($filtered as &$o) {
+        uasort($filtered, function ($a, $b) {
+            return $a->ZIndex < $b->ZIndex ? -1 : 1;
+        });
+
+        foreach ($filtered as &$o) {
             $o->ObjectId = ++$this->objectNum;
         }
+
         return $filtered;
     }
 
-    public function GetMediaObjects(){
-        if(isset($this->mediaObjects))
+    public function GetMediaObjects()
+    {
+        if (isset($this->mediaObjects)) {
             return $this->mediaObjects;
+        }
 
-        $this->mediaObjects = array_filter($this->contentObjects, function($o){
+        $this->mediaObjects = array_filter($this->contentObjects, function ($o) {
             return $o instanceof CpdfImage || $o->Paging == CpdfContent::PMODE_NOPAGE;
         });
 
-        foreach($this->mediaObjects as &$o) {
+        foreach ($this->mediaObjects as &$o) {
             $o->ObjectId = ++$this->objectNum;
         }
 
         return $this->mediaObjects;
     }
 
-    public function GetGlobalObjects(){
-        if(isset($this->globalObjects))
+    public function GetGlobalObjects()
+    {
+        if (isset($this->globalObjects)) {
             return $this->globalObjects;
+        }
 
-        $this->globalObjects = array_filter($this->contentObjects, function($o) {
+        $this->globalObjects = array_filter($this->contentObjects, function ($o) {
             return $o->Paging == CpdfContent::PMODE_ALL;
         });
 
-        foreach($this->globalObjects as &$o) {
+        foreach ($this->globalObjects as &$o) {
             $o->ObjectId = ++$this->objectNum;
         }
 
@@ -694,19 +727,19 @@ class Cpdf extends CpdfEntry
     }
 
     /**
-     * Return everything as a valid PDF string
+     * Return everything as a valid PDF string.
      *
      * Built up the references for repeating content, when paging is set to either 'all' or 'repeat'
      */
     public function OutputAll()
     {
-        if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_OUTPUT)) {
+        if (self::IsDefined(self::$DEBUGLEVEL, self::DEBUG_OUTPUT)) {
             $this->Compression = 0;
         }
         // output the PDF header
         $res = $this->outputHeader();
         // static outlines
-        $res.= $this->outputOutline();
+        $res .= $this->outputOutline();
 
         $pages = $this->outputPages();
 
@@ -744,54 +777,54 @@ class Cpdf extends CpdfEntry
             $this->AddResource('XObject', $imagerefs);
         }*/
 
-        $tmp.= $this->outputEntries($this->entries);
+        $tmp .= $this->outputEntries($this->entries);
         // -- END Page Header
-        $tmp.= "\nendobj";
+        $tmp .= "\nendobj";
         $this->AddXRef($this->ObjectId, strlen($tmp));
 
         // put PAGES and ALL OBJECTS into result
-        $res.= $tmp.$pages.$fonts.$repeatContent;
+        $res .= $tmp.$pages.$fonts.$repeatContent;
 
         if (isset($this->encryptionObject)) {
             $this->encryptionObject->ObjectId = ++$this->objectNum;
-            $res.= $this->encryptionObject->OutputAsObject();
+            $res .= $this->encryptionObject->OutputAsObject();
         }
 
         // -- START output catalog
         if (isset($this->Metadata)) {
             $this->Metadata->ObjectId = ++$this->objectNum;
-            $res.= $this->Metadata->OutputAsObject();
+            $res .= $this->Metadata->OutputAsObject();
             if ($this->PDFVersion >= 1.4) {
                 // put metadata xml as reference into catalog
                 $this->Metadata->ObjectId = ++$this->objectNum;
-                $res.= $this->Metadata->OutputAsObject('XML');
+                $res .= $this->Metadata->OutputAsObject('XML');
                 $this->Options->SetMetadata($this->Metadata->ObjectId);
             }
         }
         $this->Options->ObjectId = ++$this->objectNum;
 
-        $res.= $this->Options->OutputAsObject();
-        $res.= $this->outputTrailer();
+        $res .= $this->Options->OutputAsObject();
+        $res .= $this->outputTrailer();
         // -- END output catalog
         return $res;
     }
 
     /**
-     * Stream output the PDF document
+     * Stream output the PDF document.
      */
     public function Stream($filename = 'output.pdf')
     {
         $tmp = $this->OutputAll();
-        $c = "application/pdf";
+        $c = 'application/pdf';
 
         header('Cache-Control: no-store, no-cache, must-revalidate');
         header('Pragma: no-cache');
 
-        if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_OUTPUT)) {
-            $c = "text/html";
-            $tmp = '<pre>' . $tmp . '</pre>';
+        if (self::IsDefined(self::$DEBUGLEVEL, self::DEBUG_OUTPUT)) {
+            $c = 'text/html';
+            $tmp = '<pre>'.$tmp.'</pre>';
         } else {
-            header("Content-Length: ".strlen(ltrim($tmp)));
+            header('Content-Length: '.strlen(ltrim($tmp)));
             header("Content-Disposition:inline;filename='$filename'");
         }
 
@@ -799,9 +832,9 @@ class Cpdf extends CpdfEntry
 
         echo $tmp;
     }
-    
+
     /**
-     * unicode version of php ord
+     * unicode version of php ord.
      *
      * Used the get the decimal number for an utf-8 character higher then 0x7F (127)
      *
@@ -816,30 +849,31 @@ class Cpdf extends CpdfEntry
             return false;
         }
         $ord0 = ord($c{0});
-        if ($ord0>=0   && $ord0<=127) {
+        if ($ord0 >= 0 && $ord0 <= 127) {
             return $ord0;
         }
         $ord1 = ord($c{1});
-        if ($ord0>=192 && $ord0<=223) {
-            return ($ord0-192)*64 + ($ord1-128);
+        if ($ord0 >= 192 && $ord0 <= 223) {
+            return ($ord0 - 192) * 64 + ($ord1 - 128);
         }
         $ord2 = ord($c{2});
-        if ($ord0>=224 && $ord0<=239) {
-            return ($ord0-224)*4096 + ($ord1-128)*64 + ($ord2-128);
+        if ($ord0 >= 224 && $ord0 <= 239) {
+            return ($ord0 - 224) * 4096 + ($ord1 - 128) * 64 + ($ord2 - 128);
         }
         $ord3 = ord($c{3});
-        if ($ord0>=240 && $ord0<=247) {
-            return ($ord0-240)*262144 + ($ord1-128)*4096 + ($ord2-128)*64 + ($ord3-128);
+        if ($ord0 >= 240 && $ord0 <= 247) {
+            return ($ord0 - 240) * 262144 + ($ord1 - 128) * 4096 + ($ord2 - 128) * 64 + ($ord3 - 128);
         }
+
         return false;
     }
 
     /**
-     * filter text and convert it into either UTF-16BE or any other non-unicode encoding
+     * filter text and convert it into either UTF-16BE or any other non-unicode encoding.
      *
-     * @param CpdfFont $fontObject object of the current font - as reference
-     * @param string $text text string
-     * @param bool $convert_encoding boolean value to either convert or not convert the text paramenter
+     * @param CpdfFont $fontObject       object of the current font - as reference
+     * @param string   $text             text string
+     * @param bool     $convert_encoding boolean value to either convert or not convert the text paramenter
      *
      * @return string converted and parsed text string
      */
@@ -851,49 +885,50 @@ class Cpdf extends CpdfEntry
                 $text = mb_convert_encoding($text, 'UTF-16BE', 'UTF-8');
 
                 if ($fontObject->SubsetFont) {
-                    for ($i = 0; $i < mb_strlen($text, 'UTF-16BE'); $i++) {
+                    for ($i = 0; $i < mb_strlen($text, 'UTF-16BE'); ++$i) {
                         $fontObject->AddChar(mb_substr($text, $i, 1, 'UTF-16BE'));
                     }
                 }
             } else {
-                $text = mb_convert_encoding($text, Cpdf::$TargetEncoding, 'UTF-8');
+                $text = mb_convert_encoding($text, self::$TargetEncoding, 'UTF-8');
                 if ($fontObject->SubsetFont) {
-                    for ($i = 0; $i < strlen($text); $i++) {
+                    for ($i = 0; $i < strlen($text); ++$i) {
                         $fontObject->AddChar($text[$i]);
                     }
                 }
             }
         }
 
-        $text = strtr($text, array(')' => '\\)', '(' => '\\(', '\\' => '\\\\', chr(8) => '\\b', chr(9) => '\\t', chr(10) => '\\n', chr(12) => '\\f' ,chr(13) => '\\r', '&lt;'=>'<', '&gt;'=>'>', '&amp;'=>'&'));
+        $text = strtr($text, array(')' => '\\)', '(' => '\\(', '\\' => '\\\\', chr(8) => '\\b', chr(9) => '\\t', chr(10) => '\\n', chr(12) => '\\f', chr(13) => '\\r', '&lt;' => '<', '&gt;' => '>', '&amp;' => '&'));
+
         return $text;
     }
 
     /**
-     * Clone an object (used for pages breaks)
+     * Clone an object (used for pages breaks).
      */
     public static function DoClone($object)
     {
         if (version_compare(phpversion(), '5.0') < 0) {
             return $object;
         } else {
-            return @clone($object);
+            return @clone $object;
         }
     }
 
     /**
-     * Helper to bitwise check enums
+     * Helper to bitwise check enums.
      *
      * @param int $value value to be checked for enum
-     * @param int $enum bitwise enum
+     * @param int $enum  bitwise enum
      */
     public static function IsDefined($value, $enum)
     {
-        return (($value & $enum) == $enum)?true:false;
+        return (($value & $enum) == $enum) ? true : false;
     }
 
     /**
-     * Setup the Bounding Box
+     * Setup the Bounding Box.
      *
      * Use either a full qualified rectangle stored as an array with 4 elements
      * or used the following array keys:
@@ -954,31 +989,29 @@ class Cpdf extends CpdfEntry
             return $current;
         }
     }
-    
+
     /**
-     * Output debug messages
+     * Output debug messages.
      *
-     * @param String $msg the message
-     * @param Int $flag One of the DEBUG_* flags
-     * @param Integer $debugflags WHAT DEBUG MESSAGES ARE BEING PRINTED
+     * @param string $msg        the message
+     * @param int    $flag       One of the DEBUG_* flags
+     * @param int    $debugflags WHAT DEBUG MESSAGES ARE BEING PRINTED
      */
     public static function DEBUG($msg, $flag, $debugflags)
     {
         if (self::IsDefined($debugflags, $flag)) {
             switch ($flag) {
                 default:
-                case Cpdf::DEBUG_MSG_ERR:
-                    error_log("[ROSPDF-ERROR] ".$msg);
+                case self::DEBUG_MSG_ERR:
+                    error_log('[ROSPDF-ERROR] '.$msg);
                     break;
-                case Cpdf::DEBUG_MSG_WARN:
-                    error_log("[ROSPDF-WARNING] ".$msg);
+                case self::DEBUG_MSG_WARN:
+                    error_log('[ROSPDF-WARNING] '.$msg);
                     break;
-                case Cpdf::DEBUG_OUTPUT:
-                    error_log("[ROSPDF-OUTPUTINFO] ".$msg);
+                case self::DEBUG_OUTPUT:
+                    error_log('[ROSPDF-OUTPUTINFO] '.$msg);
                     break;
             }
         }
     }
 }
-
-

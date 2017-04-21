@@ -1,37 +1,44 @@
 <?php
+
 namespace ROSPDF;
+
 /**
- * Class object allowing the use of lines in any Appearance object
+ * Class object allowing the use of lines in any Appearance object.
  */
 class CpdfLineStyle
 {
     /**
-     * stores the line weight
+     * stores the line weight.
+     *
      * @var float
      */
     private $weight;
     /**
-     * stores the cap style
-     * @var String
+     * stores the cap style.
+     *
+     * @var string
      */
     private $capStyle;
     /**
-     * stores the join style
-     * @var String
+     * stores the join style.
+     *
+     * @var string
      */
     private $joinStyle;
     /**
-     * stores the dash style
-     * @var String
+     * stores the dash style.
+     *
+     * @var string
      */
     private $dashStyle;
 
     /**
-     * Contructor call
-     * @param float $weight line weight
-     * @param String $cap cap style, see $this->SetCap()
-     * @param String $join join style, see $this->SetJoin()
-     * @param Array $dash dash format, see $this->SetDashes();
+     * Contructor call.
+     *
+     * @param float  $weight line weight
+     * @param string $cap    cap style, see $this->SetCap()
+     * @param string $join   join style, see $this->SetJoin()
+     * @param array  $dash   dash format, see $this->SetDashes();
      */
     public function __construct($weight = 0, $cap = '', $join = '', $dash = array())
     {
@@ -51,7 +58,7 @@ class CpdfLineStyle
     }
 
     /**
-     * get the line weight out of the class object
+     * get the line weight out of the class object.
      */
     public function GetWeight()
     {
@@ -59,8 +66,9 @@ class CpdfLineStyle
     }
 
     /**
-     * Set the cap style of a line
-     * @param String $name possible styles are butt, round and square
+     * Set the cap style of a line.
+     *
+     * @param string $name possible styles are butt, round and square
      */
     public function SetCap($name = 'butt')
     {
@@ -79,8 +87,9 @@ class CpdfLineStyle
     }
 
     /**
-     * set the join style of a line
-     * @param String $name possible styles are butt, round and bevel
+     * set the join style of a line.
+     *
+     * @param string $name possible styles are butt, round and bevel
      */
     public function SetJoin($name = 'miter')
     {
@@ -99,7 +108,8 @@ class CpdfLineStyle
     }
 
     /**
-     * Used to define the line spaces
+     * Used to define the line spaces.
+     *
      * @param int $on
      * @param int $off
      * @param int $phase
@@ -110,33 +120,32 @@ class CpdfLineStyle
     }
 
     /**
-     * PDF output of the line style
+     * PDF output of the line style.
      */
     public function Output()
     {
         $res = '';
 
-        $res.= sprintf("%.3F w", $this->weight);
+        $res .= sprintf('%.3F w', $this->weight);
 
         if (isset($this->capStyle)) {
-            $res.= ' '.$this->capStyle.' J';
+            $res .= ' '.$this->capStyle.' J';
         }
         if (isset($this->joinStyle)) {
-            $res.= ' '.$this->joinStyle.' j';
+            $res .= ' '.$this->joinStyle.' j';
         }
         if (is_array($this->dashStyle) && count($this->dashStyle) == 3) {
             if ($this->dashStyle[0] > 0) {
-                $res.= ' ['.$this->dashStyle[0];
+                $res .= ' ['.$this->dashStyle[0];
                 if ($this->dashStyle[1] != $this->dashStyle[0]) {
-                    $res.= ' '.$this->dashStyle[1];
+                    $res .= ' '.$this->dashStyle[1];
                 }
-                $res.='] '.$this->dashStyle[2].' d';
+                $res .= '] '.$this->dashStyle[2].' d';
             }
         } else {
-            $res.= ' [] 0 d';
+            $res .= ' [] 0 d';
         }
+
         return $res.' ';
     }
 }
-
-?>

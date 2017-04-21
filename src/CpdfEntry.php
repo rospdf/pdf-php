@@ -1,4 +1,5 @@
 <?php
+
 namespace ROSPDF;
 
 class CpdfEntry
@@ -10,10 +11,12 @@ class CpdfEntry
         $this->entries[$k] = $value;
     }
 
-    public function AddResource($k, $v){
-        if(!isset($this->entries['Resources']))
+    public function AddResource($k, $v)
+    {
+        if (!isset($this->entries['Resources'])) {
             $this->entries['Resources'] = [];
-        
+        }
+
         $this->entries['Resources'][$k] = $v;
     }
 
@@ -27,22 +30,25 @@ class CpdfEntry
         return (count($this->entries) > 0) ? true : false;
     }
 
-    public function GetEntry($name){
+    public function GetEntry($name)
+    {
         return isset($this->entries[$name]) ? $this->entries[$name] : null;
     }
 
-    protected function outputEntries($entries){
+    protected function outputEntries($entries)
+    {
         $res = '<<';
         if (is_array($entries)) {
             foreach ($entries as $k => $v) {
-                if(is_array($v)) {
-                    $res.= " /$k " . $this->outputEntries($v);
+                if (is_array($v)) {
+                    $res .= " /$k ".$this->outputEntries($v);
                 } else {
-                    $res.= " /$k $v";
+                    $res .= " /$k $v";
                 }
             }
         }
-        $res .=' >>';
+        $res .= ' >>';
+
         return $res;
     }
 }

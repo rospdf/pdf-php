@@ -35,7 +35,7 @@ class CpdfOption
 
     public function AddName($name, $pageId, $y = null)
     {
-        $this->names[$name] = array('pageId'=> $pageId, 'y' => $y);
+        $this->names[$name] = array('pageId' => $pageId, 'y' => $y);
     }
 
     public function SetPageLayout($name = 'SinglePage')
@@ -54,30 +54,30 @@ class CpdfOption
     }
 
     /**
-     * TODO: implement outlines
+     * TODO: implement outlines.
      */
     public function SetOutlines()
     {
-
     }
 
     private function outputDestinations()
     {
         $this->destinationId = ++$this->pages->objectNum;
         $res = "\n$this->destinationId 0 obj";
-        $res.="\n<< ";
+        $res .= "\n<< ";
         foreach ($this->names as $k => $v) {
-            $res.="\n  ";
+            $res .= "\n  ";
             if (isset($v['y'])) {
-                $res.= "/$k [".$v['pageId'].' 0 R /FitH '.$v['y'].']';
+                $res .= "/$k [".$v['pageId'].' 0 R /FitH '.$v['y'].']';
             } else {
-                $res.= "/$k [".$v['pageId'].' 0 R /Fit]';
+                $res .= "/$k [".$v['pageId'].' 0 R /Fit]';
             }
         }
-        $res.=" \n>>";
-        $res.="\nendobj";
+        $res .= " \n>>";
+        $res .= "\nendobj";
 
         $this->pages->AddXRef($this->destinationId, strlen($res));
+
         return $res;
     }
 
@@ -85,54 +85,54 @@ class CpdfOption
     {
         $this->intentsId = ++$this->pages->objectNum;
         $res = "\n$this->intentsId 0 obj";
-        $res.="\n<< /Type /OutputIntent /S /GTS_PDFX /OutputConditionIdentifier (CGATS TR 001) /RegistryName (www.color.org) >>";
+        $res .= "\n<< /Type /OutputIntent /S /GTS_PDFX /OutputConditionIdentifier (CGATS TR 001) /RegistryName (www.color.org) >>";
 
-        $res.="\nendobj";
+        $res .= "\nendobj";
         $this->pages->AddXRef($this->intentsId, strlen($res));
+
         return $res;
     }
 
     public function OutputAsObject()
     {
         $res = "\n$this->ObjectId 0 obj";
-        $res.= "\n<< /Type /Catalog";
+        $res .= "\n<< /Type /Catalog";
         if (count($this->preferences) > 0) {
-            $res.=" /ViewerPreferences <<";
+            $res .= ' /ViewerPreferences <<';
             foreach ($this->preferences as $key => $value) {
-                $res.=" /$key $value";
+                $res .= " /$key $value";
             }
-            $res.=" >>";
+            $res .= ' >>';
         }
 
-        $res.= " /Pages 2 0 R";
+        $res .= ' /Pages 2 0 R';
 
         if (isset($this->pageLayout)) {
-            $res.= " /PageLayout /".$this->pageLayout;
+            $res .= ' /PageLayout /'.$this->pageLayout;
         }
 
         if (isset($this->oAction)) {
-            $res.= ' /OpenAction ['.$this->oPage->ObjectId.' 0 R /'.$this->oAction.']';
+            $res .= ' /OpenAction ['.$this->oPage->ObjectId.' 0 R /'.$this->oAction.']';
         }
 
         if (isset($this->metadataId)) {
-            $res.= ' /Metadata '.$this->metadataId.' 0 R';
+            $res .= ' /Metadata '.$this->metadataId.' 0 R';
         }
 
         $intents = '';
         //$intents = $this->outputIntents();
         //$res.= ' /OutputIntents ['.$this->intentsId.' 0 R]';
 
-        $dests='';
+        $dests = '';
         if (count($this->names) > 0) {
             $dests = $this->outputDestinations();
-            $res.= ' /Dests '.$this->destinationId.' 0 R';
+            $res .= ' /Dests '.$this->destinationId.' 0 R';
         }
 
-        $res.= " >>\nendobj";
+        $res .= " >>\nendobj";
 
         $this->pages->AddXRef($this->ObjectId, strlen($res));
 
         return $res.$intents.$dests;
     }
 }
-?>

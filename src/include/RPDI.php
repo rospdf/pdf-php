@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ROS PDF Import class (RPDI) - Experimental
+ * ROS PDF Import class (RPDI) - Experimental.
  *
  * This class provides an import of existing PDF documents into a ROS PDF class environment (>= version 0.13.0)
  *
@@ -18,15 +18,15 @@
  * $pdf->Stream('template_test.pdf');
  *
  * @category Documents
- * @package  RPDI
- * @version  0.0.1
- * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
  *
+ * @version  0.0.1
+ *
+ * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
  * @copyright 2014 The author(s)
  * @license  GNU General Public License v3
+ *
  * @link     http://pdf-php.sf.net
  */
-
 use ROSPDF\Cpdf;
 use ROSPDF\CpdfContent;
 use ROSPDF\CpdfEXtension;
@@ -34,7 +34,7 @@ use ROSPDF\CpdfEXtension;
 class RPDI extends CpdfExtension
 {
     const EOFOffset = 50;
-    
+
     const ENTRYTYPE_INDIRECT = 1;
     const ENTRYTYPE_BOOL = 2;
     const ENTRYTYPE_INT = 3;
@@ -43,70 +43,70 @@ class RPDI extends CpdfExtension
     const ENTRYTYPE_LABEL = 6;
     const ENTRYTYPE_ARRAY = 7;
     const ENTRYTYPE_DICTIONARY = 8;
-    
+
     /**
-     * file stream of the imported pdf document
+     * file stream of the imported pdf document.
      */
     private $filestream;
     /**
-     * contains the trailer entries only
+     * contains the trailer entries only.
      */
     private $trailer;
     /**
-     * entries of the catalog object
+     * entries of the catalog object.
      */
     private $catalog;
     /**
-     * entries of the pages object
+     * entries of the pages object.
      */
     private $pages;
-    
+
     /**
-     * contains the page entries - key ordered by page object id
+     * contains the page entries - key ordered by page object id.
      */
     private $page;
     /**
-     * used for page numbers
+     * used for page numbers.
      */
     private $pageToObject;
-    
+
     /**
-     * array of all object being loaded
+     * array of all object being loaded.
      */
     private $objects;
-    
+
     /**
-     * object XRef
+     * object XRef.
      */
     private $objectXRef;
 
-    /**
-     * image references
-     */
+     /**
+      * image references.
+      */
      private $imageRefs;
-    
+
     /**
-     * associated array
+     * associated array.
      */
     private $objectAssoc;
     /**
-     * rearranged object ids
+     * rearranged object ids.
      */
     private $rearranged;
-     
+
     private $indirectObjects;
-     
-    public function __construct($file = 'template.pdf', $mediabox, $cropbox = null, $bleedbox = null)
+
+    public function __construct($file, $mediabox, $cropbox = null, $bleedbox = null)
     {
         parent::__construct($mediabox, $cropbox, $bleedbox);
-        
+
         $this->page = array();
         $this->pageToObject = array();
         $this->objects = array();
         $this->objectAssoc = array();
         $this->rearranged = array();
         $this->imageRefs = array();
-        
+
         // open the pdf file
         $this->filestream = fopen($file, 'r');
         // set the file pointer to the end minus EOFOffset (default: 50)
@@ -115,7 +115,7 @@ class RPDI extends CpdfExtension
         $data = fread($this->filestream, self::EOFOffset);
         // locate the integer verify the start of XRef table
         $res = preg_match("/\n([0-9]+)/m", $data, $regs);
-        
+
         if ($res) {
             // start reading the XRef from exact position
             $res = $this->readXRefAndTrailer($regs[1]);
@@ -123,58 +123,59 @@ class RPDI extends CpdfExtension
                 $t = $this->parseType($this->trailer['Root']);
                 $obj = $this->GetObject($t['value'], false);
                 $this->catalog = $obj['entries'];
-                
+
                 // initialize pages
                 $this->initPages();
             } else {
-                Cpdf::DEBUG("RPDI: An error occured - No template is used", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+                Cpdf::DEBUG('RPDI: An error occured - No template is used', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
             }
         }
     }
-    
+
     private function initPages()
     {
         if (isset($this->catalog) && isset($this->catalog['Pages'])) {
             $t = $this->parseType($this->catalog['Pages']);
             $obj = $this->GetObject($t['value']);
             $this->pages = $obj['entries'];
-        
-            if(isset($this->pages['Resources']) && is_array($this->pages['Resources']['XObject']))
-            {
+
+            if (isset($this->pages['Resources']) && is_array($this->pages['Resources']['XObject'])) {
                 $this->proccessXObjects($this->pages['Resources']['XObject']);
             }
 
             $t = $this->parseType($this->pages['Kids']);
-            
+
             if ($t['type'] == self::ENTRYTYPE_ARRAY) {
                 $i = 1;
                 foreach ($t['value'] as $v) {
                     if ($v['type'] == self::ENTRYTYPE_INDIRECT) {
-                         $pageObject = $this->GetObject($v['value']);
-                         $this->page[$v['value']] = $pageObject['entries'];
-                         $this->pageToObject[$i] = $v['value'];
-                         $i++;
+                        $pageObject = $this->GetObject($v['value']);
+                        $this->page[$v['value']] = $pageObject['entries'];
+                        $this->pageToObject[$i] = $v['value'];
+                        ++$i;
                     }
                 }
             }
         }
     }
 
-    protected function proccessXObjects($xObjectDir){
-        foreach($xObjectDir as $k => $v) {
+    protected function proccessXObjects($xObjectDir)
+    {
+        foreach ($xObjectDir as $k => $v) {
             $im = $this->parseType($v);
             $this->processImageObject($im['value']);
         }
     }
 
-    protected function processImageObject($objectId){
+    protected function processImageObject($objectId)
+    {
         $imageObj = $this->GetObject($objectId, true);
 
         $imgContent = $this->NewContent();
         $imgContent->SetPageMode(CpdfContent::PMODE_NOPAGE);
-        $imgContent->Name = "PDFIMPORTIMG_" . $objectId;
+        $imgContent->Name = 'PDFIMPORTIMG_'.$objectId;
 
-        foreach($imageObj['entries'] as $k => $v) {
+        foreach ($imageObj['entries'] as $k => $v) {
             $imgContent->AddEntry($k, $v);
         }
 
@@ -183,18 +184,16 @@ class RPDI extends CpdfExtension
         // fill the assocation array
         $this->objectAssoc[$objectId] = $imgContent->Name;
 
-
-        if(isset($imageObj['entries']['SMask']))
-        {
+        if (isset($imageObj['entries']['SMask'])) {
             $t = $this->parseType($imageObj['entries']['SMask']);
-            if($t['type'] == Self::ENTRYTYPE_INDIRECT) {
+            if ($t['type'] == Self::ENTRYTYPE_INDIRECT) {
                 $imgMask = $this->GetObject($t['value'], true);
 
                 $cObject = $this->NewContent();
                 $cObject->SetPageMode(CpdfContent::PMODE_NOPAGE);
-                $cObject->Name = "PDFIMPORTIMG_" . $t['value'];
+                $cObject->Name = 'PDFIMPORTIMG_'.$t['value'];
 
-                foreach($imgMask['entries'] as $k => $v) {
+                foreach ($imgMask['entries'] as $k => $v) {
                     $cObject->AddEntry($k, $v);
                 }
 
@@ -202,50 +201,51 @@ class RPDI extends CpdfExtension
 
                 // fill the assocation array
                 $this->objectAssoc[$t['value']] = $cObject->Name;
-                
+
                 $this->imageRefs[$objectId] = &$cObject;
             }
         }
     }
-    
-    
+
     public function ImportPage($pageNumber)
     {
         // contains the full page including all indirect object references in ONE object
         $fullPage = $this->GetPage($pageNumber);
         //print_r($fullPage);
-        
+
         if (!isset($fullPage)) {
-            Cpdf::DEBUG("RPDI: Page not found", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+            Cpdf::DEBUG('RPDI: Page not found', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+
             return;
         }
-        
+
         if (!isset($fullPage['Contents'])) {
             Cpdf::DEBUG("RPDI: No Content found for page $pageNumber", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+
             return;
         }
-        
+
         $this->parseContent($fullPage);
         if (isset($this->pageToObject[$pageNumber])) {
             //$page = &$this->page[$this->pageToObject[$pageNumber]];
             $page = $fullPage;
-            
+
             foreach ($this->indirectObjects as $entry) {
                 $obj = $this->GetObject($entry['value'], true);
-                
+
                 if (isset($obj)) {
                     $cObject = $this->NewContent();
                     $cObject->SetPageMode(CpdfContent::PMODE_NOPAGE);
-                    $cObject->Name = "PDFIMPORT_".$entry['value'];
-                    
+                    $cObject->Name = 'PDFIMPORT_'.$entry['value'];
+
                     if (isset($obj['stream'])) {
                         $cObject->AddRaw($obj['stream']);
                     }
-                    
+
                     foreach ($obj['entries'] as $key => $value) {
                         $cObject->AddEntry($key, $value);
                     }
-                    
+
                     // fill the assocation array
                     $this->objectAssoc[$entry['value']] = $cObject->Name;
                 }
@@ -253,30 +253,30 @@ class RPDI extends CpdfExtension
         }
         //print_r($this->objectAssoc);
     }
-    
+
     public function OnObjectCallback(&$cObject)
     {
-        if (($key=array_search($cObject->Name, $this->objectAssoc)) !== false) {
+        if (($key = array_search($cObject->Name, $this->objectAssoc)) !== false) {
             $this->rearranged[$key] = $cObject->ObjectId;
 
             $subType = $cObject->GetEntry('Subtype');
             $smask = $cObject->GetEntry('SMask');
 
-            if(isset($cObject->ImageNum) && isset($smask)) {
+            if (isset($cObject->ImageNum) && isset($smask)) {
                 $this->contentRefs['pages'][$cObject->ObjectId] = array($cObject->ImageNum);
             }
 
             $smask = $cObject->GetEntry('SMask');
-            if($smask && isset($this->imageRefs[$key])) {
+            if ($smask && isset($this->imageRefs[$key])) {
                 $imgMask = $this->imageRefs[$key];
                 $cObject->AddEntry('SMask', "{$imgMask->ObjectId} 0 R");
             }
 
             // reset the temporary name
             $cObject->Name = null;
-        }      
-    }   
-   
+        }
+    }
+
     public function OnPageCallback(&$page)
     {
         // TODO: add imported page number here
@@ -301,24 +301,24 @@ class RPDI extends CpdfExtension
     {
         // Do something when all pages and objects are rendered
     }
-    
+
     private function parseContent(&$fullPage)
     {
         if (!is_array($fullPage['Contents']) || count($fullPage['Contents']) <= 0) {
-            Cpdf::DEBUG("RPDI: Empty content", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+            Cpdf::DEBUG('RPDI: Empty content', Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
         }
-        
+
         foreach ($fullPage['Contents'] as $key => $value) {
             $cObject = $this->NewContent();
             $cObject->SetPageMode(CpdfContent::PMODE_ALL);
             $cObject->Name = "PDFIMPORT_$key";
-            
+
             $cObject->AddRaw($value['stream']);
             // fill the assocation array
             $this->objectAssoc[$key] = $cObject->Name;
         }
     }
-    
+
     public function GetPage($pageNumber)
     {
         if (isset($this->pageToObject[$pageNumber])) {
@@ -327,38 +327,36 @@ class RPDI extends CpdfExtension
             // ERROR: page not found
         }
     }
-    
+
     public function GetPageByObjectId($objectId)
     {
         return $this->getFullPage($objectId);
     }
-    
+
     public function GetObject($objectId, $withStream = false)
     {
         if (isset($this->objects[$objectId])) {
             return $this->objects[$objectId];
         }
-        
-        
-        $res = array('stream'=> null, 'entries'=> null);
+
+        $res = array('stream' => null, 'entries' => null);
         if (!isset($this->objectXRef[$objectId])) {
             return null;
         }
-        
+
         $offset = $this->objectXRef[$objectId];
         fseek($this->filestream, $offset, SEEK_SET);
-        
 
-        $data = "";
+        $data = '';
         do {
             $buffer = fgets($this->filestream);
             $data .= $buffer;
-        } while($buffer != "endobj\n");
-     
+        } while ($buffer != "endobj\n");
+
         $entries = array();
-        
+
         $a = preg_split("/(stream|endstream)|[0-9]+ 0 obj(\r\n|\n|\r)/", $data);
-        
+
         if (count($a) > 2 && $withStream) {
             $res['entries'] = $this->parseEntry($a[1]);
             //print_r($res);
@@ -370,7 +368,7 @@ class RPDI extends CpdfExtension
             }
             //print_r($res);
         } else {
-            $t=$this->parseType($a[1]);
+            $t = $this->parseType($a[1]);
             if ($t['type'] == self::ENTRYTYPE_ARRAY) {
                 $res = $a[1];
             } else {
@@ -379,19 +377,20 @@ class RPDI extends CpdfExtension
             //print_r($res);
         }
         $this->objects[$objectId] = $res;
+
         return $res;
     }
-    
+
     private function valueToDictionary($entryValue)
     {
         if (isset($entryValue) && is_array($entryValue)) {
             $res = '<< ';
             foreach ($entryValue as $key => $value) {
                 if (is_array($value)) {
-                    $res.= " /$key ".$this->valueToDictionary($value);
+                    $res .= " /$key ".$this->valueToDictionary($value);
                 } else {
                     $t = $this->parseType($value);
-                    
+
                     if ($t['type'] == self::ENTRYTYPE_INDIRECT) {
                         if (isset($this->rearranged[$t['value']])) {
                             $value = $this->rearranged[$t['value']].' 0 R';
@@ -409,16 +408,17 @@ class RPDI extends CpdfExtension
                             $value = $tmp;
                         }
                     }
-                    $res.= "/$key $value";
+                    $res .= "/$key $value";
                 }
             }
-            $res.= ' >>';
+            $res .= ' >>';
+
             return $res;
         } else {
             return $entryValue;
         }
     }
-    
+
     private function findIndirectObjects(&$entryArray, $ignoreKeys = array(), $deep = false, $withStream = false)
     {
         $res = array();
@@ -427,7 +427,7 @@ class RPDI extends CpdfExtension
             if (in_array($key, $ignoreKeys)) {
                 continue;
             }
-            
+
             if (is_array($value)) {
                 $r = $this->findIndirectObjects($value, $ignoreKeys, $deep, $withStream);
                 $res = array_merge($res, $r);
@@ -435,12 +435,12 @@ class RPDI extends CpdfExtension
                 $t = $this->parseType($value);
                 if ($t['type'] == self::ENTRYTYPE_INDIRECT) {
                     array_push($res, $t);
-                    
+
                     $tmp = $this->GetObject($t['value'], $withStream);
                     // if GetObject returned a string, it seems to be any datatype of an dictionary
                     if ($deep && is_string($tmp)) {
                         $tmp2 = $this->parseType($tmp);
-                        
+
                         if (isset($tmp2['type'])) {
                             array_pop($res);
                             switch ($tmp2['type']) {
@@ -461,27 +461,28 @@ class RPDI extends CpdfExtension
                             $res = array_merge($res, $r);
                         }
                     }
-                    
+
                     if ($withStream) {
                         $value = $tmp;
                     }
                 }
             }
         }
+
         return $res;
     }
-    
+
     private function fillIndirectObjects(&$entryArray, $ignoreKeys = array())
     {
         return $this->findIndirectObjects($entryArray, $ignoreKeys, true, true);
     }
-    
+
     private function getFullPage($pageObjectId)
     {
         if (isset($this->page[$pageObjectId])) {
             $page = $this->page[$pageObjectId];
             //print_r($page);
-            
+
             if (isset($page['Contents'])) {
                 $t = $this->parseType($page['Contents']);
                 if ($t['type'] == self::ENTRYTYPE_INDIRECT) {
@@ -501,7 +502,7 @@ class RPDI extends CpdfExtension
                     }
                 }
             }
-            
+
             if (isset($page['MediaBox'])) {
                 $t = $this->parseType($page['MediaBox']);
                 $page['MediaBox'] = $t['value'];
@@ -518,32 +519,36 @@ class RPDI extends CpdfExtension
                 $t = $this->parseType($page['BleedBox']);
                 $page['BleedBox'] = $t['value'];
             }
-                       
+
             $this->indirectObjects = $this->findIndirectObjects($page, array('Parent', 'Contents'), true);
+
             return $page;
         }
+
         return null;
     }
-    
+
     private function readXRefAndTrailer($xrefpos, $isLinearized = false)
     {
         fseek($this->filestream, $xrefpos, SEEK_SET);
-        
+
         $buffer = stream_get_line($this->filestream, 4028, 'startxref');
-        
+
         $xrefhead = array();
         if (!$isLinearized) {
             if (substr($buffer, 0, 4) != 'xref') {
-                Cpdf::DEBUG("RPDI: xref position not found", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+                Cpdf::DEBUG('RPDI: xref position not found', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+
                 return false;
             }
-            
-            $r = preg_match("/([0-9]+) ([0-9]+)/", $buffer, $xrefhead);
+
+            $r = preg_match('/([0-9]+) ([0-9]+)/', $buffer, $xrefhead);
             if (!$r) {
-                Cpdf::DEBUG("RPDI: Failed to receive XRef header", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+                Cpdf::DEBUG('RPDI: Failed to receive XRef header', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+
                 return false;
             }
-            
+
             if ($xrefhead[1] <= 0) {
                 $xrefhead[1] = 1;
                 $xrefhead[2] -= 1;
@@ -551,27 +556,28 @@ class RPDI extends CpdfExtension
         } elseif (count($this->objectXRef) > 0) {
             // some checks for linearized xref
             $k = array_keys($this->objectXRef);
-            
+
             $xrefhead[1] = 1;
             $xrefhead[2] = min($k) - 1;
         }
-        
+
         // start object number
         $i = $xrefhead[1];
-        
-        if (preg_match_all("/^([0-9]{10}) ([0-9]{5}) (n)/m", $buffer, $regs)) {
+
+        if (preg_match_all('/^([0-9]{10}) ([0-9]{5}) (n)/m', $buffer, $regs)) {
             foreach ($regs[0] as $k => $v) {
-                $this->objectXRef[$i] = (int)$regs[1][$k];
-                $i++;
+                $this->objectXRef[$i] = (int) $regs[1][$k];
+                ++$i;
             }
         }
-        
+
         if ($i != ($xrefhead[1] + $xrefhead[2])) {
             //print_r($xrefhead);
             Cpdf::DEBUG("RPDI: XRef table mismatch: $i != ".($xrefhead[1] + $xrefhead[2]), Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+
             return false;
         }
-        
+
         if ($xrefhead[1] > 1 && !$isLinearized) {
             // might be a Linearized PDF
             $lin = $this->GetObject($xrefhead[1]);
@@ -582,44 +588,44 @@ class RPDI extends CpdfExtension
         if (!$isLinearized && ($pos = strpos($buffer, 'trailer')) !== false) {
             $this->trailer = $this->parseEntry(substr($buffer, $pos));
         }
-        
+
         return true;
     }
-    
-    private function convertEntry($entries){
 
+    private function convertEntry($entries)
+    {
     }
-    
+
     const TOKEN_NONE = 0;
     const TOKEN_NAME = 1;
     const TOKEN_VALUE = 2;
     const TOKEN_BRACKET = 3;
-        
+
     private function parseEntry($entry, &$offset = 0)
     {
         $fields = [];
-        $entry = str_replace("\n", " ", $entry);
+        $entry = str_replace("\n", ' ', $entry);
 
-        $length=strlen($entry);
+        $length = strlen($entry);
         $i = 0;
         $level = 0;
         $bracketOpened = 0;
-        
+
         $token = self::TOKEN_NONE;
-              
+
         $name = '';
         $value = '';
         while ($i < $length) {
             if ($token == self::TOKEN_NONE && substr($entry, $i, 2) == '<<') {
-                $level++;
+                ++$level;
                 //echo "LEVEL UP $level - " . substr($entry, $i, 25) . "\n\n";
-                $i++;
+                ++$i;
             } elseif ($token == self::TOKEN_NONE && $bracketOpened <= 0 && substr($entry, $i, 2) == '>>') {
-                $level--;
+                --$level;
                 //echo "LEVEL DOWN $level - " . substr($entry, $i, 20) . "\n\n";
                 $token = self::TOKEN_NONE;
                 if ($level <= 0) {
-                    $i++;
+                    ++$i;
                     break;
                 }
             } elseif ($token == self::TOKEN_NAME && substr($entry, $i, 2) == '<<') {
@@ -628,11 +634,11 @@ class RPDI extends CpdfExtension
                 $i += $o;
                 $token = self::TOKEN_NONE;
             } elseif (($token == self::TOKEN_NAME || $token == self::TOKEN_BRACKET) && $entry[$i] == '[') {
-                $bracketOpened++;
-                $value.= $entry[$i];
+                ++$bracketOpened;
+                $value .= $entry[$i];
                 $token = self::TOKEN_BRACKET;
             } elseif ($token == self::TOKEN_BRACKET && $bracketOpened > 0 && $entry[$i] == ']') {
-                $bracketOpened--;
+                --$bracketOpened;
                 if ($bracketOpened <= 0) {
                     $bracketOpened = 0;
                     $value .= $entry[$i];
@@ -646,7 +652,7 @@ class RPDI extends CpdfExtension
                 $fields[$name] = $value;
                 $name = $value = '';
                 $token = self::TOKEN_NONE;
-                $i--;
+                --$i;
             } elseif ($token == self::TOKEN_NONE && $bracketOpened <= 0 && preg_match("/^\/([A-Z0-9]+)/i", substr($entry, $i), $regs)) {
                 $name = $regs[1];
                 $token = self::TOKEN_NAME;
@@ -654,31 +660,31 @@ class RPDI extends CpdfExtension
             } elseif ($token == self::TOKEN_NAME && $bracketOpened <= 0 && preg_match("/^([0-9]+ 0 R|[0-9]+|true|false|\/[A-Z0-9]+)/i", substr($entry, $i), $regs)) {
                 $value = $regs[1];
                 $token = self::TOKEN_VALUE;
-                
+
                 $i += strlen($regs[0]) - 1;
             }
-            $i++;
+            ++$i;
         }
-        
+
         $offset = $i;
-        
+
         //print_r($fields);
         return $fields;
     }
-    
+
     private function parseType($subject)
     {
-        $parsed = array('type'=> null, 'value' => null);
-        if (preg_match("/^([0-9]+) 0 R/", $subject, $regs)) {
-            $parsed['value'] = (int)$regs[1];
+        $parsed = array('type' => null, 'value' => null);
+        if (preg_match('/^([0-9]+) 0 R/', $subject, $regs)) {
+            $parsed['value'] = (int) $regs[1];
             $parsed['type'] = self::ENTRYTYPE_INDIRECT;
-        } elseif (preg_match("/^([0-9]+.[0-9]+)/", $subject, $regs)) {
+        } elseif (preg_match('/^([0-9]+.[0-9]+)/', $subject, $regs)) {
             $parsed['value'] = floatval($regs[1]);
             $parsed['type'] = self::ENTRYTYPE_FLOAT;
-        } elseif (preg_match("/^([0-9]+)/", $subject, $regs)) {
-            $parsed['value'] = (int)$regs[1];
+        } elseif (preg_match('/^([0-9]+)/', $subject, $regs)) {
+            $parsed['value'] = (int) $regs[1];
             $parsed['type'] = self::ENTRYTYPE_INT;
-        } elseif (preg_match("/^(true|false)/i", $subject, $regs)) {
+        } elseif (preg_match('/^(true|false)/i', $subject, $regs)) {
             if (strtolower(substr($regs[1], 1, 1)) == 't') {
                 $parsed['value'] = true;
             } else {
@@ -691,7 +697,7 @@ class RPDI extends CpdfExtension
         } elseif (preg_match("/^\[(.*?)\]/i", $subject, $regs)) {
             // fetch all indirect array values
             $res = array();
-            if (preg_match_all("/([0-9]+ 0 R|[0-9.]+)/", $regs[1], $r)) {
+            if (preg_match_all('/([0-9]+ 0 R|[0-9.]+)/', $regs[1], $r)) {
                 foreach ($r[1] as $v) {
                     $t = $this->parseType($v);
                     array_push($res, $t);
@@ -706,6 +712,7 @@ class RPDI extends CpdfExtension
             $parsed['value'] = $subject;
             $parsed['type'] = self::ENTRYTYPE_STRING;
         }
+
         return $parsed;
     }
 

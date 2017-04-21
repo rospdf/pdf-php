@@ -3,7 +3,7 @@
 namespace ROSPDF;
 
 /**
- * PDF document info (Metadata)
+ * PDF document info (Metadata).
  */
 class CpdfMetadata
 {
@@ -22,10 +22,10 @@ class CpdfMetadata
             'Producer' => 'ROS for PHP',
             'Description' => '',
             'Subject' => '',
-            'Creator'=>'ROS pdf class',
-            'CreationDate'=> time(),
+            'Creator' => 'ROS pdf class',
+            'CreationDate' => time(),
             'ModDate' => time(),
-            'Trapped' => 'False'
+            'Trapped' => 'False',
         );
     }
 
@@ -47,7 +47,7 @@ class CpdfMetadata
             foreach ($this->info as $key => $value) {
                 switch ($key) {
                     case 'Trapped':
-                        $res.= " /$key /$value";
+                        $res .= " /$key /$value";
                         break;
                     case 'ModDate':
                     case 'CreationDate':
@@ -55,26 +55,27 @@ class CpdfMetadata
                     default:
                         if (isset($encObj)) {
                             $dummyAsRef = null;
-                            $res.= " /$key (".$this->pages->filterText($dummyAsRef, $encObj->ARC4($value)).")";
+                            $res .= " /$key (".$this->pages->filterText($dummyAsRef, $encObj->ARC4($value)).')';
                         } else {
-                            $res.= " /$key ($value)";
+                            $res .= " /$key ($value)";
                         }
                         break;
                 }
             }
         }
-        $res.= " >>";
+        $res .= ' >>';
+
         return $res;
     }
 
     /**
-     * TODO: build up the XML metadata object which is avail since PDF version 1.4
+     * TODO: build up the XML metadata object which is avail since PDF version 1.4.
      */
     private function outputXML()
     {
-        $res= "\n<< /Type /Metadata /Subtype /XML";
+        $res = "\n<< /Type /Metadata /Subtype /XML";
         // dummy output for XMP
-        $tmp= "\n".'<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
+        $tmp = "\n".'<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>
 		<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="Adobe XMP Core 4.2.1-c043 52.372728, 2009/01/18-15:08:04">
 			<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 				<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -112,8 +113,9 @@ class CpdfMetadata
 		</x:xmpmeta>
 		<?xpacket end="w"?>';
 
-        $res.= ' /Length '.strlen($tmp).' >>';
-        $res.= "\nstream".$tmp."\n\nendstream";
+        $res .= ' /Length '.strlen($tmp).' >>';
+        $res .= "\nstream".$tmp."\n\nendstream";
+
         return $res;
     }
 
@@ -128,25 +130,24 @@ class CpdfMetadata
                 return date('Y-m-d', $t).'T'.date('H:i:s').'Z';
                 break;
         }
-
     }
 
     public function OutputAsObject($type = 'PLAIN')
     {
-        $res= "\n$this->ObjectId 0 obj";
+        $res = "\n$this->ObjectId 0 obj";
 
         switch (strtoupper($type)) {
             case 'PLAIN':
-                $res.= $this->outputInfo();
+                $res .= $this->outputInfo();
                 break;
             case 'XML':
-                $res.= $this->outputXML();
+                $res .= $this->outputXML();
                 break;
         }
 
-        $res.= "\nendobj";
+        $res .= "\nendobj";
         $this->pages->AddXRef($this->ObjectId, strlen($res));
+
         return $res;
     }
 }
-?>

@@ -1,63 +1,66 @@
 <?php
+
 namespace ROSPDF;
 
 class CpdfAppearance extends CpdfContent
 {
     /**
      * the current CpdfFont object as reference
-     * Use SetFont('fontname'[, ...]) to change it
+     * Use SetFont('fontname'[, ...]) to change it.
+     *
      * @var CpdfFont
      */
     protected $CURFONT;
 
     /**
-     * stores the font family
-     * @var String
+     * stores the font family.
+     *
+     * @var string
      */
     public $FontFamily;
 
     public $LineGap = 0;
     /**
-     * ColumnGap is used when BreakColumn is TRUE
+     * ColumnGap is used when BreakColumn is TRUE.
      */
     public $ColumnGap = 10;
 
     /**
      * the current font height received by $this->CURFONT->getFontHeight($size)
-     * Use public property LineGap to change the distance
+     * Use public property LineGap to change the distance.
      */
     protected $fontHeight;
 
     /**
      * the current font descender received by $this->CURFONT->getFontDecender($size)
-     * Use public property LineGap to change the distance
+     * Use public property LineGap to change the distance.
      */
     protected $fontDescender;
 
     /**
      * the current font size.
-     * Use SetFont('fontname'[, ...]) to change it
+     * Use SetFont('fontname'[, ...]) to change it.
      */
     private $fontSize;
 
     /**
      * the current font style
-     * Use SetFont('fontname'[, ...]) to change it
+     * Use SetFont('fontname'[, ...]) to change it.
      */
     private $fontStyle;
 
     /**
-     * used to store the rotation while adding text elements
+     * used to store the rotation while adding text elements.
      */
     private $angle;
 
     /**
-     * font color
+     * font color.
      */
     private $fontColor;
 
     /**
-     * Bounding Box to define the position of the text
+     * Bounding Box to define the position of the text.
      *
      * Use Cpdf::SetBBox([changeBBox], $this->BBox) to change the BBox
      * See Adobe PDF Refence 1.4, Chapter 3.8.3 Rectangle for more information
@@ -67,7 +70,7 @@ class CpdfAppearance extends CpdfContent
     protected $resizeBBox = false;
 
     /**
-     * relative position of the rectangle
+     * relative position of the rectangle.
      */
     public $y;
 
@@ -107,20 +110,20 @@ class CpdfAppearance extends CpdfContent
 
         // FOR DEBUGGING - DISPLAY A RED COLORED BOUNDING BOX
         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_BBOX)) {
-            $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->initialBBox[0], $this->initialBBox[3], $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[1] - $this->initialBBox[3])." S Q";
+            $this->contents .= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->initialBBox[0], $this->initialBBox[3], $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[1] - $this->initialBBox[3]).' S Q';
         }
     }
 
     private function setColor()
     {
         if (is_object($this->fontColor)) {
-            $this->contents.= "\n".$this->fontColor->Output(false, true);
+            $this->contents .= "\n".$this->fontColor->Output(false, true);
         }
     }
 
     /**
      * Receives the current bounding box
-     * Can be equal the bounding box of the page or any other user defined coordinates
+     * Can be equal the bounding box of the page or any other user defined coordinates.
      */
     public function GetBBox($which = null)
     {
@@ -163,6 +166,7 @@ class CpdfAppearance extends CpdfContent
         }
 
         $tm = $this->CURFONT->getTextLength($size, $text, -1, 0, 0);
+
         return $tm[0];
     }
 
@@ -185,7 +189,7 @@ class CpdfAppearance extends CpdfContent
 
     /**
      * Set the font and font size for the current text session
-     * By default font size is set to 10 units
+     * By default font size is set to 10 units.
      *
      * TODO: Make use of default font families for TTF fonts (including UNICODE)
      */
@@ -211,6 +215,7 @@ class CpdfAppearance extends CpdfContent
 
         if (empty($fontName)) {
             Cpdf::DEBUG("Could not find either base font or style for '$fontName'", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+
             return;
         }
 
@@ -233,18 +238,18 @@ class CpdfAppearance extends CpdfContent
         if ($this->y == $this->BBox[3] && !$this->IsCallback) {
             $this->y -= $this->fontHeight + $this->fontDescender;
         }
-
     }
 
     /**
      * Add a text by using either "default" formattings (like <b> or <i>) or any ALLOWED callback function
      * To allow callback please...
-     * TODO: Either registering callbacks or continue with extending $this->allowedTags property
+     * TODO: Either registering callbacks or continue with extending $this->allowedTags property.
      */
     public function AddText($text, $width = 0, $justify = 'left', $wordSpaceAdjust = 0)
     {
         if ($this->Paging == CpdfContent::PMODE_REPEAT || $this->Paging == CpdfContent::PMODE_LAZY) {
             array_push($this->delayedContent, array($text, $width, $justify, $wordSpaceAdjust));
+
             return $this;
         }
         // convert to text
@@ -307,7 +312,7 @@ class CpdfAppearance extends CpdfContent
                         // reset the font color for the next page
                         $this->setColor();
 
-                        if($this->BreakPage == CpdfContent::PB_COLUMN) {
+                        if ($this->BreakPage == CpdfContent::PB_COLUMN) {
                             // fully reset the BBox when column based
                             $this->BBox = $this->initialBBox;
                         }
@@ -326,7 +331,7 @@ class CpdfAppearance extends CpdfContent
 
                         // FOR DEBUGGING - DISPLAY A RED COLORED BOUNDING BOX
                         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_BBOX)) {
-                            $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->initialBBox[0], $this->initialBBox[3], $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[1] - $this->initialBBox[3])." S Q";
+                            $this->contents .= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->initialBBox[0], $this->initialBBox[3], $this->initialBBox[2] - $this->initialBBox[0], $this->initialBBox[1] - $this->initialBBox[3]).' S Q';
                         }
 
                         $this->x = $this->initialBBox[0];
@@ -349,25 +354,26 @@ class CpdfAppearance extends CpdfContent
 
         // FOR DEBUGGING - DISPLAY A RED COLORED BOUNDING BOX
         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_TEXT)) {
-            $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], $this->BBox[1] - $this->BBox[3])." S Q";
+            $this->contents .= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], $this->BBox[1] - $this->BBox[3]).' S Q';
         }
+
         return $this;
     }
     /**
-     * Use the affine transformation to rotate the text
+     * Use the affine transformation to rotate the text.
      */
     public function SetRotation($angle, $x, $y)
     {
         if ($angle != 0) {
-            $a = deg2rad((float)$angle);
-            $tmp = sprintf('%.3F', cos($a)).' '.sprintf('%.3F', (-1.0*sin($a))).' '.sprintf('%.3F', sin($a)).' '.sprintf('%.3F', cos($a)).' ';
+            $a = deg2rad((float) $angle);
+            $tmp = sprintf('%.3F', cos($a)).' '.sprintf('%.3F', (-1.0 * sin($a))).' '.sprintf('%.3F', sin($a)).' '.sprintf('%.3F', cos($a)).' ';
             $tmp .= sprintf('%.3F', $x).' '.sprintf('%.3F', $y).' Tm';
-            $this->contents.= "\n".$tmp;
+            $this->contents .= "\n".$tmp;
             $this->angle = $angle;
         }
     }
     /**
-     * Reset the rotation (or any transformation) by calling the ResetTransform() method
+     * Reset the rotation (or any transformation) by calling the ResetTransform() method.
      */
     public function ResetRotation()
     {
@@ -375,11 +381,11 @@ class CpdfAppearance extends CpdfContent
         $this->angle = 0;
     }
     /**
-     * This will reset the matrix to its default values
+     * This will reset the matrix to its default values.
      */
     public function ResetTransform()
     {
-        $this->contents.="\n1 0 0 1 0 0 Tm";
+        $this->contents .= "\n1 0 0 1 0 0 Tm";
     }
 
     private function justifyImage($width, $height, $xpos = 'left', $ypos = 'top')
@@ -392,10 +398,10 @@ class CpdfAppearance extends CpdfContent
 
             switch ($xpos) {
                 case 'right':
-                    $x += $maxWidth-$width;
+                    $x += $maxWidth - $width;
                     break;
                 case 'center':
-                    $x += ($maxWidth - $width)/2;
+                    $x += ($maxWidth - $width) / 2;
                     break;
                 default:
                     break;
@@ -411,7 +417,7 @@ class CpdfAppearance extends CpdfContent
                     break;
                 case 'middle':
                     $middle = ($this->BBox[3] - $this->BBox[1]) / 2;
-                    $y += $middle - ($height/2);
+                    $y += $middle - ($height / 2);
                     break;
             }
         } else {
@@ -427,11 +433,11 @@ class CpdfAppearance extends CpdfContent
     /**
      * Add image into the page by either using coordinates or justification strings, like 'center', 'top', 'bottom', ...
      *
-     * @param mixed $x either a float for exact positioning or a string to justify automatically
-     * @param mixed $y either a float for exact positioning or a string to justify automatically
+     * @param mixed  $x      either a float for exact positioning or a string to justify automatically
+     * @param mixed  $y      either a float for exact positioning or a string to justify automatically
      * @param string $source source file or url of an JPEG or PNG image
-     * @param float $width optional width to resize the image
-     * @param float $height optional height to resize the image
+     * @param float  $width  optional width to resize the image
+     * @param float  $height optional height to resize the image
      */
     public function AddImage($x, $y, $source, $width = null, $height = null)
     {
@@ -470,19 +476,19 @@ class CpdfAppearance extends CpdfContent
             $y -= $h;
         }
 
-        $this->contents.= "\nq ".$this->justifyImage($w, $h, $x, $y);
-        $this->contents.= ' /'.Cpdf::$ImageLabel.$img->ImageNum.' Do';
-        $this->contents.= " Q";
+        $this->contents .= "\nq ".$this->justifyImage($w, $h, $x, $y);
+        $this->contents .= ' /'.Cpdf::$ImageLabel.$img->ImageNum.' Do';
+        $this->contents .= ' Q';
 
         return $this;
     }
 
     /**
-     * Add a rectangle (usable as callback)
+     * Add a rectangle (usable as callback).
      *
-     * @param float $x x coordinate relative to bounding box
-     * @param float $y y coordinate relative to bounding box
-     * @param float $width width of the rectangle - Callbacks will overwrite this value
+     * @param float $x      x coordinate relative to bounding box
+     * @param float $y      y coordinate relative to bounding box
+     * @param float $width  width of the rectangle - Callbacks will overwrite this value
      * @param float $height height of the rectangle - Callbacks will overwrite this value
      */
     public function AddRectangle($x, $y, $width = 0, $height = 0, $filled = false, $lineStyle = null)
@@ -500,10 +506,10 @@ class CpdfAppearance extends CpdfContent
 
         $o->Width = $width;
         $o->Height = $height;
-        $o->Params = array('filled'=>$filled, 'style'=> $lineStyle);
+        $o->Params = array('filled' => $filled, 'style' => $lineStyle);
 
         if (!$this->IsCallback) {
-            $this->contents.= "\n".$o->Output();
+            $this->contents .= "\n".$o->Output();
         } else {
             $this->CallbackNo += 1;
             array_push($this->callbackObjects, $o);
@@ -511,26 +517,25 @@ class CpdfAppearance extends CpdfContent
     }
 
     /**
-     * set a default line style for all drawing within the Appearance object
+     * set a default line style for all drawing within the Appearance object.
      */
     public function SetDefaultLineStyle($width, $cap, $join = null, $dash = null)
     {
         $o = new CpdfLineStyle($width, $cap, $join, $dash);
 
-        $this->contents.= "\n".$o->Output();
+        $this->contents .= "\n".$o->Output();
     }
 
     /**
-     * Draw a line (usable as callback)
+     * Draw a line (usable as callback).
      *
      * Example: $app->AddLine(10, 800, 300, -300, new CpdfLineStyle(2, 'round','', array(5,3)));
      *
-     * @param float $x initial x coordinate
-     * @param float $y initial y coordinate
-     * @param float $width width of the line
-     * @param float $height height is used to set the end y coordinate
+     * @param float         $x         initial x coordinate
+     * @param float         $y         initial y coordinate
+     * @param float         $width     width of the line
+     * @param float         $height    height is used to set the end y coordinate
      * @param CpdfLineStyle $lineStyle defines the style of the line by using the CpdfLineStyle object
-     *
      */
     public function AddLine($x, $y, $width = 0, $height = 0, $lineStyle = null)
     {
@@ -539,15 +544,15 @@ class CpdfAppearance extends CpdfContent
         // if no width is set, take 100% of the current bounding box (or wait for callback)
         /*
         if($width == 0){
-			      $width = $this->BBox[2] - $this->BBox[0];
-		    }
+                  $width = $this->BBox[2] - $this->BBox[0];
+            }
         */
 
         $o->Width = $width;
         $o->Height = $height;
 
         if (!$this->IsCallback) {
-            $this->contents.= "\n".$o->Output();
+            $this->contents .= "\n".$o->Output();
         } else {
             $this->CallbackNo += 1;
             array_push($this->callbackObjects, $o);
@@ -558,25 +563,24 @@ class CpdfAppearance extends CpdfContent
     {
         // in the current line style, draw a bezier curve from (x0,y0) to (x3,y3) using the other two points
         // as the control points for the curve.
-        $this->contents.="\n".sprintf('%.3F', $x).' '.sprintf('%.3F', $y).' m '.sprintf('%.3F', $x1).' '.sprintf('%.3F', $y1);
-        $this->contents.= ' '.sprintf('%.3F', $x2).' '.sprintf('%.3F', $y2).' '.sprintf('%.3F', $x3).' '.sprintf('%.3F', $y3).' c S';
+        $this->contents .= "\n".sprintf('%.3F', $x).' '.sprintf('%.3F', $y).' m '.sprintf('%.3F', $x1).' '.sprintf('%.3F', $y1);
+        $this->contents .= ' '.sprintf('%.3F', $x2).' '.sprintf('%.3F', $y2).' '.sprintf('%.3F', $x3).' '.sprintf('%.3F', $y3).' c S';
     }
 
     public function AddCircleAsLine($x, $y, $size = 50, $nSeg = 8, $minRad = 0, $maxRad = 360)
     {
+        $astart = deg2rad((float) $minRad);
+        $afinish = deg2rad((float) $maxRad);
 
-        $astart = deg2rad((float)$minRad);
-        $afinish = deg2rad((float)$maxRad);
+        $totalAngle = $afinish - $astart;
 
-        $totalAngle =$afinish-$astart;
+        $dt = $totalAngle / $nSeg;
 
-        $dt = $totalAngle/$nSeg;
+        for ($i = 0; $i < $nSeg; ++$i) {
+            $a0 = $x + $size * cos($astart);
+            $b0 = $y + $size * sin($astart);
 
-        for ($i=0; $i < $nSeg; $i++) {
-            $a0 = $x+$size*cos($astart);
-            $b0 = $y+$size*sin($astart);
-
-            $this->contents.= "\n".sprintf('%.3F %.3F m %.3F %.3F l S', $x, $y, $a0, $b0);
+            $this->contents .= "\n".sprintf('%.3F %.3F m %.3F %.3F l S', $x, $y, $a0, $b0);
 
             $astart += $dt;
         }
@@ -584,19 +588,18 @@ class CpdfAppearance extends CpdfContent
 
     public function AddLinesInCircle($x, $y, $size = 50, $nSeg = 8, $minRad = 0, $maxRad = 360)
     {
+        $astart = deg2rad((float) $minRad);
+        $afinish = deg2rad((float) $maxRad);
 
-        $astart = deg2rad((float)$minRad);
-        $afinish = deg2rad((float)$maxRad);
+        $totalAngle = $afinish - $astart;
 
-        $totalAngle =$afinish-$astart;
+        $dt = $totalAngle / $nSeg;
 
-        $dt = $totalAngle/$nSeg;
+        for ($i = 0; $i <= $nSeg; ++$i) {
+            $a0 = $x + $size * cos($astart);
+            $b0 = $y + $size * sin($astart);
 
-        for ($i=0; $i <= $nSeg; $i++) {
-            $a0 = $x+$size*cos($astart);
-            $b0 = $y+$size*sin($astart);
-
-            $this->contents.= "\n".sprintf('%.3F %.3F m %.3F %.3F l S', $x, $y, $a0, $b0);
+            $this->contents .= "\n".sprintf('%.3F %.3F m %.3F %.3F l S', $x, $y, $a0, $b0);
 
             if ($astart > $afinish) {
                 break;
@@ -608,24 +611,23 @@ class CpdfAppearance extends CpdfContent
 
     public function AddPolyInCircle($x, $y, $size = 50, $nSeg = 8, $minRad = 0, $maxRad = 360)
     {
+        $astart = deg2rad((float) $minRad);
+        $afinish = deg2rad((float) $maxRad);
 
-        $astart = deg2rad((float)$minRad);
-        $afinish = deg2rad((float)$maxRad);
+        $totalAngle = $afinish - $astart;
 
-        $totalAngle =$afinish-$astart;
+        $dt = $totalAngle / $nSeg;
 
-        $dt = $totalAngle/$nSeg;
+        $a0 = $x + $size * cos($astart);
+        $b0 = $y + $size * sin($astart);
 
-        $a0 = $x+$size*cos($astart);
-        $b0 = $y+$size*sin($astart);
-
-        for ($i=0; $i < $nSeg; $i++) {
+        for ($i = 0; $i < $nSeg; ++$i) {
             $astart += $dt;
 
-            $a1 = $x+$size*cos($astart);
-            $b1 = $y+$size*sin($astart);
+            $a1 = $x + $size * cos($astart);
+            $b1 = $y + $size * sin($astart);
 
-            $this->contents.= "\n".sprintf('%.3F %.3F m %.3F %.3F l S', $a0, $b0, $a1, $b1);
+            $this->contents .= "\n".sprintf('%.3F %.3F m %.3F %.3F l S', $a0, $b0, $a1, $b1);
 
             $a0 = $a1;
             $b0 = $b1;
@@ -636,53 +638,53 @@ class CpdfAppearance extends CpdfContent
         }
     }
     /**
-     * add an oval by using PDF curve graphcs
+     * add an oval by using PDF curve graphcs.
      */
     public function AddOval($x, $y, $size = 50, $aspect = 1, $rotate = 0)
     {
         if ($rotate != 0) {
-            $a = -1*deg2rad((float)$rotate);
+            $a = -1 * deg2rad((float) $rotate);
             $tmp = "\nq ";
-            $tmp .= sprintf('%.3F', cos($a)).' '.sprintf('%.3F', (-1.0*sin($a))).' '.sprintf('%.3F', sin($a)).' '.sprintf('%.3F', cos($a)).' ';
+            $tmp .= sprintf('%.3F', cos($a)).' '.sprintf('%.3F', (-1.0 * sin($a))).' '.sprintf('%.3F', sin($a)).' '.sprintf('%.3F', cos($a)).' ';
             $tmp .= sprintf('%.3F', $x).' '.sprintf('%.3F', $y).' cm';
-            $this->contents.= $tmp;
-            $x=0;
-            $y=0;
+            $this->contents .= $tmp;
+            $x = 0;
+            $y = 0;
         }
 
         if ($aspect > 1) {
             $aspect = 1;
         }
 
-        $s= $size * -1.333 * $aspect;
+        $s = $size * -1.333 * $aspect;
 
-        $this->contents.=" ".sprintf('%.3F %.3F', $x - $size, $y).' m ';
-        $this->contents.= sprintf(' %.3F %.3F', $x - $size, $y + $s);
-        $this->contents.= sprintf(' %.3F %.3F', $x + $size, $y + $s);
-        $this->contents.= sprintf(' %.3F %.3F', $x + $size, $y);
-        $this->contents.=' c S';
+        $this->contents .= ' '.sprintf('%.3F %.3F', $x - $size, $y).' m ';
+        $this->contents .= sprintf(' %.3F %.3F', $x - $size, $y + $s);
+        $this->contents .= sprintf(' %.3F %.3F', $x + $size, $y + $s);
+        $this->contents .= sprintf(' %.3F %.3F', $x + $size, $y);
+        $this->contents .= ' c S';
 
-        $this->contents.=" ".sprintf('%.3F %.3F', $x - $size, $y).' m ';
-        $this->contents.= sprintf(' %.3F %.3F', $x - $size, $y - $s);
-        $this->contents.= sprintf(' %.3F %.3F', $x + $size, $y - $s);
-        $this->contents.= sprintf(' %.3F %.3F', $x + $size, $y);
-        $this->contents.=' c S';
+        $this->contents .= ' '.sprintf('%.3F %.3F', $x - $size, $y).' m ';
+        $this->contents .= sprintf(' %.3F %.3F', $x - $size, $y - $s);
+        $this->contents .= sprintf(' %.3F %.3F', $x + $size, $y - $s);
+        $this->contents .= sprintf(' %.3F %.3F', $x + $size, $y);
+        $this->contents .= ' c S';
 
         if ($rotate != 0) {
-            $this->contents.= " Q";
+            $this->contents .= ' Q';
         }
     }
 
     /**
-     * Draw a polygon with nearly unlimit point(X,Y) coordinates
+     * Draw a polygon with nearly unlimit point(X,Y) coordinates.
      *
      * Example: $app->AddPolygon(300, 700, array(350, 750, 400, 600, 300, 600, 250, 500, 100, 550, 50, 800), true, true);
      *
-     * @param float $x initial X coordinate
-     * @param float $y initial Y coordinate
-     * @param array $coord coordintes written as points in one single array - array(x1, y1, x2, y2, ...)
-     * @param bool $filled defines if polygon should be filled or not
-     * @param bool $closed defines if polygon should be closed at the end - it uses the PDF 's' property
+     * @param float              $x         initial X coordinate
+     * @param float              $y         initial Y coordinate
+     * @param array              $coord     coordintes written as points in one single array - array(x1, y1, x2, y2, ...)
+     * @param bool               $filled    defines if polygon should be filled or not
+     * @param bool               $closed    defines if polygon should be closed at the end - it uses the PDF 's' property
      * @param CpdfLineStyle/bool $lineStyle can be either an object of CpdfLineStyle or boolean to set the default line style
      */
     public function AddPolygon($x, $y, $coord = array(), $filled = false, $closed = false, $lineStyle = null)
@@ -690,7 +692,7 @@ class CpdfAppearance extends CpdfContent
         $c = count($coord);
         if ($c % 2) {
             array_pop($coord);
-            $c--;
+            --$c;
         }
 
         $ls = '';
@@ -698,35 +700,35 @@ class CpdfAppearance extends CpdfContent
             $ls = $lineStyle->Output();
         }
 
-        $this->contents.= "\nq ".$ls.sprintf("%.3F %.3F m ", $x, $y);
+        $this->contents .= "\nq ".$ls.sprintf('%.3F %.3F m ', $x, $y);
 
-        for ($i = 0; $i< $c; $i = $i+2) {
-            $this->contents.= sprintf('%.3F %.3F l ', $coord[$i], $coord[$i+1]);
+        for ($i = 0; $i < $c; $i = $i + 2) {
+            $this->contents .= sprintf('%.3F %.3F l ', $coord[$i], $coord[$i + 1]);
         }
 
         /*
         if ($closed){
-			      $this->contents.= sprintf('%.3F %.3F l ',$x, $y);
-		    }
+                  $this->contents.= sprintf('%.3F %.3F l ',$x, $y);
+            }
         */
 
         if ($filled) {
             if (isset($lineStyle) && (is_object($lineStyle) || (is_bool($lineStyle) && $lineStyle))) {
                 if ($closed) {
-                    $this->contents.='b';
+                    $this->contents .= 'b';
                 } else {
-                    $this->contents.='B';
+                    $this->contents .= 'B';
                 }
             } else {
-                $this->contents.='f';
+                $this->contents .= 'f';
             }
         } elseif ($closed) {
-            $this->contents.='s';
+            $this->contents .= 's';
         } else {
-            $this->contents.='S';
+            $this->contents .= 'S';
         }
 
-        $this->contents.= ' Q';
+        $this->contents .= ' Q';
 
         // lines are only shown when polygon has no filling - So repeat it for the lines only
         //if($fillRequired){
@@ -735,7 +737,7 @@ class CpdfAppearance extends CpdfContent
     }
 
     /**
-     * Use RGB color as default
+     * Use RGB color as default.
      */
     public function AddColor($r, $g, $b, $strokeColor = false)
     {
@@ -746,7 +748,7 @@ class CpdfAppearance extends CpdfContent
     {
         $o = new CpdfColor(array($r, $g, $b), $strokeColor);
         if (!$this->IsCallback) {
-            $this->contents.="\n".$o->Output(false, true);
+            $this->contents .= "\n".$o->Output(false, true);
         } else {
             $this->CallbackNo += 1;
             array_push($this->callbackObjects, $o);
@@ -770,8 +772,9 @@ class CpdfAppearance extends CpdfContent
 
         $res = parent::Output();
         if (!empty($res)) {
-            $res = "\nq ".$res ."\nQ";
+            $res = "\nq ".$res."\nQ";
         }
+
         return $res;
     }
 
@@ -784,10 +787,10 @@ class CpdfAppearance extends CpdfContent
     {
         switch ($direction) {
             case 'right':
-                $this->BBox[0] += $lineWidth-$textWidth;
+                $this->BBox[0] += $lineWidth - $textWidth;
                 break;
             case 'center':
-                $this->BBox[0] +=($lineWidth-$textWidth)/2;
+                $this->BBox[0] += ($lineWidth - $textWidth) / 2;
                 break;
             case 'full':
                 if (preg_match_all("/\((.*?)\) Tj/", $TEXTBLOCK, $regs, PREG_OFFSET_CAPTURE)) {
@@ -799,7 +802,7 @@ class CpdfAppearance extends CpdfContent
 
                     $nspaces = substr_count($text, ' ');
                     if ($nspaces > 0) {
-                        $adjust = ($lineWidth - $textWidth)/$nspaces;
+                        $adjust = ($lineWidth - $textWidth) / $nspaces;
 
                         if ($this->CURFONT->IsUnicode) {
                             $spaceLength = $this->CURFONT->GetCharWidth(32);
@@ -808,7 +811,7 @@ class CpdfAppearance extends CpdfContent
                             }
 
                             $rest = $lineWidth * 1000 - $textWidth * 1000;
-                            $spaceW = ($spaceLength + (($rest/$this->fontSize) / $nspaces));
+                            $spaceW = ($spaceLength + (($rest / $this->fontSize) / $nspaces));
 
                             $start = 0;
                             $length = 0;
@@ -826,7 +829,7 @@ class CpdfAppearance extends CpdfContent
                             $adjust = 0;
                         }
                     } else {
-                        $adjust=0;
+                        $adjust = 0;
                     }
                 }
                 break;
@@ -837,13 +840,14 @@ class CpdfAppearance extends CpdfContent
     {
         $text = Cpdf::filterText($this->CURFONT, $text);
 
-        return sprintf(" (%s) Tj", $text);
+        return sprintf(' (%s) Tj', $text);
     }
 
     public function ColoredTj($text, $color = array())
     {
         $c = new CpdfColor($color, false);
-        return sprintf("q %s %s Q", $c->Output(false, true), $this->Tj($text));
+
+        return sprintf('q %s %s Q', $c->Output(false, true), $this->Tj($text));
     }
 
     private $currentTD = 0;
@@ -853,12 +857,12 @@ class CpdfAppearance extends CpdfContent
         $tmpX = $xoffset - $this->currentTD;
         $this->currentTD = $xoffset;
 
-        return sprintf("%.3F %.3F TD", $tmpX, $yoffset);
+        return sprintf('%.3F %.3F TD', $tmpX, $yoffset);
     }
 
     public function TF()
     {
-        return sprintf(" /%s %.1F Tf", Cpdf::$FontLabel.$this->CURFONT->FontId, $this->fontSize);
+        return sprintf(' /%s %.1F Tf', Cpdf::$FontLabel.$this->CURFONT->FontId, $this->fontSize);
     }
 
     protected function checkDirective($text)
@@ -871,13 +875,13 @@ class CpdfAppearance extends CpdfContent
         $tagEnd = mb_strpos($text, '>', $tagStart, 'UTF-8');
         $fullTag = mb_substr($text, $tagStart, $tagEnd - $tagStart + 1, 'UTF-8');
 
-        $regex = "/<\/?([cC]:|)(".$this->pages->AllowedTags.")>/";
-        
+        $regex = "/<\/?([cC]:|)(".$this->pages->AllowedTags.')>/';
+
         if (!preg_match($regex, $fullTag, $regs)) {
             return;
         }
 
-        $p = strpos($regs[2], ":");
+        $p = strpos($regs[2], ':');
         if ($p !== false) {
             $func = substr($regs[2], 0, $p);
             $parameter = substr($regs[2], $p + 1);
@@ -887,13 +891,13 @@ class CpdfAppearance extends CpdfContent
         }
 
         $isEndTag = 0;
-        if (substr($fullTag, 0, 2) == "</") {
+        if (substr($fullTag, 0, 2) == '</') {
             $isEndTag = 1;
-        } elseif ($regs[1] == "C:") {
+        } elseif ($regs[1] == 'C:') {
             $isEndTag = 2;
         }
-        
-        return array('func' => $func, 'param' => $parameter, 'start'=> $tagStart, 'end' => $tagEnd, 'close' => $isEndTag);
+
+        return array('func' => $func, 'param' => $parameter, 'start' => $tagStart, 'end' => $tagEnd, 'close' => $isEndTag);
     }
 
     private function addTextDirectives1(&$text, $width = 0, $justification = 'left', &$wordSpaceAdjust = 0, $first = false)
@@ -908,7 +912,7 @@ class CpdfAppearance extends CpdfContent
         $tmpX = $this->BBox[0];
 
         $lineWidth = 0;
-        $TEXTBLOCK = "";
+        $TEXTBLOCK = '';
         $part = '';
         $found = null;
         $stack = array();
@@ -922,18 +926,18 @@ class CpdfAppearance extends CpdfContent
             // found a directive
             if (is_array($found)) {
                 $strBefore = mb_substr($textPart, 0, $found['start'], 'UTF-8');
-                
+
                 $tmA = $this->CURFONT->getTextLength($this->fontSize, $strBefore, ($width - $lineWidth), $this->angle, $wordSpaceAdjust);
                 if ($tmA[2] >= 0) {
                     $lineWidth += $tmA[0];
 
                     $part = mb_substr($textPart, 0, $tmA[2], 'UTF-8');
-                    $tj= $this->Tj($part);
+                    $tj = $this->Tj($part);
 
                     if (isset($stack[$found['func']])) {
-                        $replace = $this->pages->DoTrigger($this, $found['func'], array('ux'=> $this->BBox[0] + $lineWidth ), $part);
+                        $replace = $this->pages->DoTrigger($this, $found['func'], array('ux' => $this->BBox[0] + $lineWidth), $part);
                         if (is_string($replace)) {
-                            $tj = " ".$replace;
+                            $tj = ' '.$replace;
                         }
                     }
 
@@ -952,7 +956,7 @@ class CpdfAppearance extends CpdfContent
                             $this->BBox[0] + $lineWidth, // lower X
                             $this->y + $this->fontDescender, // lower Y
                             0, // upper X
-                            $this->y + $this->fontHeight + $this->fontDescender),
+                            $this->y + $this->fontHeight + $this->fontDescender, ),
                         $found['param']
                     );
                     $tj = $this->Tj($strBefore);
@@ -971,14 +975,14 @@ class CpdfAppearance extends CpdfContent
                                 $this->BBox[0] + $lineWidth, // lower X
                                 $this->y + $this->fontDescender, // lower Y
                                 0, // upper X
-                                $this->y + $this->fontHeight + $this->fontDescender),
+                                $this->y + $this->fontHeight + $this->fontDescender, ),
                             $found['param']
                         );
                     }
-                    $replace = $this->pages->DoTrigger($this, $found['func'], array('ux'=> $this->BBox[0] + $lineWidth ), $strBefore);
+                    $replace = $this->pages->DoTrigger($this, $found['func'], array('ux' => $this->BBox[0] + $lineWidth), $strBefore);
                     unset($stack[$found['func']]);
                     if (is_string($replace)) {
-                        $tj = " ".$replace;
+                        $tj = ' '.$replace;
                     } else {
                         $tj = $this->Tj($strBefore);
                     }
@@ -986,7 +990,7 @@ class CpdfAppearance extends CpdfContent
 
                 $TEXTBLOCK .= $tj;
                 if ($found['close'] && $tmA[2] >= 0) {
-                    $tj= $this->Tj(mb_substr($strBefore, 0, $tmA[2], 'UTF-8'));
+                    $tj = $this->Tj(mb_substr($strBefore, 0, $tmA[2], 'UTF-8'));
 
                     $TEXTBLOCK .= $tj;
                     $len = $i + $tmA[2] + $tmA[3];
@@ -1000,7 +1004,7 @@ class CpdfAppearance extends CpdfContent
                 if ($tm[2] >= 0) {
                     $lineWidth += $tm[0];
                     $part = mb_substr($textPart, 0, $tm[2], 'UTF-8');
-                    $tj= $this->Tj($part);
+                    $tj = $this->Tj($part);
 
                     $TEXTBLOCK .= $tj;
 
@@ -1033,7 +1037,7 @@ class CpdfAppearance extends CpdfContent
             $this->justifyLine1($TEXTBLOCK, $lineWidth, $width, $justification, $wordSpaceAdjust);
             if (!$this->CURFONT->IsUnicode) {
                 if ($wordSpaceAdjust > 0) {
-                    $ws = sprintf("%.3F Tw", $wordSpaceAdjust);
+                    $ws = sprintf('%.3F Tw', $wordSpaceAdjust);
                 }
             }
         } elseif ($justification != 'full') {
@@ -1045,14 +1049,14 @@ class CpdfAppearance extends CpdfContent
         }
 
         if (!$this->CURFONT->IsUnicode && $i == $len && $justification == 'full') {
-            $ws = sprintf("%.3F Tw", 0);
+            $ws = sprintf('%.3F Tw', 0);
         }
 
         // font and font size
-        $TEXTBLOCK = sprintf(" /%s %.1F Tf %s", Cpdf::$FontLabel.$tmpFontId, $this->fontSize, $ws) . $TEXTBLOCK;
+        $TEXTBLOCK = sprintf(' /%s %.1F Tf %s', Cpdf::$FontLabel.$tmpFontId, $this->fontSize, $ws).$TEXTBLOCK;
 
         // begin text start tag
-        $TEXTBLOCK = sprintf("\nBT %.3F %.3F Td", $this->BBox[0], $this->y) . $TEXTBLOCK;
+        $TEXTBLOCK = sprintf("\nBT %.3F %.3F Td", $this->BBox[0], $this->y).$TEXTBLOCK;
 
         // recover some properties which have been used
         $this->BBox[0] = $tmpX;
@@ -1060,7 +1064,7 @@ class CpdfAppearance extends CpdfContent
         // reset the font
 
         // end text tag
-        $TEXTBLOCK.= " ET";
+        $TEXTBLOCK .= ' ET';
 
         $this->contents .= $TEXTBLOCK;
 
@@ -1069,10 +1073,10 @@ class CpdfAppearance extends CpdfContent
 
     public function Callback($bbox)
     {
-        Cpdf::DEBUG("-- ".count($this->callbackObjects)." CallbackObjects | STEPS : ".$this->CallbackNo, Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
+        Cpdf::DEBUG('-- '.count($this->callbackObjects).' CallbackObjects | STEPS : '.$this->CallbackNo, Cpdf::DEBUG_OUTPUT, Cpdf::$DEBUGLEVEL);
 
         if ($this->IsCallback && count($this->callbackObjects) > 0) {
-            for ($i = 0; $i < $this->CallbackNo; $i++) {
+            for ($i = 0; $i < $this->CallbackNo; ++$i) {
                 $cbObject = array_shift($this->callbackObjects);
                 if (is_object($cbObject)) {
                     $class_name = get_class($cbObject);
@@ -1083,19 +1087,18 @@ class CpdfAppearance extends CpdfContent
                                 $cbObject->Y = $bbox[1];
                             }
 
-                            $this->contents.= "\n".$cbObject->Output();
+                            $this->contents .= "\n".$cbObject->Output();
                             break;
                         case 'ROSPDF\CpdfColor':
-                            $this->contents.= "\n".$cbObject->Output(false, true);
+                            $this->contents .= "\n".$cbObject->Output(false, true);
                             break;
                     }
                 }
             }
-            
 
-            return (!count($this->callbackObjects))?true:false;
+            return (!count($this->callbackObjects)) ? true : false;
         }
+
         return false;
     }
 }
-?>

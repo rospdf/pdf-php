@@ -1,5 +1,7 @@
 <?php
+
 namespace ROSPDF;
+
 /**
  * Class object to support JPEG and PNG images
  * <p>
@@ -10,7 +12,7 @@ namespace ROSPDF;
  * $app = $pdf->NewAppearance();
  * $app->AddImage('left', 'middle', 'images/test_indexed.png');
  * $pdf->Stream();
- * </pre>
+ * </pre>.
  */
 class CpdfImage extends CpdfContent
 {
@@ -27,12 +29,12 @@ class CpdfImage extends CpdfContent
 
     private $data;
     /**
-     * Used for PNG only
+     * Used for PNG only.
      */
     private $palette;
     private $paletteObj;
     /**
-     * Used for PNG only
+     * Used for PNG only.
      */
     private $transparency;
 
@@ -44,10 +46,10 @@ class CpdfImage extends CpdfContent
     public $Height;
 
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param CpdfPages $pages object of the main pdf_Pages object
-     * @param string $filepath can be either a file or an url path of an image
+     * @param CpdfPages $pages    object of the main pdf_Pages object
+     * @param string    $filepath can be either a file or an url path of an image
      */
     public function __construct(&$pages, $filepath)
     {
@@ -57,8 +59,8 @@ class CpdfImage extends CpdfContent
             // PHP5: file_get_contents
             $cont = file_get_contents($filepath);
 
-            $filepath = tempnam(ROSPDF_TEMPDIR, "CpdfImage");
-            $fp2 = @fopen($filepath, "w");
+            $filepath = tempnam(ROSPDF_TEMPDIR, 'CpdfImage');
+            $fp2 = @fopen($filepath, 'w');
             fwrite($fp2, $cont);
             fclose($fp2);
         }
@@ -86,30 +88,30 @@ class CpdfImage extends CpdfContent
     }
 
     /**
-     * Resize the image (missing)
+     * Resize the image (missing).
      *
      * TODO: Implement resize feature for images by using gdlib or IM?
      */
     public function Resize($width = null, $height = null)
     {
         /*if(isset($width) && !isset($height)){
-			$this->Height = $this->orgHeight / $this->orgWidth * $width;
-			$this->Width = $width;
+            $this->Height = $this->orgHeight / $this->orgWidth * $width;
+            $this->Width = $width;
 
-		} else if(isset($height) && !isset($width)){
-			$this->Width = $this->orgWidth / $this->orgHeight * $height;
-			$this->Height = $height;
-		} else {
-			// or break the ratio and define individual size
-			$this->Width = $width;
-			$this->Height = $height;
-		}*/
+        } else if(isset($height) && !isset($width)){
+            $this->Width = $this->orgWidth / $this->orgHeight * $height;
+            $this->Height = $height;
+        } else {
+            // or break the ratio and define individual size
+            $this->Width = $width;
+            $this->Height = $height;
+        }*/
 
         // TODO: recalculate the image using gd library
     }
 
     /**
-     * Parse the image content
+     * Parse the image content.
      */
     private function parseImage()
     {
@@ -123,27 +125,32 @@ class CpdfImage extends CpdfContent
                 $iChunk = $this->readPngChunks($data);
 
                 if (!$iChunk['haveHeader']) {
-                    Cpdf::DEBUG("Info header missing for PNG image", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+                    Cpdf::DEBUG('Info header missing for PNG image', Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+
                     return;
                 }
 
                 if (!isset($iChunk['info'])) {
-                    Cpdf::DEBUG("Additional Info missing for PNG image", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+                    Cpdf::DEBUG('Additional Info missing for PNG image', Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+
                     return;
                 }
 
                 if (isset($iChunk['info']['interlaceMethod']) && $iChunk['info']['interlaceMethod']) {
-                    Cpdf::DEBUG("No support for interlaces png images for PDF", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+                    Cpdf::DEBUG('No support for interlaces png images for PDF', Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+
                     return;
                 }
 
                 if ($iChunk['info']['bitDepth'] > 8) {
-                    Cpdf::DEBUG("Only bit depth of 8 or lower is supported for PNG", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+                    Cpdf::DEBUG('Only bit depth of 8 or lower is supported for PNG', Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+
                     return;
                 }
 
-                if ($iChunk['info']['colorType'] == 1 || $iChunk['info']['colorType'] == 5 || $iChunk['info']['colorType']== 7) {
-                    Cpdf::DEBUG("Unsupported  color type for PNG", Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+                if ($iChunk['info']['colorType'] == 1 || $iChunk['info']['colorType'] == 5 || $iChunk['info']['colorType'] == 7) {
+                    Cpdf::DEBUG('Unsupported  color type for PNG', Cpdf::DEBUG_MSG_WARN, Cpdf::$DEBUGLEVEL);
+
                     return;
                 }
 
@@ -173,65 +180,63 @@ class CpdfImage extends CpdfContent
             case IMAGETYPE_GIF:
                 break;
             default:
-                Cpdf::DEBUG("Unsupported image type", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+                Cpdf::DEBUG('Unsupported image type', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
                 break;
         }
     }
 
     /**
-     * Extract $num of bytes from $pos
-     *
-     * @access private
+     * Extract $num of bytes from $pos.
      */
     private function getBytes(&$data, $pos, $num)
     {
         // return the integer represented by $num bytes from $pos within $data
-        $ret=0;
-        for ($i=0; $i<$num; $i++) {
-            $ret=$ret*256;
-            $ret+=ord($data[$pos+$i]);
+        $ret = 0;
+        for ($i = 0; $i < $num; ++$i) {
+            $ret = $ret * 256;
+            $ret += ord($data[$pos + $i]);
         }
+
         return $ret;
     }
 
     /**
-     * Read the PNG chunk
+     * Read the PNG chunk.
      *
      * @param $data - binary part of the png image
-     * @access private
      */
     private function readPngChunks(&$data)
     {
-        $default = array('info'=> array(), 'transparency'=> null, 'idata'=> null, 'pdata'=> null, 'haveHeader'=> false);
+        $default = array('info' => array(), 'transparency' => null, 'idata' => null, 'pdata' => null, 'haveHeader' => false);
         // set pointer
         $p = 8;
         $len = strlen($data);
         // cycle through the file, identifying chunks
-        while ($p<$len) {
+        while ($p < $len) {
             $chunkLen = $this->getBytes($data, $p, 4);
-            $chunkType = substr($data, $p+4, 4);
+            $chunkType = substr($data, $p + 4, 4);
 
             switch ($chunkType) {
                 case 'IHDR':
                 //this is where all the file information comes from
-                    $default['info']['width']=$this->getBytes($data, $p+8, 4);
-                    $default['info']['height']=$this->getBytes($data, $p+12, 4);
-                    $default['info']['bitDepth']=ord($data[$p+16]);
-                    $default['info']['colorType']=ord($data[$p+17]);
-                    $default['info']['compressionMethod']=ord($data[$p+18]);
-                    $default['info']['filterMethod']=ord($data[$p+19]);
-                    $default['info']['interlaceMethod']=ord($data[$p+20]);
+                    $default['info']['width'] = $this->getBytes($data, $p + 8, 4);
+                    $default['info']['height'] = $this->getBytes($data, $p + 12, 4);
+                    $default['info']['bitDepth'] = ord($data[$p + 16]);
+                    $default['info']['colorType'] = ord($data[$p + 17]);
+                    $default['info']['compressionMethod'] = ord($data[$p + 18]);
+                    $default['info']['filterMethod'] = ord($data[$p + 19]);
+                    $default['info']['interlaceMethod'] = ord($data[$p + 20]);
 
                     $default['haveHeader'] = true;
 
-                    if ($default['info']['compressionMethod']!=0) {
-                        Cpdf::DEBUG("unsupported compression method for PNG image", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+                    if ($default['info']['compressionMethod'] != 0) {
+                        Cpdf::DEBUG('unsupported compression method for PNG image', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
                     }
-                    if ($default['info']['filterMethod']!=0) {
-                        Cpdf::DEBUG("unsupported filter method for PNG image", Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
+                    if ($default['info']['filterMethod'] != 0) {
+                        Cpdf::DEBUG('unsupported filter method for PNG image', Cpdf::DEBUG_MSG_ERR, Cpdf::$DEBUGLEVEL);
                     }
 
-                    $default['transparency'] = array('type'=> null, 'data' => null);
+                    $default['transparency'] = array('type' => null, 'data' => null);
 
                     if ($default['info']['colorType'] == 3) { // indexed color, rbg
                         // corresponding to entries in the plte chunk
@@ -241,12 +246,12 @@ class CpdfImage extends CpdfContent
 
                         // there will be one entry for each palette entry. up until the last non-opaque entry.
                         // set up an array, stretching over all palette entries which will be o (opaque) or 1 (transparent)
-                        $default['transparency']['type']='indexed';
+                        $default['transparency']['type'] = 'indexed';
                         //$numPalette = strlen($default['pdata'])/3;
-                        $trans=0;
-                        for ($i=$chunkLen; $i>=0; $i--) {
-                            if (ord($data[$p+8+$i])==0) {
-                                $trans=$i;
+                        $trans = 0;
+                        for ($i = $chunkLen; $i >= 0; --$i) {
+                            if (ord($data[$p + 8 + $i]) == 0) {
+                                $trans = $i;
                             }
                         }
                         $default['transparency']['data'] = $trans;
@@ -255,16 +260,16 @@ class CpdfImage extends CpdfContent
                         // Gray: 2 bytes, range 0 .. (2^bitdepth)-1
 
                         // $transparency['grayscale']=$this->getBytes($data,$p+8,2); // g = grayscale
-                        $default['transparency']['type']='indexed';
-                        $default['transparency']['data'] = ord($data[$p+8+1]);
+                        $default['transparency']['type'] = 'indexed';
+                        $default['transparency']['data'] = ord($data[$p + 8 + 1]);
                     } elseif ($default['info']['colorType'] == 2) { // truecolor
                         // corresponding to entries in the plte chunk
                         // Red: 2 bytes, range 0 .. (2^bitdepth)-1
                         // Green: 2 bytes, range 0 .. (2^bitdepth)-1
                         // Blue: 2 bytes, range 0 .. (2^bitdepth)-1
-                        $default['transparency']['r']=$this->getBytes($data, $p+8, 2); // r from truecolor
-                        $default['transparency']['g']=$this->getBytes($data, $p+10, 2); // g from truecolor
-                        $default['transparency']['b']=$this->getBytes($data, $p+12, 2); // b from truecolor
+                        $default['transparency']['r'] = $this->getBytes($data, $p + 8, 2); // r from truecolor
+                        $default['transparency']['g'] = $this->getBytes($data, $p + 10, 2); // g from truecolor
+                        $default['transparency']['b'] = $this->getBytes($data, $p + 12, 2); // b from truecolor
                     } elseif ($default['info']['colorType'] == 6 || $default['info']['colorType'] == 4) {
                         // set transparency type to "alpha" and proceed with it in $this->o_image later
                         $default['transparency']['type'] = 'alpha';
@@ -274,7 +279,7 @@ class CpdfImage extends CpdfContent
                         $imgalpha = imagecreate($default['info']['width'], $default['info']['height']);
                         // generate gray scale palette (0 -> 255)
                         for ($c = 0; $c < 256; ++$c) {
-                            ImageColorAllocate($imgalpha, $c, $c, $c);
+                            imagecolorallocate($imgalpha, $c, $c, $c);
                         }
                         // extract alpha channel
                         for ($xpx = 0; $xpx < $default['info']['width']; ++$xpx) {
@@ -285,7 +290,7 @@ class CpdfImage extends CpdfContent
                                 imagesetpixel($imgalpha, $xpx, $ypx, $color['alpha']);
                             }
                         }
-                        $tmpfile_alpha=tempnam(ROSPDF_TEMPDIR, 'CpdfImage');
+                        $tmpfile_alpha = tempnam(ROSPDF_TEMPDIR, 'CpdfImage');
 
                         imagepng($imgalpha, $tmpfile_alpha);
                         imagedestroy($imgalpha);
@@ -297,7 +302,7 @@ class CpdfImage extends CpdfContent
                         $default['pdata'] = $alphaImg['idata'];
 
                         // generate true color image with no alpha channel
-                        $tmpfile_tt=tempnam(ROSPDF_TEMPDIR, 'CpdfImage');
+                        $tmpfile_tt = tempnam(ROSPDF_TEMPDIR, 'CpdfImage');
 
                         $imgplain = imagecreatetruecolor($default['info']['width'], $default['info']['height']);
                         imagecopy($imgplain, $img, 0, 0, 0, 0, $default['info']['width'], $default['info']['height']);
@@ -317,10 +322,10 @@ class CpdfImage extends CpdfContent
                     }
                     break;
                 case 'PLTE':
-                    $default['pdata'] = substr($data, $p+8, $chunkLen);
+                    $default['pdata'] = substr($data, $p + 8, $chunkLen);
                     break;
                 case 'IDAT':
-                    $default['idata'] .= substr($data, $p+8, $chunkLen);
+                    $default['idata'] .= substr($data, $p + 8, $chunkLen);
                     break;
                 case 'tRNS': // this HEADER info is optional. More info: rfc2083 (http://tools.ietf.org/html/rfc2083)
                     // this chunk can only occur once and it must occur after the PLTE chunk and before IDAT chunk
@@ -329,15 +334,17 @@ class CpdfImage extends CpdfContent
                 default:
                     break;
             }
-            $p += $chunkLen+12;
+            $p += $chunkLen + 12;
         }
-
 
         return $default;
     }
 
-    private function applyPalette(){
-        if(empty($this->palette)) return;
+    private function applyPalette()
+    {
+        if (empty($this->palette)) {
+            return;
+        }
         $this->paletteObj = $this->pages->NewContent();
         $this->paletteObj->SetPageMode(self::PMODE_NOPAGE, self::PMODE_NOPAGE);
 
@@ -356,13 +363,12 @@ class CpdfImage extends CpdfContent
     }
 
     /**
-     * PDF Output of the Image
+     * PDF Output of the Image.
      */
     public function OutputAsObject()
     {
-
         $res = "\n$this->ObjectId 0 obj";
-        $res.="\n<< /Subtype /Image";
+        $res .= "\n<< /Subtype /Image";
 
         $this->AddEntry('Width', $this->orgWidth);
         $this->AddEntry('Height', $this->orgHeight);
@@ -384,10 +390,11 @@ class CpdfImage extends CpdfContent
                             // disable transparancy on indexed PNGs for time being
                             //$tmp=' ['.$this->transparency['data'].' '.$this->transparency['data'].'] ';
                             //$this->AddEntry('Mask', $tmp);
-                            if($this->paletteObj)
-                                $this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette)/3-1).' '.$this->paletteObj->ObjectId.' 0 R]');
-                            else
+                            if ($this->paletteObj) {
+                                $this->AddEntry('ColorSpace', '[/Indexed /DeviceRGB '.(strlen($this->palette) / 3 - 1).' '.$this->paletteObj->ObjectId.' 0 R]');
+                            } else {
                                 $this->AddEntry('ColorSpace', '/'.$this->colorspace);
+                            }
                             break;
                         case 'alpha':
                             $this->AddEntry('SMask', $this->paletteObj->ObjectId.' 0 R');
@@ -397,7 +404,7 @@ class CpdfImage extends CpdfContent
                 } else {
                     $this->AddEntry('ColorSpace', '/'.$this->colorspace);
                 }
-                
+
                 $this->AddEntry('BitsPerComponent', $this->bits);
                 $this->AddEntry('Filter', '/FlateDecode');
                 $this->AddEntry('DecodeParms', '<< /Predictor 15 /Colors '.$this->numColors.' /Columns '.$this->orgWidth.' /BitsPerComponent '.$this->bits.'>>');
@@ -422,15 +429,14 @@ class CpdfImage extends CpdfContent
         }
 
         foreach ($this->entries as $k => $v) {
-            $res.= " /$k $v";
+            $res .= " /$k $v";
         }
-        $res.=' /Length '.strlen($tmp).' >>';
-        $res.= "\nstream\n".$tmp."\nendstream";
-        $res.= "\nendobj";
+        $res .= ' /Length '.strlen($tmp).' >>';
+        $res .= "\nstream\n".$tmp."\nendstream";
+        $res .= "\nendobj";
 
         $this->pages->AddXRef($this->ObjectId, strlen($res));
 
         return $res;
     }
 }
-?>
