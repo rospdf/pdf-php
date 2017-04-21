@@ -67,10 +67,10 @@ class CpdfContent extends CpdfEntry
      */
     protected $contents;
 
-     /**
-      * @property array page names to be ignored by this object
-      */
-     protected $ignorePages = [];
+    /**
+     * @property array page names to be ignored by this object
+     */
+    protected $ignorePages = [];
 
     public function __construct(&$pages)
     {

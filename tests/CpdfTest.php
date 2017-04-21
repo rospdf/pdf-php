@@ -2,6 +2,9 @@
 
 namespace Cpdf\Tests;
 
+use ROSPDF\Cpdf;
+use ROSPDF\CpdfExtension;
+
 class CpdfTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -9,7 +12,7 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->cpdf = new \CpdfExtension(\Cpdf::$Layout['A4']);
+        $this->cpdf = new CpdfExtension(Cpdf::$Layout['A4']);
     }
 
     public function testConstructor()

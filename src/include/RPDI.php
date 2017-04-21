@@ -83,7 +83,7 @@ class RPDI extends CpdfExtension
      /**
       * image references.
       */
-     private $imageRefs;
+    private $imageRefs;
 
     /**
      * associated array.
