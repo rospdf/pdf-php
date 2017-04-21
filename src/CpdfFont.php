@@ -45,7 +45,7 @@ class CpdfFont
      * To verify of this is a coreFont program
      * @var bool
      */
-    public $isCoreFont;
+    public $IsCoreFont;
     /**
      * To verify if the is a unicode font program
      * @var bool
@@ -88,11 +88,11 @@ class CpdfFont
         if (count($found) > 0) {
             // use font name fron CoreFont array as they are case sensitive
             $this->fontFile = end($found);
-            $this->isCoreFont = true;
+            $this->IsCoreFont = true;
             $ext = 'afm';
         } elseif (empty($ext)) { // otherwise use ttf by default
             $this->fontFile = $fontfile;
-            $this->isCoreFont = false;
+            $this->IsCoreFont = false;
             $ext = 'ttf';
         }
 
@@ -148,10 +148,10 @@ class CpdfFont
             }
         }
         // read ttf font properties via TTF class
-        if ($this->isCoreFont == false && class_exists('TTF')) {
+        if ($this->IsCoreFont == false && class_exists('TTF')) {
             // The selected font is a TTF font (any other is not yet supported)
             $this->readTTF($this->fontpath);
-        } elseif ($this->isCoreFont == true) {
+        } elseif ($this->IsCoreFont == true) {
             // The selected font is a core font. So use the afm file to read the properties
             $this->readAFM($this->fontpath);
         } else {
@@ -746,7 +746,7 @@ class CpdfFont
         $descr = '';
         $descendant = '';
 
-        if ($this->isCoreFont) {
+        if ($this->IsCoreFont) {
              // core fonts (plus additionals?!)
             $res.= ' /Type1 /BaseFont /'.$this->fontFile;
             //$res.= " /Encoding /".$this->props['EncodingScheme'];

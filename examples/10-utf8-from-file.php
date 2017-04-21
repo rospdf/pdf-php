@@ -6,12 +6,15 @@ use ROSPDF\CpdfExtension;
 
 $pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 
+//$pdf->Compression = 0;
+$pdf->FontSubset = true;
+
 $textObject = $pdf->NewText();
 
 // define FreeSerif as Unicode
 $textObject->SetFont('FreeSerif', 10, '', true);
 $content = file_get_contents("utf8.txt");
-$textObject->AddText($content);
+$textObject->AddText($content, 0, 'full');
 
 // TODO: fix bug for RTL fonts as they cause an error in sprintf, line 2531 for Cpdf.php
 

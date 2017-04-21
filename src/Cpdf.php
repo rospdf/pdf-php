@@ -113,7 +113,7 @@ class Cpdf extends CpdfEntry
     /**
      * internal counter for pdf object numbers
      */
-    protected $objectNum = 2;
+    public $objectNum = 2;
     /**
      * internal counter for pages
      */
