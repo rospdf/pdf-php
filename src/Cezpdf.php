@@ -875,7 +875,7 @@ class Cezpdf extends CpdfExtension
             $w = $width;
         }  
 
-        $this->ezAppearance->AddImage($just, $this->ezAppearance->y, $image, $w);
+        $this->ezAppearance->AddImage($just, 0, $image, $w);
     }
 
     /**

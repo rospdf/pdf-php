@@ -245,7 +245,7 @@ class CpdfAppearance extends CpdfContent
     {
         if ($this->Paging == CpdfContent::PMODE_REPEAT || $this->Paging == CpdfContent::PMODE_LAZY) {
             array_push($this->delayedContent, array($text, $width, $justify, $wordSpaceAdjust));
-            return;
+            return $this;
         }
         // convert to text
         $text = "$text";
@@ -351,6 +351,7 @@ class CpdfAppearance extends CpdfContent
         if (Cpdf::IsDefined(Cpdf::$DEBUGLEVEL, Cpdf::DEBUG_TEXT)) {
             $this->contents.= "\nq 1 0 0 RG ".sprintf('%.3F %.3F %.3F %.3F re', $this->BBox[0], $this->BBox[3], $this->BBox[2] - $this->BBox[0], $this->BBox[1] - $this->BBox[3])." S Q";
         }
+        return $this;
     }
     /**
      * Use the affine transformation to rotate the text
@@ -400,7 +401,7 @@ class CpdfAppearance extends CpdfContent
                     break;
             }
         } else {
-            $x = $xpos;
+            $x += $xpos;
         }
 
         if (is_string($ypos)) {
@@ -414,7 +415,7 @@ class CpdfAppearance extends CpdfContent
                     break;
             }
         } else {
-            $y = $ypos;
+            $y = $this->y + $ypos;
         }
 
         $this->y = $y;
@@ -472,6 +473,8 @@ class CpdfAppearance extends CpdfContent
         $this->contents.= "\nq ".$this->justifyImage($w, $h, $x, $y);
         $this->contents.= ' /'.Cpdf::$ImageLabel.$img->ImageNum.' Do';
         $this->contents.= " Q";
+
+        return $this;
     }
 
     /**

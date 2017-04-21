@@ -194,20 +194,11 @@ class CpdfTable extends CpdfAppearance
             Cpdf::SetBBox(array('addux'=> -$lw), $this->BBox);
         }
 
-        $p = $this->AddText($text, 0, $justify);
+        $this->AddText($text, 0, $justify);
 
         // recover BBox UX when column line has been printed
         if (Cpdf::IsDefined($this->DrawLine, CpdfTable::DRAWLINE_COLUMN) && $this->cellIndex + 1 < $this->numCells) {
             Cpdf::SetBBox(array('addux'=> $lw), $this->BBox);
-        }
-
-        if (isset($p)) {
-            $t = substr($text, $p);
-            if (!empty($t)) {
-                $this->pageBreak = true;
-
-                $this->pageBreakCells[$this->cellIndex] = $t;
-            }
         }
 
         if (!isset($this->maxCellY) || $paddingBBox[1] < $this->maxCellY) {
@@ -221,7 +212,6 @@ class CpdfTable extends CpdfAppearance
             //$this->y = $this->BBox[3] - $this->fontDescender;
             $this->BBox[0] = $this->BBox[2]; //$this->columnWidths[$this->cellIndex - 1];
         }
-
     }
 
     private function endRow($endOfTable = false)
