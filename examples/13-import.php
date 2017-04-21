@@ -1,11 +1,11 @@
 <?php
 
 require '../src/Cpdf.php';
-require '../src/include/RPDI.php';
 
 use ROSPDF\Cpdf;
+use ROSPDF\CpdfPdi;
 
- $pdf = new RPDI('sample-04-images.pdf', Cpdf::$Layout['A4']);
+ $pdf = new CpdfPdi('04-images.pdf', Cpdf::$Layout['A4']);
 
 if(isset($_GET['debug']))
     Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_OUTPUT;

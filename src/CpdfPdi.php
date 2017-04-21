@@ -1,5 +1,5 @@
 <?php
-
+namespace ROSPDF;
 /**
  * ROS PDF Import class (RPDI) - Experimental.
  *
@@ -31,7 +31,7 @@ use ROSPDF\Cpdf;
 use ROSPDF\CpdfContent;
 use ROSPDF\CpdfEXtension;
 
-class RPDI extends CpdfExtension
+class CpdfPdi extends CpdfExtension
 {
     const EOFOffset = 50;
 
