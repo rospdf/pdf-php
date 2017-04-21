@@ -1,5 +1,4 @@
 <?php
-namespace ROSPDF;
 /**
  * ROS PDF Import class (RPDI) - Experimental.
  *
@@ -27,13 +26,16 @@ namespace ROSPDF;
  *
  * @link     http://pdf-php.sf.net
  */
+
+namespace ROSPDF;
+
 use ROSPDF\Cpdf;
 use ROSPDF\CpdfContent;
 use ROSPDF\CpdfEXtension;
 
 class CpdfPdi extends CpdfExtension
 {
-    const EOFOffset = 50;
+    const EOFOFFSET = 50;
 
     const ENTRYTYPE_INDIRECT = 1;
     const ENTRYTYPE_BOOL = 2;
@@ -109,10 +111,10 @@ class CpdfPdi extends CpdfExtension
 
         // open the pdf file
         $this->filestream = fopen($file, 'r');
-        // set the file pointer to the end minus EOFOffset (default: 50)
-        fseek($this->filestream, -self::EOFOffset, SEEK_END);
-        // read exact EOFOffset bytes to reach EOF
-        $data = fread($this->filestream, self::EOFOffset);
+        // set the file pointer to the end minus EOFOFFSET (default: 50)
+        fseek($this->filestream, -self::EOFOFFSET, SEEK_END);
+        // read exact EOFOFFSET bytes to reach EOF
+        $data = fread($this->filestream, self::EOFOFFSET);
         // locate the integer verify the start of XRef table
         $res = preg_match("/\n([0-9]+)/m", $data, $regs);
 
