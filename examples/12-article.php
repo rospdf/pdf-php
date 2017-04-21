@@ -10,13 +10,13 @@ $pdf = new CpdfExtension(Cpdf::$Layout['A4']);
 
 $pdf->Compression  = 0;
 
-$pdf->FontSubset = true;
+//$pdf->FontSubset = true;
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_ROWS;
  
 // initialize first text object
 
 $textObject = $pdf->NewText();
-$textObject->BreakColumn = true;
+$textObject->BreakPage = ROSPDF\CpdfContent::PB_COLUMN;
 //$textObject->ColumnGap = 40;
 
 // put text, left justifed

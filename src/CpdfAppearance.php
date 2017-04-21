@@ -276,7 +276,7 @@ class CpdfAppearance extends CpdfContent
 
                 if ($this->y < $this->BBox[1] && !$this->IsCallback) {
                     //$width = $this->BBox[2] - $this->BBox[0];
-                    if ($this->BreakColumn) {
+                    if ($this->BreakPage == CpdfContent::PB_COLUMN) {
                         $this->BBox[2] = $this->x + $width + $this->ColumnGap;
                     }
 
@@ -287,7 +287,7 @@ class CpdfAppearance extends CpdfContent
                             $this->BBox[1] += $this->fontHeight + $this->fontDescender;
                             break 2;
                         }
-                    } elseif ($this->BreakColumn && ($this->BBox[2] + $width) <= $this->page->Bleedbox[2]) {
+                    } elseif ($this->BreakPage == CpdfContent::PB_COLUMN && ($this->BBox[2] + $width) <= $this->page->Bleedbox[2]) {
                         $obj = Cpdf::DoClone($this);
                         $this->pages->addObject($obj, true);
                         $this->contents = '';
@@ -307,7 +307,10 @@ class CpdfAppearance extends CpdfContent
                         // reset the font color for the next page
                         $this->setColor();
 
-                        //$this->BBox = $this->initialBBox;
+                        if($this->BreakPage == CpdfContent::PB_COLUMN) {
+                            // fully reset the BBox when column based
+                            $this->BBox = $this->initialBBox;
+                        }
 
                         $p = $this->pages->GetPageByNo($this->page->PageNum + 1);
                         if (!isset($p) || $this->pages->IsInsertMode()) {

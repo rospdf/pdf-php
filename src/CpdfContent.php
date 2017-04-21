@@ -43,9 +43,9 @@ class CpdfContent extends CpdfEntry
     const PB_BLEEDBOX = 1;
     const PB_BBOX = 2;
     const PB_CELL = 4;
+    const PB_COLUMN = 8;
 
     public $BreakPage;
-    public $BreakColumn;
 
     public $ObjectId;
     public $ZIndex;
@@ -74,7 +74,6 @@ class CpdfContent extends CpdfEntry
         $this->ZIndex = 0;
 
         $this->BreakPage = self::PB_BLEEDBOX;
-        $this->BreakColumn = false;
 
         $this->SetPageMode(self::PMODE_ADD, self::PMODE_ADD);
     }
