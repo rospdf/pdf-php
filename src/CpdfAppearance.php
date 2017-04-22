@@ -269,7 +269,7 @@ class CpdfAppearance extends CpdfContent
         }
 
         // split all manual line breaks
-        $lines = preg_split("/\n/", $text);
+        $lines = preg_split("/(\r?\n)/", $text);
         foreach ($lines as $v) {
             $this->isFirst = true;
 
