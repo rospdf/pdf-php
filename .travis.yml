@@ -12,7 +12,7 @@ php:
 install: travis_retry composer install --no-interaction --prefer-source
 
 script:
-  - [ [ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ] || [ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ] ] && vendor/bin/phpcs --standard=phpcs.xml src -s
+  - if [ [ ${TRAVIS_PHP_VERSION:0:3} == "5.6" ] || [ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ] ]; then vendor/bin/phpcs --standard=phpcs.xml src -s; fi
 
 matrix:
   allow_failures:
