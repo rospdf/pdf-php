@@ -1,37 +1,40 @@
 <?php
+
 error_reporting(E_ALL);
 set_time_limit(1800);
-set_include_path('../src/' . PATH_SEPARATOR . get_include_path());
+set_include_path('../src/'.PATH_SEPARATOR.get_include_path());
 
 include 'Cezpdf.php';
 
-class Creport extends Cezpdf{
-	public function __construct($p,$o){
-  		parent::__construct($p, $o,'none',array());
-  		$this->isUnicode = true;
-  		// always embed the font for the time being
-  		//$this->embedFont = false;
-  		// since version 0.11.8 it is required to allow custom callbacks
-  		$this->allowedTags .= "|uline"; 
-	}
+class Creport extends Cezpdf
+{
+    public function __construct($p, $o)
+    {
+        parent::__construct($p, $o, 'none', array());
+        $this->isUnicode = true;
+        // always embed the font for the time being
+        //$this->embedFont = false;
+        // since version 0.11.8 it is required to allow custom callbacks
+        $this->allowedTags .= '|uline';
+    }
 }
-$pdf = new Creport('a4','portrait');
+$pdf = new Creport('a4', 'portrait');
 
 // to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false){
+if (strpos(PHP_OS, 'WIN') !== false) {
     $pdf->tempPath = 'C:/temp';
 }
 
 $start = microtime(true);
 
-$pdf->ezSetMargins(20,20,20,20);
+$pdf->ezSetMargins(20, 20, 20, 20);
 //$pdf->rtl = true; // all text output to "right to left"
 //$pdf->setPreferences('Direction','R2L'); // optional: set the preferences to "Right To Left"
 
-$f = (isset($_GET['font']))?$_GET['font']:'FreeSerif';
+$f = (isset($_GET['font'])) ? $_GET['font'] : 'FreeSerif';
 
 $tmp = array(
-    'b'=>'FreeSerifBold'
+    'b' => 'FreeSerifBold',
 );
 $pdf->setFontFamily('FreeSerif', $tmp);
 
@@ -42,15 +45,14 @@ $pdf->openHere('Fit');
 
 $content = file_get_contents('utf8.txt');
 
-$pdf->ezText($content, 10, array('justification'=>'full'));
+$pdf->ezText($content, 10, array('justification' => 'full'));
 
-if (isset($_GET['d']) && $_GET['d']){
-  echo $pdf->ezOutput(TRUE);
+if (isset($_GET['d']) && $_GET['d']) {
+    echo $pdf->ezOutput(true);
 } else {
-  $pdf->ezStream();
+    $pdf->ezStream();
 }
 
 $end = microtime(true) - $start;
 //error_log($end . ' execution in seconds (v0.12.2)');
-
-?>
+;
