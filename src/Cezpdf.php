@@ -68,8 +68,8 @@ define('EZ_GRIDLINE_COLUMNS', 1);
   *
   * @link http://pdf-php.sf.net
   */
- class Cezpdf extends Cpdf
- {
+class Cezpdf extends Cpdf
+{
      /**
      * used to store most of the page configuration parameters.
      */

@@ -48,8 +48,9 @@ include_once 'include/TTFsubset.php';
   *
   * @link http://pdf-php.sf.net
   */
- class Cpdf
- {
+
+class Cpdf
+{
      /**
      * PDF version
      * This value may vary dependent on which methods and/or features are used.
