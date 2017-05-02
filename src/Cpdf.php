@@ -3798,7 +3798,7 @@ class Cpdf
         }
 
         if ($this->hashed) {
-            $oHash = md5($iChunk['idata']);
+            $oHash = md5($data);
         }
         if (isset($oHash) && isset($this->objectHash[$oHash])) {
             $label = $this->objectHash[$oHash];
