@@ -1886,6 +1886,7 @@ class Cezpdf extends Cpdf
      */
     public function ezImage($image, $pad = 5, $width = 0, $resize = 'full', $just = 'center', $angle = 0, $border = '')
     {
+        $offset=0;
         $temp = false;
         //beta ezimage function
         if (stristr($image, '://')) { //copy to temp file
