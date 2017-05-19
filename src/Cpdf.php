@@ -810,56 +810,60 @@ class Cpdf
                 // when font program is embedded and its not a coreFont, attach the font either as subset or completely
                 if ($this->embedFont && !in_array(strtolower($o['info']['name']), $this->coreFonts)) {
                     // when TrueType font is used
-                    if (isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'])) {
-                        // find font program id for TTF fonts (FontFile2)
-                        $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
-                        // if subsetting is set
-                        if ($this->fonts[$fontFileName]['isSubset'] && $this->fonts[$fontFileName]['isUnicode']) {
-                            $this->debug('subset font for '.$fontFileName, E_USER_NOTICE);
-                            $subsetFontName = 'AAAAAD+'.$o['info']['name'];
-                            $o['info']['name'] = $subsetFontName;
-                            // find descendant font
-                            $this->objects[$o['info']['cidFont']]['info']['name'] = $subsetFontName;
-                            // find font descriptor
-                            $this->objects[$o['info']['FontDescriptor']]['info']['FontName'] = $subsetFontName;
+					               if ( isset($o['info']['FontDescriptor'])) {
+                     if (isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'])) {
+                         // find font program id for TTF fonts (FontFile2)
+                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile2'];
+                         // if subsetting is set
+                         if ($this->fonts[$fontFileName]['isSubset'] && $this->fonts[$fontFileName]['isUnicode']) {
+                             $this->debug('subset font for '.$fontFileName, E_USER_NOTICE);
+                             $subsetFontName = 'AAAAAD+'.$o['info']['name'];
+                             $o['info']['name'] = $subsetFontName;
+                             // find descendant font
+                             $this->objects[$o['info']['cidFont']]['info']['name'] = $subsetFontName;
+                             // find font descriptor
+                             $this->objects[$o['info']['FontDescriptor']]['info']['FontName'] = $subsetFontName;
 
-                            // use TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
-                            $t = new TTFsubset();
-                            // combine all used characters as string
-                            $s = implode('', array_keys($this->fonts[$fontFileName]['subset']));
-                            // submit the string to TTFsubset class to return the subset (as binary)
-                            $data = $t->doSubset($this->fontPath.'/'.$fontFileName.'.ttf', $s, null);
-                            // $data is the new (subset) of the font font
-                            //file_put_contents('/tmp/'.$o['info']['name'] . '.ttf', $data);
+                             // use TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
+                             $t = new TTFsubset();
+                             // combine all used characters as string
+                             $s = implode('', array_keys($this->fonts[$fontFileName]['subset']));
+                             // submit the string to TTFsubset class to return the subset (as binary)
+                             $data = $t->doSubset($this->fontPath.'/'.$fontFileName.'.ttf', $s, null);
+                             // $data is the new (subset) of the font font
+                             //file_put_contents('/tmp/'.$o['info']['name'] . '.ttf', $data);
 
-                            $newcidwidth = array();
-                            $cidwidth = &$this->fonts[$fontFileName]['CIDWidths'];
-                            foreach ($t->TTFchars as $TTFchar) {
-                                if (!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])) {
-                                    $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
-                                }
-                            }
-                            $cidwidth = $newcidwidth;
-                        } else {
-                            $data = file_get_contents($this->fontPath.'/'.$fontFileName.'.ttf');
-                        }
+                             $newcidwidth = array();
+                             $cidwidth = &$this->fonts[$fontFileName]['CIDWidths'];
+                             foreach ($t->TTFchars as $TTFchar) {
+                                 if (!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])) {
+                                     $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
+                                 }
+                             }
+                             $cidwidth = $newcidwidth;
+                         } else {
+                             $data = file_get_contents($this->fontPath.'/'.$fontFileName.'.ttf');
+                         }
 
-                        // TODO: cache the subset
+                         // TODO: cache the subset
 
-                        $l1 = strlen($data);
-                        $this->objects[$pfbid]['c'] .= $data;
-                        $this->o_contents($pfbid, 'add', array('Length1' => $l1));
-                    } elseif (isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile'])) {
-                        // find FontFile id - used for PFB fonts
-                        $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
-                        $data = file_get_contents($this->fontPath.'/'.$fontFileName.'.pfb');
-                        $l1 = strpos($data, 'eexec') + 6;
-                        $l2 = strpos($data, '00000000') - $l1;
-                        $l3 = strlen($data) - $l2 - $l1;
-                        $this->o_contents($pfbid, 'add', array('Length1' => $l1, 'Length2' => $l2, 'Length3' => $l3));
-                    } else {
-                        $this->debug('Failed to select the correct font program', E_USER_WARNING);
-                    }
+                         $l1 = strlen($data);
+                         $this->objects[$pfbid]['c'] .= $data;
+                         $this->o_contents($pfbid, 'add', array('Length1' => $l1));
+                     } elseif (isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile'])) {
+                         // find FontFile id - used for PFB fonts
+                         $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
+                         $data = file_get_contents($this->fontPath.'/'.$fontFileName.'.pfb');
+                         $l1 = strpos($data, 'eexec') + 6;
+                         $l2 = strpos($data, '00000000') - $l1;
+                         $l3 = strlen($data) - $l2 - $l1;
+                         $this->o_contents($pfbid, 'add', array('Length1' => $l1, 'Length2' => $l2, 'Length3' => $l3));
+                     } else {
+                         $this->debug('Failed to select the correct font program', E_USER_WARNING);
+                     }
+                   } else {
+                       $this->debug('Failed to select the correct font program', E_USER_WARNING);
+                   }
                 }
 
                 if ($this->fonts[$fontFileName]['isUnicode']) {
