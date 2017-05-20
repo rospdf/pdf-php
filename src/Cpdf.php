@@ -2997,12 +2997,10 @@ class Cpdf
                         if (!$noCB && $this->nCallback > 0) {
                             --$this->nCallback;
                         }
-                    } elseif (!$noCB) {
-                        if (!$noClose) {
-                            ++$this->nCallback;
-                            $cb[$curPos]['nCallback'] = $this->nCallback;
-                            $this->callback[$this->nCallback] = $cb[$curPos];
-                        }
+                    } elseif (!$noCB && !$noClose && $regs[1] != "") {
+                        ++$this->nCallback;
+                        $cb[$curPos]['nCallback'] = $this->nCallback;
+                        $this->callback[$this->nCallback] = $cb[$curPos];
                     }
 
                      $currentCallback = $curPos;
