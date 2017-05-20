@@ -29,6 +29,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.33>
+
+- applied PR #67 and #68
 
 3<0.12.32>
 
