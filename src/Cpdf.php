@@ -3081,9 +3081,6 @@ class Cpdf
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0) {
             for ($i = $this->nCallback; $i > 0; --$i) {
-                if ($this->callback[$i]['f'] == 'defaultFormatting') {
-                    continue;
-                }
                 // call each function
                 $info = array('x' => $x, 'y' => $y, 'angle' => $angle, 'status' => 'sol', 'p' => $this->callback[$i]['p'], 'nCallback' => $this->callback[$i]['nCallback'], 'height' => $this->callback[$i]['height'], 'descender' => $this->callback[$i]['descender']);
                 $func = $this->callback[$i]['f'];
@@ -3110,9 +3107,13 @@ class Cpdf
         }
 
         // only single-byte character will work with word spacing according to PDF 1.3 reference (Chapter 5.2.2)
-        if (!$this->fonts[$cf]['isUnicode'] && ($wordSpaceAdjust != 0 || $wordSpaceAdjust != $this->wordSpaceAdjust)) {
-            $this->wordSpaceAdjust = $wordSpaceAdjust;
-            $this->addContent(sprintf(' %.3F Tw', $wordSpaceAdjust));
+        if (!$this->fonts[$cf]['isUnicode']) {
+            if ($wordSpaceAdjust != 0 || $wordSpaceAdjust != $this->wordSpaceAdjust) {
+                $this->wordSpaceAdjust = $wordSpaceAdjust;
+                $this->addContent(sprintf(' %.3F Tw', $wordSpaceAdjust));
+            } else {
+                $this->addContent(sprintf(' %.3F Tw', 0));
+            }
         }
 
         $start = 0;
@@ -3143,9 +3144,6 @@ class Cpdf
 
                 if ($this->nCallback > 0) {
                     for ($j = $this->nCallback; $j > 0; --$j) {
-                        if ($this->callback[$j]['f'] == 'defaultFormatting') {
-                            continue;
-                        }
                         $info = array(
                           'x' => $directive['x'],
                           'y' => $directive['y'],
