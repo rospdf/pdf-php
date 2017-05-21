@@ -21,7 +21,7 @@ class CezDummy extends Cezpdf
     /**
      * @param Cezpdf $ezpdf current cezpdf object
      */
-    public function CezDummy($p, $o = 'portrait', $t = 'none', $op = array())
+    public function __construct($p, $o = 'portrait', $t = 'none', $op = array())
     {
         parent::__construct($p, $o, $t, $op);
 

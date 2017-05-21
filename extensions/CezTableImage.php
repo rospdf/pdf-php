@@ -40,8 +40,7 @@ class CezTableImage extends Cezpdf
     /**
      * @param Cezpdf $ezpdf current cezpdf object
      */
-    public function CezTableImage($p, $o = 'portrait', $t = 'none', $op = array())
-    {
+    public function __construct($p, $o = 'portrait', $t = 'none', $op = array()){
         parent::__construct($p, $o, $t, $op);
         $this->allowedTags .= '|showimage:.*?';
     }
@@ -868,10 +867,6 @@ class CezShowimageParameter
 
     public $positionX = 0;
     public $positionY = 0;
-
-    public function CezShowimageParameter()
-    {
-    }
 
     /**
      * gets the image width.
