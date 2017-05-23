@@ -2993,10 +2993,8 @@ class Cpdf
                     }
 
                     // end tag for custom callbacks
-                    if ($isEnd) {
-                        if (!$noCB && $this->nCallback > 0) {
-                            --$this->nCallback;
-                        }
+                    if ($isEnd && !$noCB && $regs[1] != "" && $this->nCallback > 0) {
+                        --$this->nCallback;
                     } elseif (!$noCB && !$noClose && $regs[1] != "") {
                         ++$this->nCallback;
                         $cb[$curPos]['nCallback'] = $this->nCallback;
