@@ -1330,9 +1330,6 @@ class Cezpdf extends Cpdf
         $basePos = $pos;
         $baseX0 = $x0;
         $baseX1 = $x1;
-        // ok, just about ready to make me a table
-        $this->setColor($options['textCol'][0], $options['textCol'][1], $options['textCol'][2]);
-        $this->setStrokeColor($options['shadeCol'][0], $options['shadeCol'][1], $options['shadeCol'][2]);
 
         $middle = ($x1 + $x0) / 2;
 
@@ -1425,6 +1422,7 @@ class Cezpdf extends Cpdf
 
             // open an object here so that the text can be put in over the shading
             $this->saveState();
+
             $textObjectId = $this->openObject();
             $this->closeObject();
             $this->addObject($textObjectId);
@@ -1594,6 +1592,7 @@ class Cezpdf extends Cpdf
                                     //$line = '<c:color:'.$textColor[0].','.$textColor[1].','.$textColor[2].'>'.$line . '</c:color>';
                                 } else {
                                     $this->setColor(0,0,0, true);
+                                    $this->setStrokeColor(0,0,0, true);
                                 }
 
                                 $start = 1;
