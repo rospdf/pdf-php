@@ -33,7 +33,7 @@ $Columns["Col0"] = "";
 
 $Data = array();
 $Data[0] = array();
-$Data[0]["Col0"] = "<u><b>Bold and Underlined</b></u>";
+$Data[0]["Col0"] = "<b><u>Bold and Underlined</u></b>";
 
 $P = new Cezpdf("a4", "portrait");
 if (strpos(PHP_OS, 'WIN') !== false) {
@@ -47,6 +47,9 @@ $P->ezText(" ", 10);
 $P->ezTable($Data, $Columns, "", $Options);
 $P->ezText(" ", 10);
 
+$Data[0]["Col0"] = "<u><b>Bold and Underlined</b></u>";
+
+$P->ezText("<u><b>Bold and Underlined</b></u>", 10, array("justification"=>"left"));
 $P->ezText(" ", 10);
 $P->ezTable($Data, $Columns, "", $Options);
 $P->ezText(" ", 10);

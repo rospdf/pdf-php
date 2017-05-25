@@ -2890,162 +2890,162 @@ class Cpdf
         return $text;
     }
 
-     private function getDirectives(&$text, &$x, &$y, $width = 0, $size = 0, $justification = 'left', $angle = 0, &$wordSpaceAdjust = 0, $noCB = false)
-     {
-         $cb = array();
-         $restWidth = $width;
+    private function getDirectives(&$text, &$x, &$y, $width = 0, $size = 0, $justification = 'left', $angle = 0, &$wordSpaceAdjust = 0, $noCB = false)
+    {
+        $cb = array();
+        $restWidth = $width;
 
-         $result = preg_split("/(<.*?\>)/", $text, -1, PREG_SPLIT_DELIM_CAPTURE);
-         if (count($result) > 1) {
-             // backup current font style
-            $store_currentTextState = $this->currentTextState;
+        $result = preg_split("/(<.*?\>)/", $text, -1, PREG_SPLIT_DELIM_CAPTURE);
+        if (count($result) > 1) {
+            // backup current font style
+        $store_currentTextState = $this->currentTextState;
 
-             $nx = 0;
-             $ny = $y;
+            $nx = 0;
+            $ny = $y;
 
-             $curPos = 0;
-             $currentCallback = -1;
-             $curPosEnd = 0;
-             $offset = 0;
-             $tmpstr = '';
-             foreach ($result as $v) {
-                 if ($v == '') {
-                     continue;
-                 }
+            $curPos = 0;
+            $currentCallback = -1;
+            $curPosEnd = 0;
+            $offset = 0;
+            $tmpstr = '';
+            foreach ($result as $v) {
+                if ($v == '') {
+                    continue;
+                }
 
-                 $isTag = preg_match("/^<\/?([cC]:|)(".$this->allowedTags.")\>$/", $v, $regs);
+                $isTag = preg_match("/^<\/?([cC]:|)(".$this->allowedTags.")\>$/", $v, $regs);
 
-                 if (!$isTag) {
-                     $tmpstr .= $v;
+                if (!$isTag) {
+                    $tmpstr .= $v;
 
-                     $tmp = $this->getTextLength($size, $v, $restWidth, $angle, $wordSpaceAdjust);
-                     $restWidth -= $tmp[0];
-                     $nx += $tmp[0];
-                     $ny += $tmp[1];
+                    $tmp = $this->getTextLength($size, $v, $restWidth, $angle, $wordSpaceAdjust);
+                    $restWidth -= $tmp[0];
+                    $nx += $tmp[0];
+                    $ny += $tmp[1];
 
-                     if ($tmp[2] >= 0) {
-                         // position where the line break occurs
-                        $lbpos = $curPos + $tmp[2];
+                    if ($tmp[2] >= 0) {
+                        // position where the line break occurs
+                    $lbpos = $curPos + $tmp[2];
 
-                         $t = mb_substr($tmpstr, 0, $lbpos - $offset, 'UTF-8');
+                        $t = mb_substr($tmpstr, 0, $lbpos - $offset, 'UTF-8');
 
-                         $this->adjustWrapText($t, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
+                        $this->adjustWrapText($t, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
 
-                         foreach ($cb as &$c) {
-                             $ew = 0;
-                             if (!empty($c['nspaces'])) {
-                                 $ew = $wordSpaceAdjust * $c['nspaces'];
-                             }
-                             if ($c['status'] == 'start') {
-                                 $c['x'] += $x + $ew;
-                             } else {
-                                 $c['x'] += $x + $ew;
-                             }
-                         }
-
-                        // set position array by using the current break position minus offset
-                        $cb[$lbpos] = array('x' => $x + $width, 'y' => $ny, 'f' => 'linebreak', 'p' => $tmp[3], 'width' => $tmp[0]);
-
-                         $this->currentTextState = $store_currentTextState;
-                         $this->setCurrentFont();
-
-                         return $cb;
-                     }
-                 } else {
-                     $len = mb_strlen($v, 'UTF-8');
-                     $offset += $len;
-                     $curPosEnd = $curPos + $len;
-
-                     $curTag = $regs[2];
-
-                     $isEnd = (stripos($v, '</') !== false) ? true : false;
-                     $noClose = ($regs[1] == 'C:') ? true : false;
-                     $parm = '';
-
-                    // adjust justification 'full'
-                    $nspaces = 0;
-                     if ($justification == 'full') {
-                         $nspaces = substr_count($tmpstr, ' ') - 1;
-                     }
-
-                     $cb[$curPos] = array('x' => $nx, 'y' => $ny, 'nspaces' => $nspaces, 'angle' => $angle, 'status' => ($isEnd) ? 'end' : 'start', 'f' => $curTag, 'p' => $parm, 'height' => null, 'descender' => null, 'nCallback' => $this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd);
-
-                    // if below is not null, there are custom parameters
-                    if (!empty($regs[1])) {
-                        $pos = strpos($curTag, ':');
-                        if ($pos) {
-                            $parm = substr($curTag, $pos + 1);
-                            $curTag = substr($curTag, 0, $pos);
+                        foreach ($cb as &$c) {
+                            $ew = 0;
+                            if (!empty($c['nspaces'])) {
+                                $ew = $wordSpaceAdjust * $c['nspaces'];
+                            }
+                            if ($c['status'] == 'start') {
+                                $c['x'] += $x + $ew;
+                            } else {
+                                $c['x'] += $x + $ew;
+                            }
                         }
-                        $cb[$curPos]['f'] = $curTag;
-                        $cb[$curPos]['p'] = $parm;
 
-                        if (!$isEnd) {
-                            $cb[$curPos]['height'] = $this->getFontHeight($size);
-                            $cb[$curPos]['descender'] = $this->getFontDescender($size);
-                        }
-                    } else {
-                        $cb[$curPos]['f'] = 'defaultFormatting';
-                        $cb[$curPos]['p'] = $curTag;
+                    // set position array by using the current break position minus offset
+                    $cb[$lbpos] = array('x' => $x + $tmp[0], 'y' => $ny, 'f' => 'linebreak', 'p' => $tmp[3], 'width' => $tmp[0]);
 
-                        $this->defaultFormatting($cb[$curPos]);
+                        $this->currentTextState = $store_currentTextState;
                         $this->setCurrentFont();
+
+                        return $cb;
+                    }
+                } else {
+                    $len = mb_strlen($v, 'UTF-8');
+                    $offset += $len;
+                    $curPosEnd = $curPos + $len;
+
+                    $curTag = $regs[2];
+
+                    $isEnd = (stripos($v, '</') !== false) ? true : false;
+                    $noClose = ($regs[1] == 'C:') ? true : false;
+                    $parm = '';
+
+                // adjust justification 'full'
+                $nspaces = 0;
+                    if ($justification == 'full') {
+                        $nspaces = substr_count($tmpstr, ' ') - 1;
                     }
 
-                    // end tag for custom callbacks
-                    if ($isEnd && !$noCB && $regs[1] != "" && $this->nCallback > 0) {
-                        --$this->nCallback;
-                    } elseif (!$noCB && !$noClose && $regs[1] != "") {
-                        ++$this->nCallback;
-                        $cb[$curPos]['nCallback'] = $this->nCallback;
-                        $this->callback[$this->nCallback] = $cb[$curPos];
+                    $cb[$curPos] = array('x' => $nx, 'y' => $ny, 'nspaces' => $nspaces, 'angle' => $angle, 'status' => ($isEnd) ? 'end' : 'start', 'f' => $curTag, 'p' => $parm, 'height' => null, 'descender' => null, 'nCallback' => $this->nCallback, 'startTag' => $curPos, 'endTag' => $curPosEnd);
+
+                // if below is not null, there are custom parameters
+                if (!empty($regs[1])) {
+                    $pos = strpos($curTag, ':');
+                    if ($pos) {
+                        $parm = substr($curTag, $pos + 1);
+                        $curTag = substr($curTag, 0, $pos);
                     }
+                    $cb[$curPos]['f'] = $curTag;
+                    $cb[$curPos]['p'] = $parm;
 
-                     $currentCallback = $curPos;
-                 }
+                    if (!$isEnd) {
+                        $cb[$curPos]['height'] = $this->getFontHeight($size);
+                        $cb[$curPos]['descender'] = $this->getFontDescender($size);
+                    }
+                } else {
+                    $cb[$curPos]['f'] = 'defaultFormatting';
+                    $cb[$curPos]['p'] = $curTag;
 
-                 $curPos += mb_strlen($v, 'UTF-8');
-                 $tmp = null;
-             }
+                    $this->defaultFormatting($cb[$curPos]);
+                    $this->setCurrentFont();
+                }
 
-             if ($justification != 'full') {
-                 $this->adjustWrapText($text, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
-             }
+                // end tag for custom callbacks
+                if ($isEnd && !$noCB && $regs[1] != "" && $this->nCallback > 0) {
+                    --$this->nCallback;
+                } elseif (!$noCB && !$noClose && $regs[1] != "") {
+                    ++$this->nCallback;
+                    $cb[$curPos]['nCallback'] = $this->nCallback;
+                    $this->callback[$this->nCallback] = $cb[$curPos];
+                }
 
-             foreach ($cb as &$c) {
-                 if ($c['status'] == 'start') {
-                     $c['x'] += $x;
-                 } else {
-                     $c['x'] += $x;
-                 }
-             }
+                    $currentCallback = $curPos;
+                }
 
-             $this->currentTextState = $store_currentTextState;
-             $this->setCurrentFont();
-         } else {
-             $tmp = $this->getTextLength($size, $text, $restWidth, $angle, $wordSpaceAdjust);
-            // if the text does not fit to $width, $tmp[2] contains the length
-            if ($tmp[2] > 0) {
-                $tmpstr = mb_substr($text, 0, $tmp[2], 'UTF-8');
-                // adjust to position if justification is set
-                $this->adjustWrapText($tmpstr, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
-                // set position array by using the current break position minus offset
-                $lbpos = $tmp[2];
-                $cb[$lbpos] = array('x' => $x + $tmp[0], 'y' => $y + $tmp[1], 'f' => 'linebreak', 'p' => $tmp[3], 'width' => $tmp[0]);
-
-                return $cb;
-            } elseif ($justification != 'full') {
-                $this->adjustWrapText($text, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
+                $curPos += mb_strlen($v, 'UTF-8');
+                $tmp = null;
             }
-         }
 
-         return $cb;
-     }
+            if ($justification != 'full') {
+                $this->adjustWrapText($text, $width - $restWidth, $width, $x, $wordSpaceAdjust, $justification);
+            }
 
-     protected function defaultFormatting($info)
-     {
-         $tag = $info['p'];
-         switch ($tag) {
+            foreach ($cb as &$c) {
+                if ($c['status'] == 'start') {
+                    $c['x'] += $x;
+                } else {
+                    $c['x'] += $x;
+                }
+            }
+
+            $this->currentTextState = $store_currentTextState;
+            $this->setCurrentFont();
+        } else {
+            $tmp = $this->getTextLength($size, $text, $restWidth, $angle, $wordSpaceAdjust);
+        // if the text does not fit to $width, $tmp[2] contains the length
+        if ($tmp[2] > 0) {
+            $tmpstr = mb_substr($text, 0, $tmp[2], 'UTF-8');
+            // adjust to position if justification is set
+            $this->adjustWrapText($tmpstr, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
+            // set position array by using the current break position minus offset
+            $lbpos = $tmp[2];
+            $cb[$lbpos] = array('x' => $x + $tmp[0], 'y' => $y + $tmp[1], 'f' => 'linebreak', 'p' => $tmp[3], 'width' => $tmp[0]);
+
+            return $cb;
+        } elseif ($justification != 'full') {
+            $this->adjustWrapText($text, $tmp[0], $width, $x, $wordSpaceAdjust, $justification);
+        }
+        }
+
+        return $cb;
+    }
+
+    protected function defaultFormatting($info)
+    {
+        $tag = $info['p'];
+        switch ($tag) {
             case 'strong':
                 $tag = 'b';
             case 'i':
@@ -3061,7 +3061,7 @@ class Cpdf
                 }
                 break;
         }
-     }
+    }
 
     /**
      * add text to the document, at a specified location, size and angle on the page.
@@ -3079,10 +3079,15 @@ class Cpdf
         // if there are any open callbacks, then they should be called, to show the start of the line
         if ($this->nCallback > 0) {
             for ($i = $this->nCallback; $i > 0; --$i) {
-                // call each function
-                $info = array('x' => $x, 'y' => $y, 'angle' => $angle, 'status' => 'sol', 'p' => $this->callback[$i]['p'], 'nCallback' => $this->callback[$i]['nCallback'], 'height' => $this->callback[$i]['height'], 'descender' => $this->callback[$i]['descender']);
-                $func = $this->callback[$i]['f'];
-                $this->$func($info);
+                $cb = $this->callback[$i];
+                if($cb['status'] != 'start') continue;
+
+                $tag = '<c:' . $cb['f'];
+                if(!empty($cb['p']))
+                    $tag .= ':' . $cb['p'];
+                $tag .= '>';
+
+                $text = $tag . $text;
             }
         }
 
@@ -3200,27 +3205,6 @@ class Cpdf
         }
 
         $this->addContent(' ET');
-
-        // if there are any open callbacks, then they should be called, to show the end of the line
-        if ($this->nCallback > 0) {
-            for ($i = $this->nCallback; $i > 0; --$i) {
-                // call each function
-            $tmp = $this->getTextLength($size, $text, $width, $angle, $wordSpaceAdjust);
-            //$tmp = $this->getTextPosition($x, $y, $angle, $size, $wordSpaceAdjust, $text);
-            $info = array(
-              'x' => $tmp[0] + $x,
-              'y' => $tmp[1] + $y,
-              'angle' => $angle,
-              'status' => 'eol',
-              'p' => $this->callback[$i]['p'],
-              'nCallback' => $this->callback[$i]['nCallback'],
-              'height' => $this->callback[$i]['height'],
-              'descender' => $this->callback[$i]['descender'],
-            );
-                $func = $this->callback[$i]['f'];
-                $this->$func($info);
-            }
-        }
         // return text position of the last line break or 0 (if error -1)
         return '';
     }
@@ -3291,44 +3275,44 @@ class Cpdf
             $text = utf8_encode($text);
         }
 
-         $a = deg2rad((float) $angle);
+        $a = deg2rad((float) $angle);
         // get length of its unicode string
         $len = mb_strlen($text);
-         $cf = $this->currentFont;
-         $tw = $maxWidth / $size * 1000;
-         $break = -1;
-         $w = 0;
-         $truncateChar = 1;
+        $cf = $this->currentFont;
+        $tw = $maxWidth / $size * 1000;
+        $break = -1;
+        $w = 0;
+        $truncateChar = 1;
 
-         for ($i = 0; $i < $len; ++$i) {
-             $c = mb_substr($text, $i, 1, 'UTF-8');
-             $cOrd = $this->uniord($c);
-             if ($cOrd == 0) {
-                 continue;
-             }
+        for ($i = 0; $i < $len; ++$i) {
+            $c = mb_substr($text, $i, 1, 'UTF-8');
+            $cOrd = $this->uniord($c);
+            if ($cOrd == 0) {
+                continue;
+            }
 
-             if (isset($this->fonts[$cf]['differences'][$cOrd])) {
-                 // then this character is being replaced by another
-                $cOrd = $this->fonts[$cf]['differences'][$cOrd];
-             }
+            if (isset($this->fonts[$cf]['differences'][$cOrd])) {
+                // then this character is being replaced by another
+            $cOrd = $this->fonts[$cf]['differences'][$cOrd];
+            }
 
-             if (isset($this->fonts[$cf]['C'][$cOrd])) {
-                 $w += $this->fonts[$cf]['C'][$cOrd];
-             }
+            if (isset($this->fonts[$cf]['C'][$cOrd])) {
+                $w += $this->fonts[$cf]['C'][$cOrd];
+            }
             // word space adjust
             if ($wa > 0 && in_array($cOrd, $spaces)) {
                 $w += $wa;
             }
 
-             if ($maxWidth > 0 && (cos($a) * $w) > $tw) {
-                 if ($break >= 0) {
-                     return array(cos($a) * $breakWidth, -sin($a) * $breakWidth, $break, $truncateChar);
-                 } else {
-                     $tmpw = ($w - $this->fonts[$cf]['C'][$cOrd]) * $size / 1000;
+                if ($maxWidth > 0 && (cos($a) * $w) > $tw) {
+                    if ($break >= 0) {
+                        return array(cos($a) * $breakWidth, -sin($a) * $breakWidth, $break, $truncateChar);
+                    } else {
+                        $tmpw = ($w - $this->fonts[$cf]['C'][$cOrd]) * $size / 1000;
                     // just split before the current character
                     return array(cos($a) * $tmpw, -sin($a) * $tmpw, $i, 0);
-                 }
-             }
+                    }
+                }
 
             // find space or minus for a clean line break
             if (in_array($cOrd, $spaces) && $maxWidth > 0) {
@@ -3340,11 +3324,10 @@ class Cpdf
                 $truncateChar = 0;
                 $breakWidth = $w * $size / 1000;
             }
-         }
+        }
 
-         $tmpw = $w * $size / 1000;
-
-         return array(cos($a) * $tmpw, -sin($a) * $tmpw, -1, 0);
+        $tmpw = $w * $size / 1000;
+        return array(cos($a) * $tmpw, -sin($a) * $tmpw, -1, 0);
      }
 
     /**
