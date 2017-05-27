@@ -41,32 +41,13 @@ define('EZ_GRIDLINE_COLUMNS', 1);
   * This class will take the basic interaction facilities of the Cpdf class
   * and make more useful functions so that the user does not have to
   * know all the ins and outs of pdf presentation to produce something pretty.
-  * <pre>
-  *  This program is free software: you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-  *  the Free Software Foundation, either version 3 of the License, or
-  *  (at your option) any later version.
-  *
-  *  This program is distributed in the hope that it will be useful,
-  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *  GNU General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-  *  along with this program.  If not, see http://www.gnu.org/licenses/
-  * </pre>
   *
   * @category Documents
-  *
-  * @version [0.12-rc12] $Id: Cezpdf.php 266 2014-01-13 08:13:42Z ole1986 $
-  *
   * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
-  * @author Ole Koeckemann <ole1986@users.sourceforge.net>
-  * @author 2002-07-24: Nicola Asuni <info@tecnick.com>
-  * @copyright 2007 - 2013 The authors
-  * @license GNU General Public License v3
-  *
-  * @link http://pdf-php.sf.net
+  * @author Ole Koeckemann <ole.k@web.de>
+  * @author Lars Olesen <lars@legestue.net>
+  * @author Nicola Asuni <info@tecnick.com>
+  * @link https://github.com/rospdf/pdf-php
   */
 class Cezpdf extends Cpdf
 {
