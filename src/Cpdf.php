@@ -3400,6 +3400,10 @@ class Cpdf
         return $this->numObj;
     }
 
+    public function IsObjectOpened(){
+        return ($this->nStack > 0) ? true : false;
+    }
+
     /**
      * open an existing object for editing.
      */

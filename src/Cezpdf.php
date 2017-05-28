@@ -1404,10 +1404,12 @@ class Cezpdf extends Cpdf
             // open an object here so that the text can be put in over the shading
             $this->saveState();
 
-            $textObjectId = $this->openObject();
-            $this->closeObject();
-            $this->addObject($textObjectId);
-            $this->reopenObject($textObjectId);
+            if(!$this->IsObjectOpened()) {
+                $textObjectId = $this->openObject();
+                $this->closeObject();
+                $this->addObject($textObjectId);
+                $this->reopenObject($textObjectId);
+            }
 
             $cnt = 0;
             $newPage = 0;
