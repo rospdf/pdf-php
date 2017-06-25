@@ -19,6 +19,8 @@ if (!isset($_GET['nocrypt'])) {
 
     $mode = (isset($_GET['mode']) && is_numeric($_GET['mode'])) ? $_GET['mode'] : 1;
     $pdf->setEncryption($user, $owner, array(), $mode);
+} else {
+    $mode = 0;
 }
 
 // select a font
@@ -48,5 +50,5 @@ if (isset($_GET['d']) && $_GET['d']) {
     } else {
         $encMode = 'NONE';
     }
-    $pdf->ezStream(array('Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : ''), 'attached' => 0));
+    $pdf->ezStream(array('compress' => 0,'Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : '') . '.pdf', 'attached' => 0));
 }
