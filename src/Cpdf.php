@@ -1178,7 +1178,7 @@ class Cpdf
             foreach ($o['info']  as $k => $v) {
                 $res .= '/'.$k.' (';
                 if ($this->encryptionMode > 0) {
-                    $res .= $this->filterText($this->ARC4($v), true, false);
+                    $res .= $this->ARC4($this->filterText($v, true, false));
                 } else {
                     $res .= $this->filterText($v, true, false);
                 }
