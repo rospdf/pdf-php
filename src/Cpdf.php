@@ -451,7 +451,7 @@ class Cpdf
             $this->targetEncoding = 'Windows-1252';
         }
         // use the md5 to have a unique identifier for all documents created with R&OS pdf class
-        $this->fileIdentifier = md5('ROSPDF'.time());
+        $this->fileIdentifier = md5('ROSPDF');
 
         // set the default font path to [...]/src/fonts
         $this->fontPath = dirname(__FILE__).'/fonts';
