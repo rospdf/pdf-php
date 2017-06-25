@@ -69,7 +69,7 @@ class Creport extends Cezpdf {
 // this code has been modified to use ezpdf.
 
 $project_url = "https://github.com/rospdf/";
-$project_version = "0.12.34";
+$project_version = "0.12.36";
 
 $pdf = new Creport('a4','portrait', 'none', null);
 // to test on windows xampp
@@ -107,7 +107,7 @@ $pdf->selectFont($mainFont);
 
 $pdf->ezText("PHP Pdf Class\n",30,array('justification'=>'centre'));
 $pdf->ezText("Native PDF document creation with PHP 5.X\n",20,array('justification'=>'centre'));
-$pdf->ezText("hosted on github.com\n\n<c:alink:https://github.com/rospdf/pdf-php/graphs/contributors>Contributors</c:alink>\n",14,array('justification'=>'centre'));
+$pdf->ezText("released under the terms of the MIT license\n\n<c:alink:https://github.com/rospdf/pdf-php/graphs/contributors>Contributors</c:alink>\n",14,array('justification'=>'centre'));
 $pdf->ezText("Version $project_version", 12, array('justification' => 'centre'));
 $pdf->ezSetDy(-150);
 // modified to use the local file if it can

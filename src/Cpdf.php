@@ -6,20 +6,6 @@ include_once 'include/TTFsubset.php';
   * Create pdf documents without additional modules
   * Note that the companion class Document_CezPdf can be used to extend this class and
   * simplify the creation of documents.
-  * <pre>
-  *  This program is free software: you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-  *  the Free Software Foundation, either version 3 of the License, or
-  *  (at your option) any later version.
-  *
-  *  This program is distributed in the hope that it will be useful,
-  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *  GNU General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-  *  along with this program.  If not, see http://www.gnu.org/licenses/
-  * </pre>
   *
   * **Document object methods**
   *
@@ -36,17 +22,12 @@ include_once 'include/TTFsubset.php';
   * within the pdf 'file'.
   *
   * @category Documents
-  *
-  * @version  $Id: Cpdf.php 274 2014-03-21 12:25:04Z ole1986 $
-  *
-  * @author   Wayne Munro (inactive) <pdf@ros.co.nz>
-  * @author   Lars Olesen <lars@legestue.net>
-  * @author   Sune Jensen <sj@sunet.dk>
-  * @author   Ole Koeckemann <ole1986@users.sourceforge.net>
-  * @copyright 2007 - 2014 The authors
-  * @license  GNU General Public License v3
-  *
-  * @link http://pdf-php.sf.net
+  * @author Wayne Munro, R&OS Ltd, <http://www.ros.co.nz/pdf>
+  * @author Ole Koeckemann <ole.k@web.de>
+  * @author Lars Olesen <lars@legestue.net>
+  * @author Sune Jensen <sj@sunet.dk>
+  * @author Nicola Asuni <info@tecnick.com>
+  * @link https://github.com/rospdf/pdf-php
   */
 
 class Cpdf
@@ -3417,6 +3398,10 @@ class Cpdf
         $this->looseObjects[$this->numObj] = 1;
 
         return $this->numObj;
+    }
+
+    public function IsObjectOpened(){
+        return ($this->nStack > 0) ? true : false;
     }
 
     /**
