@@ -7,13 +7,13 @@ date_default_timezone_set('UTC');
 include 'Cezpdf.php';
 
 $pdf = new Cezpdf('a4', 'portrait');
-$pdf->addInfo('Title', 'Title will also be encrypted');
 // to test on windows xampp
 if (strpos(PHP_OS, 'WIN') !== false) {
     $pdf->tempPath = 'C:/temp';
 }
 
 if (!isset($_GET['nocrypt'])) {
+    $pdf->addInfo('Title', 'R&OS PDF Title (encrypted)');
     // define the encryption mode (either RC4 40bit or RC4 128bit)
     $user = (isset($_GET['user'])) ? $_GET['user'] : '';
     $owner = (isset($_GET['owner'])) ? $_GET['owner'] : '';
@@ -21,6 +21,7 @@ if (!isset($_GET['nocrypt'])) {
     $mode = (isset($_GET['mode']) && is_numeric($_GET['mode'])) ? $_GET['mode'] : 1;
     $pdf->setEncryption($user, $owner, array(), $mode);
 } else {
+    $pdf->addInfo('Title', 'R&OS PDF Title (plain)');
     $mode = 0;
 }
 
