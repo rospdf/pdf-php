@@ -424,7 +424,7 @@ class Cpdf
     {
         $this->isUnicode = $isUnicode;
         // set the hardcoded encryption pad
-        $this->encryptionPad = chr(0x28).chr(0xBF).chr(0x4E).chr(0x5E).chr(0x4E).chr(0x75).chr(0x8A).chr(0x41).chr(0x64).chr(0x00).chr(0x4E).chr(0x56).chr(0xFF).chr(0xFA).chr(0x01).chr(0x08).chr(0x2E).chr(0x2E).chr(0x00).chr(0xB6).chr(0xD0).chr(0x68).chr(0x3E).chr(0x80).chr(0x2F).chr(0x0C).chr(0xA9).chr(0xFE).chr(0x64).chr(0x53).chr(0x69).chr(0x7A);
+        $this->encryptionPad = "\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A";       
 
         $this->newDocument($pageSize);
 
@@ -1138,7 +1138,7 @@ class Cpdf
         case 'new':
             $this->infoObject = $id;
             $date = 'D:'.date('YmdHis')."-00'00";
-            $this->objects[$id] = array('t' => 'info', 'info' => array('Creator' => 'R&OS php pdf class, http://pdf-php.sf.net/', 'CreationDate' => $date));
+            $this->objects[$id] = array('t' => 'info', 'info' => array('Creator' => 'R&OS PDF php class', 'CreationDate' => $date));
             break;
         case 'Title':
         case 'Author':
@@ -1157,13 +1157,13 @@ class Cpdf
             }
             $res = "\n".$id." 0 obj\n<< ";
             foreach ($o['info']  as $k => $v) {
-                $res .= '/'.$k.' (';
+                $res .= '/'.$k.' ';
                 if ($this->encryptionMode > 0) {
-                    $res .= $this->ARC4($this->filterText($v, true, false));
+                    $res .= '<' . $this->strToHex($this->ARC4($v)) . '> ';
                 } else {
-                    $res .= $this->filterText($v, true, false);
+                    $res .= '(' . $this->filterText($v, true, false) . ') ';
                 }
-                $res .= ') ';
+                //$res .= ') ';
             }
             $res .= ">>\nendobj";
 
@@ -1668,10 +1668,7 @@ class Cpdf
      */
     private function md5_16($string)
     {
-        $tmp = md5($string);
-        $out = pack('H*', $tmp);
-
-        return $out;
+        return pack('H*', md5($string));
     }
 
     /**
@@ -1703,21 +1700,21 @@ class Cpdf
         if (strlen($key) == 0) {
             return;
         }
-        $k = '';
-        while (strlen($k) < 256) {
-            $k .= $key;
+        
+        $s = array();
+        for ($i = 0; $i < 256; $i++) {
+            $s[$i] = $i;
         }
-        $k = substr($k, 0, 256);
-        for ($i = 0; $i < 256; ++$i) {
-            $this->arc4 .= chr($i);
-        }
+
         $j = 0;
-        for ($i = 0; $i < 256; ++$i) {
-            $t = $this->arc4[$i];
-            $j = ($j + ord($t) + ord($k[$i])) % 256;
-            $this->arc4[$i] = $this->arc4[$j];
-            $this->arc4[$j] = $t;
+        for ($i = 0; $i < 256; $i++) {
+            $j = ($j + $s[$i] + ord($key[$i % strlen($key)])) % 256;
+            $x = $s[$i];
+            $s[$i] = $s[$j];
+            $s[$j] = $x;
         }
+
+        $this->arc4 = $s;
     }
 
     /**
@@ -1725,22 +1722,20 @@ class Cpdf
      */
     private function ARC4($text)
     {
-        $len = strlen($text);
-        $a = 0;
-        $b = 0;
-        $c = $this->arc4;
-        $out = '';
-        for ($i = 0; $i < $len; ++$i) {
-            $a = ($a + 1) % 256;
-            $t = $c[$a];
-            $b = ($b + ord($t)) % 256;
-            $c[$a] = $c[$b];
-            $c[$b] = $t;
-            $k = ord($c[(ord($c[$a]) + ord($c[$b])) % 256]);
-            $out .= chr(ord($text[$i]) ^ $k);
+        $i = 0;
+        $j = 0;
+        $s = $this->arc4;
+        $res = '';
+        for ($y = 0; $y < strlen($text); $y++) {
+            $i = ($i + 1) % 256;
+            $j = ($j + $s[$i]) % 256;
+            $x = $s[$i];
+            $s[$i] = $s[$j];
+            $s[$j] = $x;
+            $res .= $text[$y] ^ chr($s[($s[$i] + $s[$j]) % 256]);
         }
 
-        return $out;
+        return $res;
     }
 
      public function addComment($title, $text, $x, $y)
