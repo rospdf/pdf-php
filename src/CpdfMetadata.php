@@ -54,8 +54,7 @@ class CpdfMetadata
                         $value = $this->getDate($value);
                     default:
                         if (isset($encObj)) {
-                            $dummyAsRef = null;
-                            $res .= " /$key (".$this->pages->filterText($dummyAsRef, $encObj->ARC4($value)).')';
+                            $res .= " /$key <". $encObj->strToHex($encObj->ARC4($value)).'>';
                         } else {
                             $res .= " /$key ($value)";
                         }

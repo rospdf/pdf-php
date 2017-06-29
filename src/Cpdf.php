@@ -222,7 +222,7 @@ class Cpdf extends CpdfEntry
 
         $this->FontPath = dirname(__FILE__).'/fonts';
 
-        $this->FileIdentifier = md5('ROSPDF'.microtime());
+        $this->FileIdentifier = md5('ROSPDF');
 
         // if constructor is being executed, create the first page
         $this->NewPage($mediabox, $cropbox, $bleedbox);
@@ -749,11 +749,13 @@ class Cpdf extends CpdfEntry
         if (isset($this->Metadata)) {
             $this->Metadata->ObjectId = ++$this->objectNum;
             $res .= $this->Metadata->OutputAsObject();
-            if ($this->PDFVersion >= 1.4) {
+            if ($this->PDFVersion >= 1.4 && !isset($this->encryptionObject)) {
+                // TODO: encrypt the XML Metadata when encryption is enabled
+                // TODO: Either Meta XML or Info block?! - Disable XML for the time being
                 // put metadata xml as reference into catalog
-                $this->Metadata->ObjectId = ++$this->objectNum;
-                $res .= $this->Metadata->OutputAsObject('XML');
-                $this->Options->SetMetadata($this->Metadata->ObjectId);
+                //$this->Metadata->ObjectId = ++$this->objectNum;
+                //$res .= $this->Metadata->OutputAsObject('XML');
+                //$this->Options->SetMetadata($this->Metadata->ObjectId);
             }
         }
         $this->Options->ObjectId = ++$this->objectNum;
