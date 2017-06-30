@@ -33,6 +33,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 3<0.12.39>
 
 - fixed issue #71
+- reduce callbacks proberly when reattaching in addText
 
 3<0.12.38>
 
