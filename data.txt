@@ -30,6 +30,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 1<Changelog>
 
 
+3<0.12.39>
+
+- fixed issue #71
+
 3<0.12.38>
 
 - finally fixed special char issue when encrypting documents (document info - #70)
@@ -51,62 +55,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - fixed issue #65
 - improved table cell coloring using setColor(r,g,b,1)
-
-3<0.12.33>
-
-- applied PR #67 and #68
-- fixed issue #66
-
-3<0.12.32>
-
-- PSR-2 compliant format
-- PR #63: fixed reported png hash issue
-
-3<0.12.31>
-
-- fixed issue #44 by using min font width (fontBBox)
-- recovered lines from issue #52
-
-3<0.12.30>
-
-- added setColorCMYK and setStrokeColorCMYK from issue #53
-- added setHexColor and setStrokeHexColor as well from issue #53
-
-3<0.12.29>
-
-- fixed "Undefined offset" when lsbls is empty in TTF.php
-- PR #47 - Fixes potential PHP notice in Cpdf->uniord()
-
-3<0.12.28>
-
-- fixed issue #45
-
-3<0.12.27>
-
-- PR #42 - added new table features: evenColumns, text color, background color
-- fixed issue #43 - maxWidth is not defined by default
-- no need to define 'showBgCol' when using column background
-- slightly optimized max column width calculation
-
-3<0.12.26>
-
-- fixed deprecated constructor calls (PHP7 compatibility)
-- fixed space counting issue in full justification
-- fixed underline on justification full and unicode
-
-3<0.12.25>
-
-- significant changes in getDirectives() method
-- possible fixes in justification when using html tags
-
-3<0.12.24>
-
-- fixed reported issue #38 
-- fixed afm font resources (Helvetica, Courier and Times Roman)
-
-3<0.12.23>
-
-- fixed reported issue #36 Text truncated while wrapping
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
