@@ -3064,6 +3064,7 @@ class Cpdf
                 $tag .= '>';
 
                 $text = $tag . $text;
+                $this->nCallback--;
             }
         }
 
