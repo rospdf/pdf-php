@@ -886,6 +886,9 @@ class Cezpdf extends Cpdf
         //$y-=$gap+$descender;
         $y -= $gap;
         while ($ok == 0) {
+            $col = $optionsAll['textCol'];
+            $this->setColor($col[0],$col[1],$col[2], true);
+
             foreach ($cols as $colName => $colHeading) {
                 $this->ezSetY($y);
                 if (!empty($optionsAll['alignHeadings'])) {
@@ -895,8 +898,7 @@ class Cezpdf extends Cpdf
                 } else {
                     $justification = 'left';
                 }
-                $col = $optionsAll['textCol'];
-                $this->ezText('<c:color:'.$col[0].','.$col[1].','.$col[2].'>'.$colHeading.'</c:color>', $size, array('aleft' => $pos[$colName], 'aright' => ($maxWidth[$colName] + $pos[$colName]), 'justification' => $justification));
+                $this->ezText($colHeading, $size, array('aleft' => $pos[$colName], 'aright' => ($maxWidth[$colName] + $pos[$colName]), 'justification' => $justification));
                 $dy = $y - $this->y;
                 if ($dy > $mx) {
                     $mx = $dy;
