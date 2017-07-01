@@ -34,6 +34,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - fixed issue #71
 - reduce callbacks proberly when reattaching in addText
+- improved stability and performance
 
 3<0.12.38>
 
@@ -51,11 +52,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 3<0.12.35>
 
 - fixed issue #69
-
-3<0.12.34>
-
-- fixed issue #65
-- improved table cell coloring using setColor(r,g,b,1)
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
