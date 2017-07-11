@@ -3889,7 +3889,7 @@ class Cpdf
      * @param $h height
      * @param $quality image quality
      */
-    protected function addImage(&$img, $x, $y, $w = 0, $h = 0, $quality = 75, $angle = 0)
+    public function addImage(&$img, $x, $y, $w = 0, $h = 0, $quality = 75, $angle = 0)
     {
         // add a new image into the current location, as an external object
         // add the image at $x,$y, and with width and height as defined by $w & $h
@@ -3908,14 +3908,13 @@ class Cpdf
         $imageWidth = imagesx($img);
         $imageHeight = imagesy($img);
 
-        if ($w <= 0 && $h <= 0) {
-            return;
-        }
-        if ($w == 0) {
+        if ($w == 0 && $h > 0) {
             $w = $h / $imageHeight * $imageWidth;
-        }
-        if ($h == 0) {
+        } else if ($h == 0 && $w > 0) {
             $h = $w * $imageHeight / $imageWidth;
+        } else if($w == 0 && $h == 0) {
+            $w = $imageWidth;
+            $h = $imageHeight;
         }
 
         $tmpName = tempnam($this->tempPath, 'img');
