@@ -30,6 +30,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 1<Changelog>
 
 
+3<0.12.40>
+
+- make addImage method public #73 - example imagetext.php
+
 3<0.12.39>
 
 - fixed issue #71
@@ -48,10 +52,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - released under the MIt license
 - fixed issue #55
-
-3<0.12.35>
-
-- fixed issue #69
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
