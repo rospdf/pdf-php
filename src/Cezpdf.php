@@ -113,55 +113,154 @@ class Cezpdf extends Cpdf
     {
         if (!is_array($paper)) {
             switch (strtoupper($paper)) {
-                case '4A0': {$size = array(0, 0, 4767.87, 6740.79); break; }
-                case '2A0': {$size = array(0, 0, 3370.39, 4767.87); break; }
-                case 'A0': {$size = array(0, 0, 2383.94, 3370.39); break; }
-                case 'A1': {$size = array(0, 0, 1683.78, 2383.94); break; }
-                case 'A2': {$size = array(0, 0, 1190.55, 1683.78); break; }
-                case 'A3': {$size = array(0, 0, 841.89, 1190.55); break; }
-                case 'A4': default: {$size = array(0, 0, 595.28, 841.89); break; }
-                case 'A5': {$size = array(0, 0, 419.53, 595.28); break; }
-                case 'A6': {$size = array(0, 0, 297.64, 419.53); break; }
-                case 'A7': {$size = array(0, 0, 209.76, 297.64); break; }
-                case 'A8': {$size = array(0, 0, 147.40, 209.76); break; }
-                case 'A9': {$size = array(0, 0, 104.88, 147.40); break; }
-                case 'A10': {$size = array(0, 0, 73.70, 104.88); break; }
-                case 'B0': {$size = array(0, 0, 2834.65, 4008.19); break; }
-                case 'B1': {$size = array(0, 0, 2004.09, 2834.65); break; }
-                case 'B2': {$size = array(0, 0, 1417.32, 2004.09); break; }
-                case 'B3': {$size = array(0, 0, 1000.63, 1417.32); break; }
-                case 'B4': {$size = array(0, 0, 708.66, 1000.63); break; }
-                case 'B5': {$size = array(0, 0, 498.90, 708.66); break; }
-                case 'B6': {$size = array(0, 0, 354.33, 498.90); break; }
-                case 'B7': {$size = array(0, 0, 249.45, 354.33); break; }
-                case 'B8': {$size = array(0, 0, 175.75, 249.45); break; }
-                case 'B9': {$size = array(0, 0, 124.72, 175.75); break; }
-                case 'B10': {$size = array(0, 0, 87.87, 124.72); break; }
-                case 'C0': {$size = array(0, 0, 2599.37, 3676.54); break; }
-                case 'C1': {$size = array(0, 0, 1836.85, 2599.37); break; }
-                case 'C2': {$size = array(0, 0, 1298.27, 1836.85); break; }
-                case 'C3': {$size = array(0, 0, 918.43, 1298.27); break; }
-                case 'C4': {$size = array(0, 0, 649.13, 918.43); break; }
-                case 'C5': {$size = array(0, 0, 459.21, 649.13); break; }
-                case 'C6': {$size = array(0, 0, 323.15, 459.21); break; }
-                case 'C7': {$size = array(0, 0, 229.61, 323.15); break; }
-                case 'C8': {$size = array(0, 0, 161.57, 229.61); break; }
-                case 'C9': {$size = array(0, 0, 113.39, 161.57); break; }
-                case 'C10': {$size = array(0, 0, 79.37, 113.39); break; }
-                case 'RA0': {$size = array(0, 0, 2437.80, 3458.27); break; }
-                case 'RA1': {$size = array(0, 0, 1729.13, 2437.80); break; }
-                case 'RA2': {$size = array(0, 0, 1218.90, 1729.13); break; }
-                case 'RA3': {$size = array(0, 0, 864.57, 1218.90); break; }
-                case 'RA4': {$size = array(0, 0, 609.45, 864.57); break; }
-                case 'SRA0': {$size = array(0, 0, 2551.18, 3628.35); break; }
-                case 'SRA1': {$size = array(0, 0, 1814.17, 2551.18); break; }
-                case 'SRA2': {$size = array(0, 0, 1275.59, 1814.17); break; }
-                case 'SRA3': {$size = array(0, 0, 907.09, 1275.59); break; }
-                case 'SRA4': {$size = array(0, 0, 637.80, 907.09); break; }
-                case 'LETTER': {$size = array(0, 0, 612.00, 792.00); break; }
-                case 'LEGAL': {$size = array(0, 0, 612.00, 1008.00); break; }
-                case 'EXECUTIVE': {$size = array(0, 0, 521.86, 756.00); break; }
-                case 'FOLIO': {$size = array(0, 0, 612.00, 936.00); break; }
+                case '4A0':
+                    $size = array(0, 0, 4767.87, 6740.79);
+                    break;
+                case '2A0':
+                    $size = array(0, 0, 3370.39, 4767.87);
+                    break;
+                case 'A0':
+                    $size = array(0, 0, 2383.94, 3370.39);
+                    break;
+                case 'A1':
+                    $size = array(0, 0, 1683.78, 2383.94);
+                    break;
+                case 'A2':
+                    $size = array(0, 0, 1190.55, 1683.78);
+                    break;
+                case 'A3':
+                    $size = array(0, 0, 841.89, 1190.55);
+                    break;
+                case 'A4':
+                default:
+                    $size = array(0, 0, 595.28, 841.89);
+                    break;
+                case 'A5':
+                    $size = array(0, 0, 419.53, 595.28);
+                    break;
+                case 'A6':
+                    $size = array(0, 0, 297.64, 419.53);
+                    break;
+                case 'A7':
+                    $size = array(0, 0, 209.76, 297.64);
+                    break;
+                case 'A8':
+                    $size = array(0, 0, 147.40, 209.76);
+                    break;
+                case 'A9':
+                    $size = array(0, 0, 104.88, 147.40);
+                    break;
+                case 'A10':
+                    $size = array(0, 0, 73.70, 104.88);
+                    break;
+                case 'B0':
+                    $size = array(0, 0, 2834.65, 4008.19);
+                    break;
+                case 'B1':
+                    $size = array(0, 0, 2004.09, 2834.65);
+                    break;
+                case 'B2':
+                    $size = array(0, 0, 1417.32, 2004.09);
+                    break;
+                case 'B3':
+                    $size = array(0, 0, 1000.63, 1417.32);
+                    break;
+                case 'B4':
+                    $size = array(0, 0, 708.66, 1000.63);
+                    break;
+                case 'B5':
+                    $size = array(0, 0, 498.90, 708.66);
+                    break;
+                case 'B6':
+                    $size = array(0, 0, 354.33, 498.90);
+                    break;
+                case 'B7':
+                    $size = array(0, 0, 249.45, 354.33);
+                    break;
+                case 'B8':
+                    $size = array(0, 0, 175.75, 249.45);
+                    break;
+                case 'B9':
+                    $size = array(0, 0, 124.72, 175.75);
+                    break;
+                case 'B10':
+                    $size = array(0, 0, 87.87, 124.72);
+                    break;
+                case 'C0':
+                    $size = array(0, 0, 2599.37, 3676.54);
+                    break;
+                case 'C1':
+                    $size = array(0, 0, 1836.85, 2599.37);
+                    break;
+                case 'C2':
+                    $size = array(0, 0, 1298.27, 1836.85);
+                    break;
+                case 'C3':
+                    $size = array(0, 0, 918.43, 1298.27);
+                    break;
+                case 'C4':
+                    $size = array(0, 0, 649.13, 918.43);
+                    break;
+                case 'C5':
+                    $size = array(0, 0, 459.21, 649.13);
+                    break;
+                case 'C6':
+                    $size = array(0, 0, 323.15, 459.21);
+                    break;
+                case 'C7':
+                    $size = array(0, 0, 229.61, 323.15);
+                    break;
+                case 'C8':
+                    $size = array(0, 0, 161.57, 229.61);
+                    break;
+                case 'C9':
+                    $size = array(0, 0, 113.39, 161.57);
+                    break;
+                case 'C10':
+                    $size = array(0, 0, 79.37, 113.39);
+                    break;
+                case 'RA0':
+                    $size = array(0, 0, 2437.80, 3458.27);
+                    break;
+                case 'RA1':
+                    $size = array(0, 0, 1729.13, 2437.80);
+                    break;
+                case 'RA2':
+                    $size = array(0, 0, 1218.90, 1729.13);
+                    break;
+                case 'RA3':
+                    $size = array(0, 0, 864.57, 1218.90);
+                    break;
+                case 'RA4':
+                    $size = array(0, 0, 609.45, 864.57);
+                    break;
+                case 'SRA0':
+                    $size = array(0, 0, 2551.18, 3628.35);
+                    break;
+                case 'SRA1':
+                    $size = array(0, 0, 1814.17, 2551.18);
+                    break;
+                case 'SRA2':
+                    $size = array(0, 0, 1275.59, 1814.17);
+                    break;
+                case 'SRA3':
+                    $size = array(0, 0, 907.09, 1275.59);
+                    break;
+                case 'SRA4':
+                    $size = array(0, 0, 637.80, 907.09);
+                    break;
+                case 'LETTER':
+                    $size = array(0, 0, 612.00, 792.00);
+                    break;
+                case 'LEGAL':
+                    $size = array(0, 0, 612.00, 1008.00);
+                    break;
+                case 'EXECUTIVE':
+                    $size = array(0, 0, 521.86, 756.00);
+                    break;
+                case 'FOLIO':
+                    $size = array(0, 0, 612.00, 936.00);
+                    break;
             }
             switch (strtolower($orientation)) {
                 case 'landscape':
@@ -334,10 +433,10 @@ class Cezpdf extends Cpdf
         switch ($this->ezBackground['format']) {
             case IMAGETYPE_JPEG:
                 $this->addJpegFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
-            break;
+                break;
             case IMAGETYPE_PNG:
                 $this->addPngFromFile($this->ezBackground['image'], $xOffset, $yOffset, $this->ezBackground['width'], $this->ezBackground['height']);
-            break;
+                break;
         }
     }
 
@@ -891,7 +990,7 @@ class Cezpdf extends Cpdf
         $y -= $gap;
         while ($ok == 0) {
             $col = $optionsAll['textCol'];
-            $this->setColor($col[0],$col[1],$col[2], true);
+            $this->setColor($col[0], $col[1], $col[2], true);
 
             foreach ($cols as $colName => $colHeading) {
                 $this->ezSetY($y);
@@ -1066,12 +1165,23 @@ class Cezpdf extends Cpdf
         // @deprecated Compatibility with 'showLines' option
         if (isset($options['showLines'])) {
             switch ($options['showLines']) {
-                case 0:    $options['gridlines'] = 0; break;
-                case 1:    $options['gridlines'] = EZ_GRIDLINE_DEFAULT; break;
-                case 2:    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS; break;
-                case 3:    $options['gridlines'] = EZ_GRIDLINE_ROWS; break;
-                case 4:    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY; break;
-                default:    $options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
+                case 0:
+                    $options['gridlines'] = 0;
+                    break;
+                case 1:
+                    $options['gridlines'] = EZ_GRIDLINE_DEFAULT;
+                    break;
+                case 2:
+                    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS;
+                    break;
+                case 3:
+                    $options['gridlines'] = EZ_GRIDLINE_ROWS;
+                    break;
+                case 4:
+                    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY;
+                    break;
+                default:
+                    $options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
             }
             unset($options['showLines']);
         }
@@ -1410,7 +1520,7 @@ class Cezpdf extends Cpdf
             // open an object here so that the text can be put in over the shading
             $this->saveState();
 
-            if(!$this->IsObjectOpened()) {
+            if (!$this->IsObjectOpened()) {
                 $textObjectId = $this->openObject();
                 $this->closeObject();
                 $this->addObject($textObjectId);
@@ -1423,11 +1533,11 @@ class Cezpdf extends Cpdf
                 $rowColShading = array();
                 foreach ($cols as $colName => $colHeading) {
                     // grab the defined colors for this cell
-                        if (isset($row[$colName.'Fill'])) {
-                            $fillColor = $row[$colName.'Fill'];
-                        } else {
-                            $fillColor = '';
-                        }
+                    if (isset($row[$colName.'Fill'])) {
+                        $fillColor = $row[$colName.'Fill'];
+                    } else {
+                        $fillColor = '';
+                    }
 
                     $rowX = $pos[$colName] - ($options['gap'] / 2);
                     $rowY = $y + $descender + $height; // BUGGY
@@ -1435,27 +1545,23 @@ class Cezpdf extends Cpdf
 
                         // decide which color to use!
                         // specified for the cell is first choice
-                        if (count($fillColor) && is_array($fillColor)) {
-                            $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $fillColor);
-                        }
-                        // color of the column is second choice
-                        elseif (isset($options['cols']) && isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor']) && is_array($options['cols'][$colName]['bgcolor'])) {
-                            $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['cols'][$colName]['bgcolor']);
-                        }
-                        // all rows use the same shadeCol
-                        elseif ($options['shaded'] == 1 && $cnt % 2 == 1) {
-                            $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
-                        }
-                        // alternating rows (options 1)
-                        elseif (($options['shaded'] == 2) && $cnt % 2 == 0) {
-                            $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
-                        }
-                        // alternating rows (options 2)
-                        elseif (($options['shaded'] == 2) && $cnt % 2 == 1) {
-                            $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol2']);
-                        } else {
-                            $rowColShading[] = array('color' => array());
-                        }
+                    if (count($fillColor) && is_array($fillColor)) {
+                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $fillColor);
+                    } // color of the column is second choice
+                    elseif (isset($options['cols']) && isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor']) && is_array($options['cols'][$colName]['bgcolor'])) {
+                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['cols'][$colName]['bgcolor']);
+                    } // all rows use the same shadeCol
+                    elseif ($options['shaded'] == 1 && $cnt % 2 == 1) {
+                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
+                    } // alternating rows (options 1)
+                    elseif (($options['shaded'] == 2) && $cnt % 2 == 0) {
+                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
+                    } // alternating rows (options 2)
+                    elseif (($options['shaded'] == 2) && $cnt % 2 == 1) {
+                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol2']);
+                    } else {
+                        $rowColShading[] = array('color' => array());
+                    }
                 }
 
                 ++$cnt;
@@ -1555,7 +1661,6 @@ class Cezpdf extends Cpdf
                             $colNewPage = 0;
                             if (isset($row[$colName])) {
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])) {
-
                                     //$lines = explode("\n",$row[$colName]);
                                     $lines = preg_split("[\r\n|\r|\n]", $row[$colName]);
                                     if (isset($row[$options['cols'][$colName]['link']]) && strlen($row[$options['cols'][$colName]['link']])) {
@@ -1577,11 +1682,11 @@ class Cezpdf extends Cpdf
                                 // grab the defined colors for this cell
                                 if (isset($row[$colName.'Color'])) {
                                     $textColor = $row[$colName.'Color'];
-                                    $this->setColor($textColor[0],$textColor[1],$textColor[2], true);
+                                    $this->setColor($textColor[0], $textColor[1], $textColor[2], true);
                                     //$line = '<c:color:'.$textColor[0].','.$textColor[1].','.$textColor[2].'>'.$line . '</c:color>';
                                 } else {
-                                    $this->setColor(0,0,0, true);
-                                    $this->setStrokeColor(0,0,0, true);
+                                    $this->setColor(0, 0, 0, true);
+                                    $this->setStrokeColor(0, 0, 0, true);
                                 }
 
                                 $start = 1;
@@ -2175,7 +2280,6 @@ class Cezpdf extends Cpdf
         switch ($info['status']) {
             case 'start':
             case 'sol':
-
                 // the beginning of the underline zone
                 if (!isset($this->ez['links'])) {
                     $this->ez['links'] = array();
@@ -2238,7 +2342,6 @@ class Cezpdf extends Cpdf
         switch ($info['status']) {
             case 'start':
             case 'sol':
-
                 // the beginning of the color zone
                 if (!isset($this->ez['links'])) {
                     $this->ez['links'] = array();
@@ -2259,4 +2362,4 @@ class Cezpdf extends Cpdf
                 break;
         }
     }
- }
+}
