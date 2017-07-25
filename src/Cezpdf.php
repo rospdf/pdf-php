@@ -67,6 +67,10 @@ class Cezpdf extends Cpdf
      * stores the number of pages used in this document.
      */
     public $ezPageCount = 0;
+    /**
+     * stores the actual vertical position on the page of the writing point for ezText() method
+     */
+    private $top;
 
     /**
      * background color/image information.
@@ -1747,6 +1751,7 @@ class Cezpdf extends Cpdf
      *
      * 'left'=> number, gap to leave from the left margin<br>
      * 'right'=> number, gap to leave from the right margin<br>
+     * 'atop'=> number, absolute top position to start the text (does not alter the y position property)<br>
      * 'aleft'=> number, absolute left position (overrides 'left')<br>
      * 'aright'=> number, absolute right position (overrides 'right')<br>
      * 'justification' => 'left','right','center','centre','full'<br>
@@ -1809,6 +1814,10 @@ class Cezpdf extends Cpdf
         }
 
         $lines = preg_split("[\r\n|\r|\n]", $text);
+        if (is_array($options) && isset($options['atop'])) {
+            $this->top = $options['atop'] - $height;
+        }
+
         foreach ($lines as $line) {
             $start = 1;
             while (strlen($line) || $start) {
@@ -1833,7 +1842,12 @@ class Cezpdf extends Cpdf
                 } else {
                     $right = $this->ez['pageWidth'] - $this->ez['rightMargin'] - ((is_array($options) && isset($options['right'])) ? $options['right'] : 0);
                 }
-                $line = $this->addText($left, $this->y, $size, $line, $right - $left, $just, 0, 0, $test);
+                if (is_array($options) && isset($options['atop'])) {
+                    $this->top = $this->top - $height;
+                } else {
+                    $this->top = $this->y;
+                }
+                $line = $this->addTextWrap($left, $this->top, $size, $line, $right - $left, $just, 0, 0, $test);
             }
         }
 
