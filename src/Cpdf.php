@@ -3809,8 +3809,8 @@ class Cpdf
     {
         // attempt to add a jpeg image straight from a file, using no GD commands
         // note that this function is unable to operate on a remote file.
-        $var = file_get_contents($img);
-        if ( $var == false ) {
+        $data = file_get_contents($img);
+        if ( $data === false ) {
             return;
         }
 
@@ -3833,8 +3833,6 @@ class Cpdf
         if ($h == 0) {
             $h = $w * $imageHeight / $imageWidth;
         }
-
-        $data = file_get_contents($img);
 
         $this->addJpegImage_common($data, $x, $y, $w, $h, $angle, $imageWidth, $imageHeight, $channels);
     }
