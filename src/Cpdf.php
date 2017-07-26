@@ -3809,8 +3809,8 @@ class Cpdf
     {
         // attempt to add a jpeg image straight from a file, using no GD commands
         // note that this function is unable to operate on a remote file.
-
-        if (!file_exists($img)) {
+        $var = file_get_contents($img);
+        if ( $var == false ) {
             return;
         }
 
