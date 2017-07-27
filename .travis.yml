@@ -13,6 +13,8 @@ install: travis_retry composer install --no-interaction --prefer-source
 
 script:
   - vendor/bin/phpcs --standard=phpcs.xml src -s
+  - vendor/bin/phpcs --standard=phpcs.xml extensions -s
+  - vendor/bin/phpcs --standard=phpcs.xml examples -s
 
 matrix:
   include:
