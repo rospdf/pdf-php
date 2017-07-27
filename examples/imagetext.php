@@ -22,7 +22,7 @@ $im = imagecreatetruecolor($imgWidth * $resampleFactor, $imgHeight * $resampleFa
 $text_color = imagecolorallocate($im, 233, 14, 91);
 imagettftext($im, $fontSize * $resampleFactor, 0, 13 * $resampleFactor, 13 * $resampleFactor, $text_color, '../src/fonts/FreeSans.ttf', 'A Simple Text String');
 
-$pdf->addImage($im, 100,700, $imgWidth, $imgHeight);
+$pdf->addImage($im, 100, 700, $imgWidth, $imgHeight);
 
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);

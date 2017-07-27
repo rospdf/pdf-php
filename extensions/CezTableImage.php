@@ -40,7 +40,8 @@ class CezTableImage extends Cezpdf
     /**
      * @param Cezpdf $ezpdf current cezpdf object
      */
-    public function __construct($p, $o = 'portrait', $t = 'none', $op = array()){
+    public function __construct($p, $o = 'portrait', $t = 'none', $op = array())
+    {
         parent::__construct($p, $o, $t, $op);
         $this->allowedTags .= '|showimage:.*?';
     }
@@ -96,12 +97,23 @@ class CezTableImage extends Cezpdf
         // @deprecated Compatibility with 'showLines' option
         if (isset($options['showLines'])) {
             switch ($options['showLines']) {
-                case 0:    $options['gridlines'] = 0; break;
-                case 1:    $options['gridlines'] = EZ_GRIDLINE_DEFAULT; break;
-                case 2:    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS; break;
-                case 3:    $options['gridlines'] = EZ_GRIDLINE_ROWS; break;
-                case 4:    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY; break;
-                default:    $options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
+                case 0:
+                    $options['gridlines'] = 0;
+                    break;
+                case 1:
+                    $options['gridlines'] = EZ_GRIDLINE_DEFAULT;
+                    break;
+                case 2:
+                    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_ROWS;
+                    break;
+                case 3:
+                    $options['gridlines'] = EZ_GRIDLINE_ROWS;
+                    break;
+                case 4:
+                    $options['gridlines'] = EZ_GRIDLINE_HEADERONLY;
+                    break;
+                default:
+                    $options['gridlines'] = EZ_GRIDLINE_TABLE + EZ_GRIDLINE_HEADERONLY + EZ_GRIDLINE_COLUMNS;
             }
             unset($options['showLines']);
         }
@@ -495,7 +507,6 @@ class CezTableImage extends Cezpdf
                                 // KH: parse image tags and calculate the position and size for the images
                                 $this->parseImages($row[$colName], $maxWidth[$colName], 0, ($this->y - $options['rowGap'] - 2 * abs($descender)));
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])) {
-
                                     //$lines = explode("\n",$row[$colName]);
                                     $lines = preg_split("[\r\n|\r|\n]", $row[$colName]);
                                     if (isset($row[$options['cols'][$colName]['link']]) && strlen($row[$options['cols'][$colName]['link']])) {
@@ -719,16 +730,15 @@ class CezTableImage extends Cezpdf
         if ($params->isUrl()) {
             if (function_exists('imagecreatefrompng')) {
                 switch ($params->getImageType()) {
-
                     case 3: // png
                         $image = imagecreatefrompng($params->getFilename());
-                    break;
+                        break;
                     case 2: // jpeg
                         $image = imagecreatefromjpeg($params->getFilename());
-                    break;
+                        break;
                     case 1: // gif
                         $image = imagecreatefromgif($params->getFilename());
-                    break;
+                        break;
                 }
                 parent::addImage($image, $x, $y, $params->getWidth(), $params->getHeight(), $quality, $angle);
             }
@@ -737,13 +747,13 @@ class CezTableImage extends Cezpdf
             switch ($params->getImageType()) {
                 case 3: // png
                     parent::addPngFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight(), $angle);
-                break;
+                    break;
                 case 2: // jpeg
                     parent::addJpegFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight(), $angle);
-                break;
+                    break;
                 case 1: // gif
                     parent::addGifFromFile($params->getFilename(), $x, $y, $params->getWidth(), $params->getHeight(), $angle);
-                break;
+                    break;
             }
         }
     }
