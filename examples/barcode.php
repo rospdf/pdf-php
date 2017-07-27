@@ -36,7 +36,7 @@ function code39($text, $barcodethinwidth = 2, $barcodeheight = 40, $xpos = 0, $y
         for ($baridx = 0; $baridx <= 8; ++$baridx) {
             $elementwidth = (substr($codingmap[$char], $baridx, 1)) ?
                                                     $barcodethickwidth
-: $barcodethinwidth;
+            : $barcodethinwidth;
             if (($baridx + 1) % 2) {
                 $rectangle[] = array('x' => $xpos, 'y' => $ypos, 'b' => $elementwidth, 'h' => $barcodeheight);
             }

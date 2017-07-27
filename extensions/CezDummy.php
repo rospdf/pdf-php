@@ -31,11 +31,11 @@ class CezDummy extends Cezpdf
     /*
      * Dummy callback method
      */
-     public function dummy($info)
-     {
-         $item = new CDummyItem($info['p'], $this->data);
-         $this->addText($info['x'], $info['y'], $info['height'], $item->fullName);
-     }
+    public function dummy($info)
+    {
+        $item = new CDummyItem($info['p'], $this->data);
+        $this->addText($info['x'], $info['y'], $info['height'], $item->fullName);
+    }
 }
 
 /**
