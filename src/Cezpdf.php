@@ -68,11 +68,6 @@ class Cezpdf extends Cpdf
      */
     public $ezPageCount = 0;
     /**
-     * stores the actual vertical position on the page of the writing point for ezText() method
-     */
-    private $top;
-
-    /**
      * background color/image information.
      */
     protected $ezBackground = array();
@@ -1919,8 +1914,9 @@ class Cezpdf extends Cpdf
         }
 
         $lines = preg_split("[\r\n|\r|\n]", $text);
+
         if (is_array($options) && isset($options['atop'])) {
-            $this->top = $options['atop'] - $height;
+            $this->y = $options['atop'];
         }
 
         foreach ($lines as $line) {
@@ -1933,6 +1929,9 @@ class Cezpdf extends Cpdf
                         $newPage = true;
                     } else {
                         $this->ezNewPage();
+                        if (is_array($options) && isset($options['atop'])) {
+                            $this->y = $options['atop'];
+                        }
                         // and then re-calc the left and right, in case they have changed due to columns
                         $this->y = $this->y - $height;
                     }
@@ -1947,20 +1946,17 @@ class Cezpdf extends Cpdf
                 } else {
                     $right = $this->ez['pageWidth'] - $this->ez['rightMargin'] - ((is_array($options) && isset($options['right'])) ? $options['right'] : 0);
                 }
-                if (is_array($options) && isset($options['atop'])) {
-                    $this->top = $this->top - $height;
-                } else {
-                    $this->top = $this->y;
-                }
-                $line = $this->addTextWrap($left, $this->top, $size, $line, $right - $left, $just, 0, 0, $test);
+                $line = $this->addTextWrap($left, $this->y, $size, $line, $right - $left, $just, 0, 0, $test);
             }
         }
 
         if ($test) {
             $this->y = $store_y;
-
             return $newPage;
         } else {
+            if (is_array($options) && isset($options['atop'])) {
+                $this->y = $store_y;
+            }
             return $this->y;
         }
     }
