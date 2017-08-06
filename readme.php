@@ -12,8 +12,6 @@
 //
 //===================================================================================================
 
-
-// don't want any warnings turning up in the pdf code if the server is set to 'anal' mode.
 //error_reporting(7);
 error_reporting(E_ALL);
 set_time_limit(1800);
