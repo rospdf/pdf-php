@@ -1668,7 +1668,7 @@ class Cpdf
      */
     private function md5_16($string)
     {
-        return pack('H*', md5($string));
+        return md5($string, true);
     }
 
     /**
