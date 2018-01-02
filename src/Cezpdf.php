@@ -669,7 +669,7 @@ class Cezpdf extends Cpdf
      *
      * @return int count of ez['pageNumbering']
      */
-    public function ezStartPageNumbers($x, $y, $size, $pos = 'left', $pattern = '{PAGENUM} of {TOTALPAGENUM}', $num = '')
+    public function ezStartPageNumbers($x, $y, $size, $pos = 'left', $pattern = '{PAGENUM} of {TOTALPAGENUM}', $num = 1)
     {
         if (!$pos || !strlen($pos)) {
             $pos = 'left';
@@ -1541,7 +1541,7 @@ class Cezpdf extends Cpdf
 
                         // decide which color to use!
                         // specified for the cell is first choice
-                    if (count($fillColor) && is_array($fillColor)) {
+                    if ($fillColor && count($fillColor) && is_array($fillColor)) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $fillColor);
                     } // color of the column is second choice
                     elseif (isset($options['cols']) && isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor']) && is_array($options['cols'][$colName]['bgcolor'])) {
