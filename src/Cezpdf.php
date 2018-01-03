@@ -1509,7 +1509,7 @@ class Cezpdf extends Cpdf
                 }
                 // patch #9 end
             } else {
-                $y1 = $y0;
+                $y1 = $y0 + ($options['rowGap'] / 2);
             }
             $firstLine = 1;
 
@@ -1537,7 +1537,7 @@ class Cezpdf extends Cpdf
 
                     $rowX = $pos[$colName] - ($options['gap'] / 2);
                     $rowY = $y + $descender + $height; // BUGGY
-                        $rowW = $maxWidth[$colName] + ($options['colGap'] * 2);
+                    $rowW = $maxWidth[$colName] + ($options['colGap'] * 2);
 
                         // decide which color to use!
                         // specified for the cell is first choice
