@@ -1029,25 +1029,31 @@ class Cpdf
                 break;
 
             case 'out':
-                  $fontFileName = &$o['info']['fontFileName'];
-                  $res = "\n$id 0 obj\n";
-                  $res .= '<</Type /Font /Subtype /CIDFontType2 /BaseFont /'.$o['info']['name'].' /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>';
+                $fontFileName = &$o['info']['fontFileName'];
+                $res = "\n$id 0 obj\n";
+                $res .= '<</Type /Font /Subtype /CIDFontType2 /BaseFont /'.$o['info']['name'].' /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >>';
+
                 if (isset($o['info']['FontDescriptor'])) {
                     $res .= ' /FontDescriptor '.$o['info']['FontDescriptor'].' 0 R';
                 }
 
                 if (isset($o['info']['MissingWidth'])) {
-                      $res .= ' /DW '.$o['info']['MissingWidth'].'';
+                    $res .= ' /DW '.$o['info']['MissingWidth'].'';
                 }
 
                 if (isset($fontFileName) && isset($this->fonts[$fontFileName]['CIDWidths'])) {
-                      $cid_widths = &$this->fonts[$fontFileName]['CIDWidths'];
-                      $res .= ' /W [';
-                      reset($cid_widths);
-                      $opened = false;
-                    while (list($k, $v) = each($cid_widths)) {
-                        list($nextk, $nextv) = each($cid_widths);
-                        //echo "\n$k ($v) == $nextk ($nextv)";
+                    $cid_widths = &$this->fonts[$fontFileName]['CIDWidths'];
+                    $res .= ' /W [';
+                    reset($cid_widths);
+                    $opened = false;
+
+                    $v = current($cid_widths);
+                    $k = key($cid_widths);
+
+                    while($v) {
+                        $nextv = next($cid_widths);
+                        $nextk = key($cid_widths);
+
                         if (($k + 1) == $nextk) {
                             if (!$opened) {
                                 $res .= " $k [$v";
@@ -1055,17 +1061,16 @@ class Cpdf
                             } elseif ($opened) {
                                 $res .= ' '.$v;
                             }
-                                prev($cid_widths);
                         } else {
                             if ($opened) {
                                 $res .= " $v]";
                             } else {
                                 $res .= " $k [$v]";
                             }
-
-                                $opened = false;
-                                prev($cid_widths);
+                            $opened = false;
                         }
+                        $v = current($cid_widths);
+                        $k = key($cid_widths);
                     }
 
                     if (isset($nextk) && isset($nextv)) {
@@ -1075,7 +1080,7 @@ class Cpdf
                         $res .= " $nextk [$nextv]";
                     }
 
-                        $res .= ' ]';
+                    $res .= ' ]';
                 }
 
                 if ($this->embedFont) {
