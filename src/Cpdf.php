@@ -3262,7 +3262,7 @@ class Cpdf
         $tw = $maxWidth / $size * 1000;
         $break = -1;
         $w = 0;
-        $truncateChar = 1;
+        $truncateChar = -1;
 
         for ($i = 0; $i < $len; ++$i) {
             $c = mb_substr($text, $i, 1, 'UTF-8');
@@ -3299,15 +3299,15 @@ class Cpdf
                 $break = $i;
                 $truncateChar = 1;
                 $breakWidth = ($w - $this->fonts[$cf]['C'][$cOrd]) * $size / 1000;
-            } elseif ($cOrd == 45 && $maxWidth > 0) {
+            }/* elseif ($cOrd == 45 && $maxWidth > 0) {
                 $break = $i;
                 $truncateChar = 0;
                 $breakWidth = $w * $size / 1000;
-            }
+            }*/
         }
 
-        $tmpw = $w * $size / 1000;
-        return array(cos($a) * $tmpw, -sin($a) * $tmpw, -1, 0);
+        $breakWidth = $w * $size / 1000;
+        return array(cos($a) * $breakWidth, -sin($a) * $breakWidth, -1, 0);
     }
 
     /**
