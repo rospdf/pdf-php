@@ -1143,7 +1143,7 @@ class Cezpdf extends Cpdf
             'width' => 0, 'maxWidth' => 0, 'titleGap' => 5, 'gap' => 5, 'xPos' => 'centre', 'xOrientation' => 'centre',
             'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5, 'splitRows' => 0, 'protectRows' => 1, 'nextPageY' => 0,
             /* other */
-            'showHeadings' => 1, 'cols' => array(), 'evenColumns' => 0,
+            'showHeadings' => 1, 'cols' => array(), 'evenColumns' => 0, 'evenColumnsMin' => 20
         );
 
         foreach ($defaults as $key => $value) {
@@ -1333,6 +1333,24 @@ class Cezpdf extends Cpdf
 
             $t = $x + $options['width'];
             $pos['_end_'] = $t;
+        }
+
+        // if the option is set to 2 and one of the columns is too narrow we need to look at recalculating the columns
+        if ($options['evenColumns'] == 2) {
+            $posVals = array();
+            foreach ($pos as $w)
+                array_unshift($posVals, $w);
+            $narrowestCol = 9999;
+            $last = array_pop($posVals);
+            while (sizeof($posVals)) {
+                $current = array_pop($posVals);
+                $currentWidth = $current - $last;
+                if ($narrowestCol > $currentWidth)
+                    $narrowestCol = $currentWidth;
+                $last = $current;
+            }
+            if ($narrowestCol < $options['evenColumnsMin'])
+                $options['evenColumns'] = 1;
         }
 
         // if the option is turned on we need to look at recalculating the columns
