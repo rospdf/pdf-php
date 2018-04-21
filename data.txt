@@ -32,6 +32,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 3<0.12.44>
 
 - replaced each() method for PHP 7.2 compatibility reason #96
+- applied PR #98
 
 3<0.12.43>
 
@@ -367,6 +368,8 @@ The other options are described here below
 'outerLineThickness' => <number>, the thickness of the outer lines, defaults to 1
 'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
 'nextPageY'=> true or false (eg. 0 or 1) Sets the same Y position of the table for all future pages
+'evenColumns' => 0, 1, 3, Set set all columns to the same widths, version 0.12.44
+'evenColumnsMin' => <number>, the minimum width a column should have
 
 <b>0.12.9:</b>
 'shadeHeadingCol'=>(r,g,b) array, defining the backgound color of headings, default is empty

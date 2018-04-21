@@ -1050,7 +1050,7 @@ class Cpdf
                     $v = current($cid_widths);
                     $k = key($cid_widths);
 
-                    while($v) {
+                    while ($v) {
                         $nextv = next($cid_widths);
                         $nextk = key($cid_widths);
 
