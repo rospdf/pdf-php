@@ -20,7 +20,8 @@ array('num' => 1, 'name' => 'gandalf', 'type' => 'wizard', 'typeFill' => array(0
 $cols = array('num' => 'No', 'type' => 'Type', 'name' => '<i>Alias</i>');
 
 $conf = array(
-'evenColumns' => 1,
+'evenColumns' => 2,
+'evenColumnsMin' => 40,
 'maxWidth' => 350,
 'shadeHeadingCol' => array(0.6, 0.6, 0.5),
 'shaded' => 1,
