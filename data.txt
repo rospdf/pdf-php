@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.44>
+
+- replaced each() method for PHP 7.2 compatibility reason #96
+
 3<0.12.43>
 
 - fixed issue #84
