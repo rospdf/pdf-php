@@ -1044,16 +1044,12 @@ class Cpdf
                 if (isset($fontFileName) && isset($this->fonts[$fontFileName]['CIDWidths'])) {
                     $cid_widths = &$this->fonts[$fontFileName]['CIDWidths'];
                     $res .= ' /W [';
-                    reset($cid_widths);
                     $opened = false;
 
-                    $v = current($cid_widths);
-                    $k = key($cid_widths);
-
-                    while ($v) {
+                    foreach ($cid_widths as $k => $v) {
                         $nextv = next($cid_widths);
                         $nextk = key($cid_widths);
-
+            
                         if (($k + 1) == $nextk) {
                             if (!$opened) {
                                 $res .= " $k [$v";
@@ -1069,8 +1065,6 @@ class Cpdf
                             }
                             $opened = false;
                         }
-                        $v = current($cid_widths);
-                        $k = key($cid_widths);
                     }
 
                     if (isset($nextk) && isset($nextv)) {
