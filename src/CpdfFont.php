@@ -628,11 +628,12 @@ class CpdfFont
         $res .= " /CIDToGIDMap $this->cidmapId 0 R";
 
         $res .= ' /W [';
-        reset($this->cidWidths);
         $opened = false;
-        while (list($k, $v) = each($this->cidWidths)) {
-            list($nextk, $nextv) = each($this->cidWidths);
-            //echo "\n$k ($v) == $nextk ($nextv)";
+
+        foreach ($this->cidWidths as $k => $v) {
+            $nextv = next($this->cidWidths);
+            $nextk = key($this->cidWidths);
+
             if (($k + 1) == $nextk) {
                 if (!$opened) {
                     $res .= " $k [$v";
@@ -640,16 +641,13 @@ class CpdfFont
                 } elseif ($opened) {
                     $res .= ' '.$v;
                 }
-                prev($this->cidWidths);
             } else {
                 if ($opened) {
                     $res .= " $v]";
                 } else {
                     $res .= " $k [$v]";
                 }
-
                 $opened = false;
-                prev($this->cidWidths);
             }
         }
 
@@ -659,11 +657,7 @@ class CpdfFont
             }
             $res .= " $nextk [$nextv]";
         }
-        /*
-              foreach ($this->cidWidths as $k => $v) {
-                    $res.= "$k [$v] ";
-              }
-        */
+
         $res .= ' ]';
         $res .= ' >>';
         $res .= "\nendobj";
