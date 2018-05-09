@@ -43,7 +43,7 @@ $pdf->ezText('لبسبيلتتاف لالبالفقث بببب');
 $pdf->ezText("\nHebrew:");
 $pdf->ezText('אבגדהוזחטיכלמנסעפצקרשת');
 $pdf->ezText("\nChinese:");
-$pdf->ezText('汉语/漢語 <- Some fonts might not contain these glyphs. Tested with Arial Unicode');
+$pdf->ezText('汉语/漢語 <- Not supported in FreeSerif');
 
 //$pdf->isUnicode = false;
 //$pdf->selectFont('../src/fonts/Courier');
