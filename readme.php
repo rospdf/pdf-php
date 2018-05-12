@@ -72,10 +72,6 @@ $project_url = "https://github.com/rospdf/";
 $project_version = "0.12.45";
 
 $pdf = new Creport('a4','portrait', 'none', null);
-// to test on windows xampp
-if(strpos(PHP_OS, 'WIN') !== false){
-    $pdf->tempPath = 'C:/temp';
-}
 
 $start = microtime(true);
 

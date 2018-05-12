@@ -422,6 +422,11 @@ class Cpdf
 
         // set the default font path to [...]/src/fonts
         $this->fontPath = dirname(__FILE__).'/fonts';
+
+        // set tempPath for cross platform
+        if (strpos(PHP_OS, 'WIN') !== false) {
+            $this->tempPath = getenv('TEMP');
+        }
     }
 
     /**
@@ -2867,12 +2872,12 @@ class Cpdf
         do {
             $m = preg_match("/<\/?([cC]:|)(".$this->allowedTags.")\>/u", $text, $regs, PREG_OFFSET_CAPTURE);
 
-            if($m) {
+            if ($m) {
                 $isCustom = !empty($regs[1][0]) ? true : false;
                 $isEnd = (stripos($regs[0][0], '</') !== false) ? true : false;
                 $noClose = ($regs[1] == 'C:') ? true : false;
     
-                if($p=strpos($regs[2][0], ':')){
+                if ($p=strpos($regs[2][0], ':')) {
                     $func = substr($regs[2][0], 0, $p);
                     $params = substr($regs[2][0], $p + 1);
                 } else {
@@ -2893,10 +2898,10 @@ class Cpdf
             $ny += $textLength[1];
 
             $info = null;
-            if($m) {
-                $info = [ 
+            if ($m) {
+                $info = [
                     'func' => $func,
-                    'p' => $params, 
+                    'p' => $params,
                     'status' => (!$isEnd) ? 'start' : 'end',
                     'x' => $nx,
                     'y' => $ny,
@@ -2906,7 +2911,7 @@ class Cpdf
                     'isCustom' => $isCustom
                 ];
 
-                if(!$isCustom) {
+                if (!$isCustom) {
                     $this->defaultFormatting($info);
                     $this->setCurrentFont();
                 }
@@ -2914,14 +2919,14 @@ class Cpdf
                 $info = null;
             }
 
-            if($textLength[2] > 0) {
+            if ($textLength[2] > 0) {
                 $part = mb_substr($part, 0, $textLength[2]);
                 $text = mb_substr($text, strlen($part) + $textLength[3]);
                 $info = null;
-            } else if($textLength[2] == 0 ) {
+            } elseif ($textLength[2] == 0) {
                 $text = mb_substr($text, $textLength[3]);
                 break;
-            } else if($m) {
+            } elseif ($m) {
                 $text = mb_substr($text, $pos + strlen($regs[0][0]));
             } else {
                 $text = '';
@@ -2929,11 +2934,11 @@ class Cpdf
 
             array_push($parts, ['text' => $part, 'nspaces' => $textLength[4],'callback' => $info]);
 
-            if($textLength[2] > 0) {
-                // break on line break               
+            if ($textLength[2] > 0) {
+                // break on line break
                 break;
             }
-        } while($m);
+        } while ($m);
 
         // restore the original font state
         $this->currentTextState = $orgTextState;
@@ -2944,13 +2949,15 @@ class Cpdf
 
     private function addTextWithWordspace($filteredText, $size, $wordSpaceAdjust = 0)
     {
-        if($wordSpaceAdjust != 0) {
+        if ($wordSpaceAdjust != 0) {
             $s = $this->fonts[$this->currentFont]['C'][32];
             $space_scale = (1000 / $size) * $wordSpaceAdjust + $s;
-            if($this->fonts[$this->currentFont]['isUnicode'])
+
+            if ($this->fonts[$this->currentFont]['isUnicode']) {
                 $filteredText = str_replace("\x00\x20", ') '.(-round($space_scale)).' (', $filteredText);
-            else
+            } else {
                 $filteredText = str_replace("\x20", ') '.(-round($space_scale)).' (', $filteredText);
+            }
 
             $this->addContent(' [('.$filteredText.')] TJ');
         } else {
@@ -2967,8 +2974,9 @@ class Cpdf
             case 'i':
             case 'b':
                 if ($info['status'] == 'start') {
-                    if(!strpos($this->currentTextState, $tag))
+                    if (!strpos($this->currentTextState, $tag)) {
                         $this->currentTextState = $tag;
+                    }
                 } else {
                     $p = strrpos($this->currentTextState, $tag);
                     if ($p !== false) {
@@ -3003,9 +3011,11 @@ class Cpdf
 
         $parts = $this->getDirectives($text, $x, $y, $size, $width, $justification, $angle, $wordSpaceAdjust);
 
-        $parsedText = implode('', array_map(function($v){ return $v['text']; }, $parts));
+        $parsedText = implode('', array_map(function ($v) {
+            return $v['text'];
+        }, $parts));
 
-        if($text == '' && $justification == 'full') {
+        if ($text == '' && $justification == 'full') {
             $justification = 'left';
         }
 
@@ -3020,11 +3030,11 @@ class Cpdf
 
         $nspaces = 0;
         $xOffset = 0;
-        foreach($parts as $p) {
+        foreach ($parts as $p) {
             $nspaces += $p['nspaces'];
-            $place_text = $this->filterText($p['text'], false );
+            $place_text = $this->filterText($p['text'], false);
             
-            if($xOffset > 0) {
+            if ($xOffset > 0) {
                 $this->addContent(sprintf(' %.3F %.3F Td', $xOffset, 0));
                 $xOffset = 0;
             }
@@ -3032,11 +3042,10 @@ class Cpdf
             $this->addContent(" /F".$this->currentFontNum.' '.sprintf('%.1F', $size).' Tf');
             $this->addTextWithWordspace($place_text, $size, $wordSpaceAdjust);
 
-            if($p['callback'] != null)
-            {
+            if ($p['callback'] != null) {
                 $info = &$p['callback'];
                 $info['x'] += $x - $orgX;
-                if(!$info['isCustom']){
+                if (!$info['isCustom']) {
                     $this->defaultFormatting($info);
                     $this->setCurrentFont();
                 } else {
@@ -3049,11 +3058,10 @@ class Cpdf
                     } else {
                         $a = deg2rad((float) $angle);
                         $this->addContent(sprintf("\nBT %.3F %.3F %.3F %.3F %.3F %.3F Tm", cos($a), -sin($a), sin($a), cos($a), $tmp, $y));
-                    }           
+                    }
 
                     $xOffset = ($tmp != $info['x']) ? $info['x'] - $tmp : 0;
                 }
-                
             }
         }
 

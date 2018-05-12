@@ -19,11 +19,6 @@ class Creport extends Cezpdf
 }
 $pdf = new Creport('a4', 'portrait');
 
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    $pdf->tempPath = 'C:/temp';
-}
-
 $pdf->ezSetMargins(20, 20, 20, 20);
 //$pdf->rtl = true; // all text output to "right to left"
 //$pdf->setPreferences('Direction','R2L'); // optional: set the preferences to "Right To Left"

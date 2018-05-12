@@ -15,11 +15,6 @@ class Creport extends Cezpdf
 }
 $pdf = new Creport('a4', 'portrait');
 
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    $pdf->tempPath = 'C:/temp';
-}
-
 // IMPORTANT: In version >= 0.12.0 it is required to allow custom tags (by using $pdf->allowedTags) before using it
 $pdf->allowedTags .= '|comment:.*?';
 
