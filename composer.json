@@ -38,10 +38,11 @@
         ]
     },
     "require": {
-        "php": ">=5.3.2"
+        "php": ">=5.4.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "2.8.*"
+        "squizlabs/php_codesniffer": "2.8.*",
+        "phpunit/phpunit": "3.7.38"
     },
     "extra": {
         "branch-alias": {

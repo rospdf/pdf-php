@@ -2,7 +2,8 @@
 
 require_once('TTFsubset.php');
 
-class TTFhelper extends TTFsubset {
+class TTFhelper extends TTFsubset
+{
     protected $name;
     private $CIDToGIDMap;
     private $GID2CIDMap;
@@ -14,7 +15,7 @@ class TTFhelper extends TTFsubset {
 
     public function __construct($fontFile, $subset = '')
     {
-        if(empty($subset)) {
+        if (empty($subset)) {
             $this->isSubset = false;
 
             $ttf = new TTF(file_get_contents($fontFile));
@@ -30,7 +31,7 @@ class TTFhelper extends TTFsubset {
         } else {
             $this->isSubset = true;
 
-            $this->fontSubset = $this->doSubset($fontFile, $subset, null);   
+            $this->fontSubset = $this->doSubset($fontFile, $subset, null);
         }
 
         $this->constructCidGidMaps();
@@ -90,8 +91,8 @@ class TTFhelper extends TTFsubset {
         }
 
         $this->widths = [];
-        foreach($this->getCIDMap() as $char => $glyphIndex) {
-            if($char > 0) {
+        foreach ($this->getCIDMap() as $char => $glyphIndex) {
+            if ($char > 0) {
                 $m = TTF::getHMetrics($hmtx, $this->hhea['numberOfHMetrics'], $glyphIndex);
                 $this->widths[$char] = intval($m[0] / ($this->head['unitsPerEm'] / 1000));
             }
@@ -108,11 +109,13 @@ class TTFhelper extends TTFsubset {
         return $this->GID2CIDMap;
     }
 
-    public function getWidths(){
+    public function getWidths()
+    {
         return $this->widths;
     }
 
-    public function getFont(){
+    public function getFont()
+    {
         return $this->fontSubset;
     }
 
