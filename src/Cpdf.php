@@ -2859,8 +2859,6 @@ class Cpdf
     
     private function getDirectives(&$text, $x, $y, $size, &$width, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0)
     {
-        $orgWidth = $width;
-
         $orgTextState = $this->currentTextState;
 
         $nx = $x;
@@ -2886,7 +2884,6 @@ class Cpdf
                 }
 
                 $pos = mb_strlen(substr($text, 0, $regs[0][1]));
-
                 $part = mb_substr($text, 0, $pos);
             } else {
                 $part = $text;
@@ -2907,7 +2904,7 @@ class Cpdf
                 break;
             }
 
-            if($m) {
+            if ($m) {
                 $prevTag = $regs[0][0];
             }
 
