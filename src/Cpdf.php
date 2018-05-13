@@ -2900,7 +2900,7 @@ class Cpdf
                 $last['callback'] = null;
                 $last['nspaces'] -= 1;
                 $last['text'] = mb_substr($last['text'], 0, -1);
-                
+
                 $s = $this->fonts[$this->currentFont]['C'][32] * $size / 1000;
                 $width += $s;
                 $text = $prevTag . $text;
@@ -2967,19 +2967,14 @@ class Cpdf
 
     private function addTextWithWordspace($filteredText, $size, $wordSpaceAdjust = 0)
     {
-        if ($wordSpaceAdjust != 0) {
+        if ($wordSpaceAdjust != 0 && $this->fonts[$this->currentFont]['isUnicode']) {
             $s = $this->fonts[$this->currentFont]['C'][32];
             $space_scale = (1000 / $size) * $wordSpaceAdjust + $s;
 
-            if ($this->fonts[$this->currentFont]['isUnicode']) {
-                $filteredText = str_replace("\x00\x20", ') '.(-round($space_scale)).' (', $filteredText);
-            } else {
-                $filteredText = str_replace("\x20", ') '.(-round($space_scale)).' (', $filteredText);
-            }
-
+            $filteredText = str_replace("\x00\x20", ') '.(-round($space_scale)).' (', $filteredText);
             $this->addContent(' [('.$filteredText.')] TJ');
         } else {
-            $this->addContent(' ('.$filteredText.') Tj');
+            $this->addContent(sprintf(' %.3F Tw (%s) Tj', $wordSpaceAdjust, $filteredText));
         }
     }
 
