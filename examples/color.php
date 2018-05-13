@@ -37,7 +37,7 @@ if (empty($_GET['justify'])) {
     $_GET['justify'] = 'full';
 }
 
-$frequency = 5;
+$frequency = 4;
 
 $result = str_repeat($result, intval($_GET['repeat']));
 $result = rtrim($result);

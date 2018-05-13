@@ -2893,6 +2893,24 @@ class Cpdf
             }
 
             $textLength = $this->getTextLength($size, $part, $width, $angle, $wordSpaceAdjust);
+
+            if ($m && $isEnd && $textLength[2] > 0 && $textLength[4] == 0 && isset($prevTag)) {
+                // break the line before a directive starts
+                $last = &$parts[count($parts) - 1];
+                $last['callback'] = null;
+                $last['nspaces'] -= 1;
+                $last['text'] = mb_substr($last['text'], 0, -1);
+                
+                $s = $this->fonts[$this->currentFont]['C'][32] * $size / 1000;
+                $width += $s;
+                $text = $prevTag . $text;
+                break;
+            }
+
+            if($m) {
+                $prevTag = $regs[0][0];
+            }
+
             $width -= $textLength[0];
             $nx += $textLength[0];
             $ny += $textLength[1];
