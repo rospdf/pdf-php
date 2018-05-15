@@ -848,6 +848,7 @@ class Cpdf
                     // transform FPDF to TCPDF (http://tcpdf.sourceforge.net/)
 
                     $res = "\n$id 0 obj\n<</Type /Font /Subtype /Type0 /BaseFont /".$o['info']['name'].'';
+                    $res .= ' /Name /F'.$o['info']['fontNum'];
                     // The horizontal identity mapping for 2-byte CIDs; may be used
                     // with CIDFonts using any Registry, Ordering, and Supplement values.
                        $res .= ' /Encoding /Identity-H /DescendantFonts ['.$o['info']['cidFont'].' 0 R] /ToUnicode '.$o['info']['toUnicode']." 0 R >>\n";
@@ -1107,7 +1108,7 @@ class Cpdf
                         $res .= ' /Filter /FlateDecode';
                     }
 
-                        $res .= ' /Length '.mb_strlen($tmp, '8bit').">>\nstream\n$tmp\nendstream";
+                        $res .= ' /Length '.mb_strlen($tmp, '8bit')." >>\nstream\n$tmp\nendstream";
                 }
 
                   $res .= "\nendobj";
