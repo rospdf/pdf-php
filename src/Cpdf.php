@@ -3066,8 +3066,7 @@ class Cpdf
      */
     public function getTextWidth($size, $text)
     {
-        $regex = "/<\/?([cC]:|)(".$this->allowedTags.")\>/";
-        $text = preg_replace($regex, '', $text);
+        $text = preg_replace('/<\/?([cC]:|)('.$this->allowedTags.')\>/u', '', $text);
         $tmp = $this->getTextLength($size, $text);
 
         return $tmp[0];
