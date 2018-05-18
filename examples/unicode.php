@@ -20,16 +20,19 @@ class Creport extends Cezpdf
 $pdf = new Creport('a4', 'portrait');
 
 $pdf->ezSetMargins(20, 20, 20, 20);
-//$pdf->rtl = true; // all text output to "right to left"
-//$pdf->setPreferences('Direction','R2L'); // optional: set the preferences to "Right To Left"
 
-$f = (isset($_GET['font'])) ? $_GET['font'] : 'FreeSerif';
+$mainFont = (isset($_GET['font'])) ? $_GET['font'] : 'FreeSerif';
 
-$mainFont = $f;
+$family = array(
+    'b'=> $mainFont . 'Bold'
+);
+
+$pdf->setFontFamily($mainFont, $family);
+
 // select a font and use font subsetting
 $pdf->selectFont($mainFont, '', 1, true);
 $pdf->ezText('Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidfgfdgdfgdfgdfg ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur. et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur', 10, array('justification' => 'full'));
-$pdf->ezText("\nGreek: (full justified)");
+$pdf->ezText("\n<b>Greek: (full justified)</b>");
 $pdf->ezText('Νες εα ελεστραμ σορρυμπιθ ινστρυσθιορ, υσυ διαμ ωπωρθεαθ τεμποριβυς ετ. Προμπτα βλανδιτ μωδερατιυς ευμ ευ, σεθερο ρεπυδιαρε αν φελ, φιξ πυρθο ρεγιονε φολυπθυα ατ. Σιθ δυις σωνσυλ ιρασυνδια ατ, νε νιηιλ φενιαμ φεριθυς ιυς, συ μελιορε ερροριβυς δισπυθανδο εσθ. Ηις εσεντ σοπιωσαε ιδ. Εξ εως μεις αυγυε ρεσυσαβο, φιξ φοσεντ μαλορυμ ινσιδεριντ ιν. Δισο ναθυμ σοντεντιωνες ευ μει.', 10, array('justification' => 'full'));
 $pdf->ezText("\nCyrillic:");
 $pdf->ezText('ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор ыёюз лобортис ажжынтиор <u>КкЛлМмНнО</u> <u>оПпРр</u> <u>СсТтУу</u>', 10, array('justification' => 'full'));
