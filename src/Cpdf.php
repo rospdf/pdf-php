@@ -1,6 +1,6 @@
 <?php
 
-include_once 'include/TTFsubset.php';
+include_once 'include/TTFhelper.php';
 
  /**
   * Create pdf documents without additional modules
@@ -796,32 +796,25 @@ class Cpdf
                                 // find font descriptor
                                 $this->objects[$o['info']['FontDescriptor']]['info']['FontName'] = $subsetFontName;
 
-                                // use TTF subset script from http://www.4real.gr/technical-documents-ttf-subset.html
-                                $t = new TTFsubset();
+
                                 // combine all used characters as string
                                 $s = implode('', array_keys($this->fonts[$fontFileName]['subset']));
-                                // submit the string to TTFsubset class to return the subset (as binary)
-                                $data = $t->doSubset($this->fontPath.'/'.$fontFileName.'.ttf', $s, null);
-                                // $data is the new (subset) of the font font
-                                //file_put_contents('/tmp/'.$o['info']['name'] . '.ttf', $data);
 
-                                $newcidwidth = array();
-                                $cidwidth = &$this->fonts[$fontFileName]['CIDWidths'];
-                                foreach ($t->TTFchars as $TTFchar) {
-                                    if (!empty($TTFchar->charCode) && isset($cidwidth[$TTFchar->charCode])) {
-                                        $newcidwidth[$TTFchar->charCode] = $cidwidth[$TTFchar->charCode];
-                                    }
-                                }
-                                $cidwidth = $newcidwidth;
+                                $helper = new TTFhelper($this->fontPath.'/'.$fontFileName.'.ttf', $s);
+
+                                $this->fonts[$fontFileName]['CIDWidths'] = $helper->getWidths();
+                                $this->fonts[$fontFileName]['CIDtoGID'] = $helper->getCIDMap();
+
+                                // $data is the new (subset) of the font font
+                                $data = $helper->getFont();
                             } else {
                                 $data = file_get_contents($this->fontPath.'/'.$fontFileName.'.ttf');
                             }
 
-                               // TODO: cache the subset
-
-                               $l1 = strlen($data);
-                               $this->objects[$pfbid]['c'] .= $data;
-                               $this->o_contents($pfbid, 'add', array('Length1' => $l1));
+                            // TODO: cache the subset
+                            $l1 = strlen($data);
+                            $this->objects[$pfbid]['c'] .= $data;
+                            $this->o_contents($pfbid, 'add', array('Length1' => $l1));
                         } elseif (isset($this->objects[$o['info']['FontDescriptor']]['info']['FontFile'])) {
                             // find FontFile id - used for PFB fonts
                             $pfbid = $this->objects[$o['info']['FontDescriptor']]['info']['FontFile'];
@@ -1090,13 +1083,24 @@ class Cpdf
 
         switch ($action) {
             case 'new':
-                  $this->objects[$id] = array('t' => 'fontGIDtoCIDMap', 'info' => $options);
+                $this->objects[$id] = array('t' => 'fontGIDtoCIDMap', 'info' => $options);
                 break;
-
             case 'out':
-                  $res = "\n$id 0 obj\n";
-                  $fontFileName = &$o['info']['fontFileName'];
-                  $tmp = $this->fonts[$fontFileName]['CIDtoGID'] = base64_decode($this->fonts[$fontFileName]['CIDtoGID']);
+                $res = "\n$id 0 obj\n";
+                $fontFileName = &$o['info']['fontFileName'];
+
+                $cidtogid = str_pad('', 256 * 256 * 2, "\x00");
+
+                foreach ($this->fonts[$fontFileName]['CIDtoGID'] as $char => $glyphIndex) {
+                    if (!empty($char)) {
+                        if ($char >= 0 && $char < 0xFFFF && $glyphIndex) {
+                            $cidtogid[($char * 2)] = chr($glyphIndex >> 8);
+                            $cidtogid[($char * 2) + 1] = chr($glyphIndex & 0xFF);
+                        }
+                    }
+                }
+
+                $tmp = $cidtogid;
 
                 if (isset($o['raw'])) {
                     $res .= $tmp;
@@ -1886,7 +1890,7 @@ class Cpdf
             if (($cacheDate + $this->cacheTimeout) >= time()) {
                 $this->debug('openFont: font cache found in '.$this->tempPath.'/'.$cachedFile);
                 $this->fonts[$font] = require $this->tempPath.'/'.$cachedFile;
-                if (isset($this->fonts[$font]['_version_']) && $this->fonts[$font]['_version_'] == 3) {
+                if (isset($this->fonts[$font]['_version_']) && $this->fonts[$font]['_version_'] == 4) {
                     // cache is valid - but without checking for a valid font path
                     return true;
                 }
@@ -1895,15 +1899,16 @@ class Cpdf
 
         // if no cache is found, parse the font file and rebuild the cache
         $this->debug('openFont: rebuilding font cache '.$cachedFile, E_USER_NOTICE);
-        if (file_exists($fullFontPath.'.ttf') && class_exists('TTF')) {
-            $ttf = new TTF(file_get_contents($fullFontPath.'.ttf'));
+        if (file_exists($fullFontPath.'.ttf') && class_exists('TTFhelper')) {
+            
+            $helper = new TTFhelper($fullFontPath.'.ttf');
 
-            $head = $ttf->unmarshalHead();
-            $uname = $ttf->unmarshalName();
-            $hhea = $ttf->unmarshalHhea();
-            $post = $ttf->unmarshalPost(true);
-            $maxp = $ttf->unmarshalMAXP();
-            $cmap = $ttf->unmarshalCmap();
+            $head = $helper->getHead();
+            $uname = $helper->getName();
+            $hhea = $helper->getHhead();
+            $post = $helper->getPost();
+            
+            $charToGlyph = $helper->getCIDMap();
 
             $cachedFont = array(
                 'isUnicode' => $this->isUnicode,
@@ -1944,76 +1949,11 @@ class Cpdf
                                         intval($head['yMax'] / ($head['unitsPerEm'] / 1000)),
                                     );
             $cachedFont['UnitsPerEm'] = $head['unitsPerEm'];
+           
+            $cachedFont['C'] = $helper->getWidths();
 
-            $encodingTable = array();
+            $cachedFont['CIDtoGID'] = $charToGlyph;
 
-            $hmetrics = $ttf->unmarshalHmtx($hhea['numberOfHMetrics'], $maxp['numGlyphs']);
-
-            // get format 6 or format 4 as primary cmap table map glyph with character
-            foreach ($cmap['tables'] as $v) {
-                if (isset($v['format']) && $v['format'] == '4') {
-                    $encodingTable = $v;
-                    break;
-                }
-            }
-
-            if ($encodingTable['format'] == '4') {
-                $glyphsIndices = range(1, $maxp['numGlyphs']);
-                $charToGlyph = array();
-
-                $segCount = $encodingTable['segCount'];
-                $endCountArray = $encodingTable['endCountArray'];
-                $startCountArray = $encodingTable['startCountArray'];
-                $idDeltaArray = $encodingTable['idDeltaArray'];
-                $idRangeOffsetArray = $encodingTable['idRangeOffsetArray'];
-                $glyphIdArray = $encodingTable['glyphIdArray'];
-
-                for ($seg = 0; $seg < $segCount; ++$seg) {
-                    $endCount = $endCountArray[$seg];
-                    $startCount = $startCountArray[$seg];
-                    $idDelta = $idDeltaArray[$seg];
-                    $idRangeOffset = $idRangeOffsetArray[$seg];
-                    for ($charCode = $startCount; $charCode <= $endCount; ++$charCode) {
-                        if ($idRangeOffset != 0) {
-                            $j = $charCode - $startCount + $seg + $idRangeOffset / 2 - $segCount;
-                            $gid0 = $glyphIdArray[$j];
-                        } else {
-                            $gid0 = $idDelta + $charCode;
-                        }
-                        $gid0 %= 65536;
-                        if (in_array($gid0, $glyphsIndices)) {
-                            $charToGlyph[sprintf('%d', $charCode)] = $gid0;
-                        }
-                    }
-                }
-
-                if ($this->isUnicode) {
-                    $cidtogid = str_pad('', 256 * 256 * 2, "\x00");
-                }
-
-                $cachedFont['C'] = array();
-                foreach ($charToGlyph as $char => $glyphIndex) {
-                    if (!empty($char)) {
-                        $m = TTF::getHMetrics($hmetrics, $hhea['numberOfHMetrics'], $glyphIndex);
-                        // calculate the correct char width by dividing it with 'units per em'
-                        $cachedFont['C'][$char] = intval($m[0] / ($head['unitsPerEm'] / 1000));
-                        if ($this->isUnicode) {
-                            if ($char >= 0) {
-                                if ($char >= 0 && $char < 0xFFFF && $glyphIndex) {
-                                    $cidtogid[$char * 2] = chr($glyphIndex >> 8);
-                                    $cidtogid[$char * 2 + 1] = chr($glyphIndex & 0xFF);
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                $this->debug('openFont: font file does not contain format 4 cmap', E_USER_WARNING);
-            }
-
-            if (isset($cidtogid)) {
-                $cachedFont['CIDtoGID'] = base64_encode($cidtogid);
-            }
         } elseif (file_exists($fullFontPath.'.afm')) {
             // use the core font program
             $cachedFont = array('isUnicode' => false);
@@ -2084,7 +2024,7 @@ class Cpdf
             return false;
         }
 
-        $cachedFont['_version_'] = 3;
+        $cachedFont['_version_'] = 4;
         // store the data in as cached file and in $this->fonts array
         $this->fonts[$font] = $cachedFont;
         $fp = fopen($this->tempPath.'/'.$cachedFile, 'w'); // use the temp folder to write cached font data
