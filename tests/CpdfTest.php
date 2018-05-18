@@ -112,8 +112,7 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
         //$pdf->ezText("Franz #! א", 30);
         $pdf->ezText("Hello World!\nHello Earth!", 30);
 
-        $this->output = $pdf->ezOutput(['compression' => 0]);
-        //$this->output = $pdf->ezOutput();
+        $this->output = $pdf->ezOutput();
         
         $this->savePdf(__FUNCTION__ . '.pdf');
 
@@ -129,11 +128,9 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
         $pdf->isUnicode = true;
 
         $pdf->selectFont('FreeSerif', '', 1);
-        //$pdf->ezText("Franz #! א", 30);
         $pdf->ezText("Hello World!\nHello Earth!", 30);
 
-        $this->output = $pdf->ezOutput(['compression' => 0]);
-        //$this->output = $pdf->ezOutput();
+        $this->output = $pdf->ezOutput();
         
         $this->savePdf(__FUNCTION__ . '.pdf');
 

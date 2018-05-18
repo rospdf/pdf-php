@@ -1029,7 +1029,7 @@ class TTF
     }
 
     // Replace glyph indices of components of composite glyph
-    private static function replaceComponentsOfCompositeGlyph($description, $replacements)
+    public static function replaceComponentsOfCompositeGlyph($description, $replacements)
     {
         $off = 0;
 
