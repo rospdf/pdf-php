@@ -151,7 +151,7 @@ $data=file('./data.txt');
 
 $pdf->ezNewPage();
 
-$pdf->ezStartPageNumbers(intval($pdf->ez['pageWidth']/2) + 20 ,28,10,'','',1);
+$pdf->ezStartPageNumbers(intval($pdf->ez['pageWidth']/2), 28, 10, 'center');
 
 $size=12;
 $height = $pdf->getFontHeight($size);

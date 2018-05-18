@@ -859,6 +859,10 @@ class Cezpdf extends Cpdf
                             case 'left':
                                 $this->addText($info['x'], $info['y'], $info['size'], $pat);
                                 break;
+                            case 'center':
+                                $w = $this->getTextWidth($info['size'], $pat);
+                                $this->addText($info['x'] - ($w / 2), $info['y'], $info['size'], $pat);
+                                break;
                             default:
                                 $w = $this->getTextWidth($info['size'], $pat);
                                 $this->addText($info['x'] - $w, $info['y'], $info['size'], $pat);
