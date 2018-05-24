@@ -859,6 +859,10 @@ class Cezpdf extends Cpdf
                             case 'left':
                                 $this->addText($info['x'], $info['y'], $info['size'], $pat);
                                 break;
+                            case 'center':
+                                $w = $this->getTextWidth($info['size'], $pat);
+                                $this->addText($info['x'] - ($w / 2), $info['y'], $info['size'], $pat);
+                                break;
                             default:
                                 $w = $this->getTextWidth($info['size'], $pat);
                                 $this->addText($info['x'] - $w, $info['y'], $info['size'], $pat);
@@ -2240,8 +2244,7 @@ class Cezpdf extends Cpdf
                 if (!isset($this->ez['links'])) {
                     $this->ez['links'] = array();
                 }
-                $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'url' => $info['p']);
+                $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'url' => $info['p']);
                 if ($internal == 0) {
                     $this->saveState();
                     $this->setColor(0, 0, 1);
@@ -2254,8 +2257,7 @@ class Cezpdf extends Cpdf
             case 'eol':
                 // the end of the link
                 // assume that it is the most recent opening which has closed
-                $i = $info['nCallback'];
-                $start = $this->ez['links'][$i];
+                $start = array_shift($this->ez['links']);
                 // add underlining
                 if ($internal) {
                     $this->addInternalLink($start['url'], $start['x'], $start['y'] + $start['descender'], $info['x'], $start['y'] + $start['descender'] + $start['height']);
@@ -2287,8 +2289,8 @@ class Cezpdf extends Cpdf
                 if (!isset($this->ez['links'])) {
                     $this->ez['links'] = array();
                 }
-                $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height']);
+
+                $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height']);
                 $this->saveState();
                 $thick = $info['height'] * $lineFactor;
                 $this->setLineStyle($thick);
@@ -2297,8 +2299,7 @@ class Cezpdf extends Cpdf
             case 'eol':
                 // the end of the link
                 // assume that it is the most recent opening which has closed
-                $i = $info['nCallback'];
-                $start = $this->ez['links'][$i];
+                $start = array_shift($this->ez['links']);
                 // add underlining
                 $a = deg2rad((float) $start['angle'] - 90.0);
                 $drop = $start['height'] * $lineFactor * 1.5;
@@ -2318,7 +2319,7 @@ class Cezpdf extends Cpdf
     public function comment(&$info)
     {
         if (isset($info)) {
-            $offsetY = $info['y'] + $info['height'];
+            $offsetY = $info['y'];
             // split title and text content use '|' char
             $commentPart = preg_split("/\|/", $info['p']);
             if (is_array($commentPart) && count($commentPart) > 1) {
@@ -2341,16 +2342,9 @@ class Cezpdf extends Cpdf
     public function color($info)
     {
         // a callback function to support the inline coloring of text
-
         switch ($info['status']) {
             case 'start':
             case 'sol':
-                // the beginning of the color zone
-                if (!isset($this->ez['links'])) {
-                    $this->ez['links'] = array();
-                }
-                $i = $info['nCallback'];
-                $this->ez['links'][$i] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'color' => $info['p']);
                 $this->saveState();
                 $colAry = explode(',', $info['p']);
                 $this->setColor($colAry[0], $colAry[1], $colAry[2]);
@@ -2359,8 +2353,7 @@ class Cezpdf extends Cpdf
             case 'eol':
                 // the end of the link
                 // assume that it is the most recent opening which has closed
-                $i = $info['nCallback'];
-                $this->setColor(0, 0, 0);
+                //$this->setColor(0, 0, 0);
                 $this->restoreState();
                 break;
         }

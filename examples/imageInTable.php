@@ -8,11 +8,6 @@ if (!file_exists($ext)) {
 include $ext;
 $pdf = new CezTableImage('a4');
 
-// to test on windows xampp
-if (strpos(PHP_OS, 'WIN') !== false) {
-    $pdf->tempPath = 'C:/temp';
-}
-
 $pdf->selectFont('Helvetica');
 
 $image = '../ros.jpg';

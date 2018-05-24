@@ -17,54 +17,53 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-include_once 'TTF.php';
+include_once('TTF.php');
 
 class TTFsubset
 {
     const VERBOSE = false; // For debugging
 
     // "Old" tables and fields
-    private $head;
-    private $indexToLocFormat;
-    private $hhea;
-    private $numberOfHMetrics;
-    private $maxp;
-    private $numGlyphs;
-    private $orgCvt_Raw;
-    private $orgPrepRaw;
-    private $orgFpgmRaw;
-    private $hmtx;
-    private $loca;
-    private $glyf;
-    private $cmap;
-    private $post;
+    protected $head;
+    protected $indexToLocFormat;
+    protected $hhea;
+    protected $numberOfHMetrics;
+    protected $maxp;
+    protected $numGlyphs;
+    protected $orgCvt_Raw;
+    protected $orgPrepRaw;
+    protected $orgFpgmRaw;
+    protected $hmtx;
+    protected $loca;
+    protected $glyf;
+    protected $cmap;
+    protected $post;
 
     private $orgOS_2Raw;
     private $orgNameRaw;
-    private $orgHmtx;
 
     // "New" tables and fields
-    private $newHmtx;
-    private $newCmap;
-    private $newGlyf;
-    private $newLoca;
-    private $newPost;
-    private $newNumGlyphs;
-    private $newIndexToLocFormat;
-    private $newNumberOfHMetrics;
+    protected $newHmtx;
+    protected $newCmap;
+    protected $newGlyf;
+    protected $newLoca;
+    protected $newPost;
+    protected $newNumGlyphs;
+    protected $newIndexToLocFormat;
+    protected $newNumberOfHMetrics;
 
-    public $TTFchars;
+    protected $TTFchars;
 
     public function doSubset($fontFile, $chars, $gids)
     {
         $this->unmarshal($fontFile);
-
+    
     // Initialize TTFchars array
         $this->TTFchars = array();
     // Push index 0 (missing character) anyhow
         $this->TTFchars[] = new TTFchar(null, 0, 0, $this->glyf[0]);
     // Push index 1 (null character) anyhow
-    //$this->TTFchars[] = new TTFchar(null, 1, 0, '');
+        $this->TTFchars[] = new TTFchar(null, 1, 0, '');
 
         if ($chars != null) {
             $this->collectChars($chars);
@@ -73,16 +72,15 @@ class TTFsubset
         }
         $this->pushComponentsOfCompositeGlyphs();
         $this->assignNewIndices();
-    //$this->replaceComponentsOfCompositeGlyphs();
-    //$this->constructHmtx();
+        $this->replaceComponentsOfCompositeGlyphs();
+        $this->constructHmtx();
         $this->constructCmap();
         $this->constructLocaAndGlyf();
         $this->constructPost();
-        $this->newNumGlyphs = count($this->newGlyf);
+        $this->newNumGlyphs = count($this->TTFchars);
         $this->head['indexToLocFormat'] = $this->newIndexToLocFormat;
-        $this->hhea['numberOfHMetrics'] = $this->newNumGlyphs;
+        $this->hhea['numberOfHMetrics'] = $this->newNumberOfHMetrics;
         $this->maxp['numGlyphs'] = $this->newNumGlyphs;
-
         return $this->marshal();
     }
 
@@ -102,9 +100,8 @@ class TTFsubset
         $this->orgCvt_Raw = $ttf->getTableRaw('cvt ');
         $this->orgPrepRaw = $ttf->getTableRaw('prep');
         $this->orgFpgmRaw = $ttf->getTableRaw('fpgm');
-        $this->orgHmtx = $ttf->getTableRaw('hmtx');
 
-    //$this->hmtx = $ttf->unmarshalHmtx($this->numberOfHMetrics, $this->numGlyphs);
+        $this->hmtx = $ttf->unmarshalHmtx($this->numberOfHMetrics, $this->numGlyphs);
         $this->loca = $ttf->unmarshalLoca($this->indexToLocFormat, $this->numGlyphs);
         $this->glyf = $ttf->unmarshalGlyf($this->loca);
         $this->cmap = $ttf->unmarshalCmap();
@@ -119,7 +116,8 @@ class TTFsubset
         $newHeadRaw = TTF::marshalHead($this->head);
         $newHheaRaw = TTF::marshalHhea($this->hhea);
         $newMaxpRaw = TTF::marshalMAXP($this->maxp);
-        $newHmtxRaw = $this->orgHmtx; //TTF::marshalHmtx($this->newHmtx['metrics'], $this->newHmtx['lsbs']);
+
+        $newHmtxRaw = TTF::marshalHmtx($this->newHmtx['metrics'], $this->newHmtx['lsbs']);
         $newCmapRaw = TTF::marshalCmap($this->newCmap);
         $newLocaRaw = TTF::marshalLoca($this->newLoca, $this->newIndexToLocFormat, $this->newNumGlyphs);
         $newGlyfRaw = TTF::marshalGlyf($this->newGlyf);
@@ -142,13 +140,13 @@ class TTFsubset
         if ($this->orgFpgmRaw != null) {
             $tables['fpgm'] = $this->orgFpgmRaw;
         }
-    /*$tables['cmap'] = $newCmapRaw;
-    if ($this->orgOS_2Raw != null) {
-        $tables['OS/2'] = $this->orgOS_2Raw;
-    }
-    if ($this->orgNameRaw != null) {
-        $tables['name'] = $this->orgNameRaw;
-    }*/
+        $tables['cmap'] = $newCmapRaw;
+        if ($this->orgOS_2Raw != null) {
+            $tables['OS/2'] = $this->orgOS_2Raw;
+        }
+        if ($this->orgNameRaw != null) {
+            $tables['name'] = $this->orgNameRaw;
+        }
         $tables['post'] = $newPostRaw;
 
         return TTF::marshalAll($tables);
@@ -165,7 +163,7 @@ class TTFsubset
         $numAllMetrics = count($allMetrics);
         $lastMetric = $allMetrics[$numAllMetrics - 1];
     // Looping from last to first, collect a sequence of metrics that have same advance width as last
-        for ($i = $numAllMetrics - 1; $i > 0; --$i) {
+        for ($i = $numAllMetrics - 1; $i > 0; $i--) {
             $metric = $allMetrics[$i - 1];
             if ($metric[0] != $lastMetric[0]) {
                 break;
@@ -179,10 +177,10 @@ class TTFsubset
         } else {
             $this->newNumberOfHMetrics = $i + 1;
         }
-
+    
         $metrics = array();
         $lsbs = array();
-        for ($i = 0; $i < $numAllMetrics; ++$i) {
+        for ($i = 0; $i < $numAllMetrics; $i++) {
             if ($i < $this->newNumberOfHMetrics) {
                 $metrics[] = $allMetrics[$i];
             } else {
@@ -204,7 +202,7 @@ class TTFsubset
             $version = $table['version'];
             if ($format == 0) {
                 $glyphIdArray = $table['glyphIdArray'];
-                for ($i = 0; $i < count($glyphIdArray); ++$i) {
+                for ($i = 0; $i < count($glyphIdArray); $i++) {
                     $glyphIdArray[$i] = $this->map($glyphIdArray[$i]);
                 }
                 $newTables[] = array('platformID' => $platformID,
@@ -212,37 +210,37 @@ class TTFsubset
                      'format' => $format,
                      'length' => 0, // To be calculated
                      'version' => $version,
-                     'glyphIdArray' => $glyphIdArray, );
+                     'glyphIdArray' => $glyphIdArray);
             } elseif ($format == 4) {
                 $newEndCountArray = array();
                 $newStartCountArray = array();
                 $newIdDeltaArray = array();
                 $newIdRangeOffsetArray = array();
                 $newGlyphIdArray = array();
-        // Skip entries with null charCode
+                // Skip entries with null charCode
                 $i = 0;
                 $cnt = count($this->TTFchars);
                 while ($i < $cnt) {
                     if ($this->TTFchars[$i]->charCode !== null) {
                         break;
                     }
-                    ++$i;
+                    $i++;
                 }
                 $newEndCountArray[] = 0;
                 $newStartCountArray[] = 0;
                 $newIdDeltaArray[] = 0;
                 $newIdRangeOffsetArray[] = 0;
-
+        
                 while ($i < $cnt) {
                     //XXX something better here
-            // Collect a sequence with increasing charCode and newIndex
+                    // Collect a sequence with increasing charCode and newIndex
                     $j = $i;
                     while ($i < $cnt) {
                         if ($this->TTFchars[$i]->charCode - $this->TTFchars[$j]->charCode != $i - $j ||
                         $this->TTFchars[$i]->newIndex - $this->TTFchars[$j]->newIndex != $i - $j) {
                             break;
                         }
-                        ++$i;
+                        $i++;
                     }
                     $newEndCountArray[] = $this->TTFchars[$i - 1]->charCode;
                     $newStartCountArray[] = $this->TTFchars[$j]->charCode;
@@ -253,84 +251,72 @@ class TTFsubset
                 $newStartCountArray[] = 65535;
                 $newIdDeltaArray[] = 1;
                 $newIdRangeOffsetArray[] = 0;
-
+        
                 $newSegCount = count($newEndCountArray);
 
                 if (self::VERBOSE) {
                     echo "ARRAYS\n";
-                    for ($i = 0; $i < $newSegCount; ++$i) {
+                    for ($i = 0; $i < $newSegCount; $i++) {
                         echo sprintf("%5d %5d %5d %5d\n", $newEndCountArray[$i], $newStartCountArray[$i], $newIdDeltaArray[$i], $newIdRangeOffsetArray[$i]);
                     }
                 }
                 $newTables[] = array('platformID' => $platformID,
-                     'platformSpecificID' => $platformSpecificID,
-                     'format' => $format,
-                     'length' => 0, // To be calculated
-                     'version' => $version,
-                     'segCount' => $newSegCount,
-                     'endCountArray' => $newEndCountArray,
-                     'startCountArray' => $newStartCountArray,
-                     'idDeltaArray' => $newIdDeltaArray,
-                     'idRangeOffsetArray' => $newIdRangeOffsetArray,
-                     'glyphIdArray' => $newGlyphIdArray, );
+                 'platformSpecificID' => $platformSpecificID,
+                 'format' => $format,
+                 'length' => 0, // To be calculated
+                 'version' => $version,
+                 'segCount' => $newSegCount,
+                 'endCountArray' => $newEndCountArray,
+                 'startCountArray' => $newStartCountArray,
+                 'idDeltaArray' => $newIdDeltaArray,
+                 'idRangeOffsetArray' => $newIdRangeOffsetArray,
+                 'glyphIdArray' => $newGlyphIdArray);
             } elseif ($format == 6) {
                 $glyphIdArray = $table['glyphIdArray'];
-                for ($i = 0; $i < count($glyphIdArray); ++$i) {
-                    $glyphIdArray[$i] = $this->map($glyphIdArray[$i]);
+                for ($i = 0; $i < count($glyphIdArray); $i++) {
+                        $glyphIdArray[$i] = $this->map($glyphIdArray[$i]);
                 }
                 $newTables[] = array('platformID' => $platformID,
-                     'platformSpecificID' => $platformSpecificID,
-                     'format' => $format,
-                     'length' => 0,
-                     'version' => $version,
-                     'firstCode' => (isset($firstCode)) ? $firstCode : null,
-                     'entryCount' => (isset($entryCount)) ? $entryCount : null,
-                     'glyphIdArray' => $glyphIdArray, );
+                 'platformSpecificID' => $platformSpecificID,
+                 'format' => $format,
+                 'length' => 0,
+                 'version' => $version,
+                 'firstCode' => $table['firstCode'],
+                 'entryCount' => $table['entryCount'],
+                 'glyphIdArray' => $glyphIdArray);
             } elseif ($format == '12.0') {
                 $startCharCodes = $table['startCharCodes'];
                 $endCharCodes = $table['endCharCodes'];
                 $startGlyphCodes = $table['startGlyphCodes'];
-                for ($i = 0; $i < count($startGlyphCodes); ++$i) {
-                    $startGlyphCodes[$i] = $this->map($startGlyphCodes[$i]);
+                for ($i = 0; $i < count($startGlyphCodes); $i++) {
+                        $startGlyphCodes[$i] = $this->map($startGlyphCodes[$i]);
                 }
                 $newTables[] = array('platformID' => $platformID,
-                     'platformSpecificID' => $platformSpecificID,
-                     'format' => $format,
-                     'length' => $length,
-                     'version' => $version,
-                     'startCharCodes' => $startCharCodes,
-                     'endCharCodes' => $endCharCodes,
-                     'startGlyphCodes' => $startGlyphCodes, );
+                 'platformSpecificID' => $platformSpecificID,
+                 'format' => $format,
+                 'length' => $length,
+                 'version' => $version,
+                 'startCharCodes' => $startCharCodes,
+                 'endCharCodes' => $endCharCodes,
+                 'startGlyphCodes' => $startGlyphCodes);
             } else {
                 throw new Exception('Internal error');
             }
         }
         $this->newCmap = array('version' => $this->cmap['version'],
                    'numTables' => $this->cmap['numTables'],
-                   'tables' => $newTables, );
+                   'tables' => $newTables);
     }
 
     // Construct new loca and glyf tables
     private function constructLocaAndGlyf()
     {
-
-    //print_r($this->TTFchars);
-    //print_r($this->glyf);
         $this->newGlyf = array();
         $this->newLoca = array();
         $offset = 0;
-        for ($i = 0; $i < count($this->glyf); ++$i) {
-            $description = '';
-            foreach ($this->TTFchars as $TTFchar) {
-                if ($i == $TTFchar->orgIndex) {
-                    //print_r($TTFchar);
-                    $description = $TTFchar->description;
-                    break;
-                }
-            }
-
+        foreach ($this->TTFchars as $TTFchar) {
+            $description = $TTFchar->description;
             $len = strlen($description);
-
             if (($len % 4) != 0) {
                 $toPad = 4 - ($len % 4);
                 $description .= str_repeat(chr(0), $toPad);
@@ -340,21 +326,8 @@ class TTFsubset
             $this->newLoca[] = $offset;
             $offset += $len;
         }
-    /*foreach ($this->TTFchars as $TTFchar) {
-        $description = $TTFchar->description;
-        $len = strlen($description);
-        if (($len % 4) != 0) {
-        $toPad = 4 - ($len % 4);
-        $description .= str_repeat(chr(0), $toPad);
-        $len += $toPad;
-        }
-        $this->newGlyf[] = $description;
-        $this->newLoca[] = $offset;
-        $offset += $len;
-    }*/
         $this->newLoca[] = $offset;
         $this->newIndexToLocFormat = $offset <= 0x20000 ? 0 : 1;
-    //print_r($this->newGlyf);
     }
 
     // Construct new post table
@@ -363,35 +336,26 @@ class TTFsubset
         $formatType = $this->post['formatType'];
         if ($formatType == '2.0') {
             $gn = $this->post['glyphNames'];
-        // 'gn2' will be the new 'glyphNames' array
-        // As new indices are assigned sequentially, 'gn2' will have
-        // its first indices set
+            // 'gn2' will be the new 'glyphNames' array
+            // As new indices are assigned sequentially, 'gn2' will have
+            // its first indices set
             $gn2 = array();
-        /*foreach ($this->TTFchars as $TTFchar) {
-        $orgIndex = $TTFchar->orgIndex;
-        $newIndex = $TTFchar->newIndex;
-        $gn2[$newIndex] = "glyph" + $orgIndex;
-        }*/
-            $this->newPost = array('formatType' => $this->post['formatType'],
-            'italicAngle' => $this->post['italicAngle'],
-            'underlinePosition' => $this->post['underlinePosition'],
-            'underlineThickness' => $this->post['underlineThickness'],
-            'isFixedPitch' => $this->post['isFixedPitch'],
-            'minMemType42' => $this->post['minMemType42'],
-            'maxMemType42' => $this->post['maxMemType42'],
-            'minMemType1' => $this->post['minMemType1'],
-            'maxMemType1' => $this->post['maxMemType1'],
-            'glyphNames' => $gn2, );
-        } elseif ($this->post['formatType'] == '3.0') {
-            $this->newPost = array('formatType' => $this->post['formatType'],
-            'italicAngle' => $this->post['italicAngle'],
-            'underlinePosition' => $this->post['underlinePosition'],
-            'underlineThickness' => $this->post['underlineThickness'],
-            'isFixedPitch' => $this->post['isFixedPitch'],
-            'minMemType42' => $this->post['minMemType42'],
-            'maxMemType42' => $this->post['maxMemType42'],
-            'minMemType1' => $this->post['minMemType1'],
-            'maxMemType1' => $this->post['maxMemType1'], );
+            foreach ($this->TTFchars as $TTFchar) {
+                $orgIndex = $TTFchar->orgIndex;
+                $newIndex = $TTFchar->newIndex;
+                $gn2[$newIndex] = $gn[$orgIndex];
+            }
+            $this->newPost = array
+            ('formatType' => $this->post['formatType'],
+             'italicAngle' => $this->post['italicAngle'],
+             'underlinePosition' => $this->post['underlinePosition'],
+             'underlineThickness' => $this->post['underlineThickness'],
+             'isFixedPitch' => $this->post['isFixedPitch'],
+             'minMemType42' => $this->post['minMemType42'],
+             'maxMemType42' => $this->post['maxMemType42'],
+             'minMemType1' => $this->post['minMemType1'],
+             'maxMemType1' => $this->post['maxMemType1'],
+             'glyphNames' => $gn2);
         } else {
             throw new Exception(sprintf('Internal error - formatType is %s', $this->post['formatType']));
         }
@@ -405,7 +369,7 @@ class TTFsubset
         for ($i = 0; $i < strlen($chars); $i += 2) {
             $charCode = self::ORD(substr($chars, $i, 2));
             $orgIndex = TTF::characterToIndex($unicodeEncodingTable, $charCode);
-            $description = ($orgIndex > -1) ? $this->glyf[$orgIndex] : null;
+            $description = $this->glyf[$orgIndex];
             if (!$this->orgIndexAlreadyExists($orgIndex)) {
                 $this->TTFchars[] = new TTFchar($charCode, $orgIndex, 0, $description);
             }
@@ -414,16 +378,16 @@ class TTFsubset
 
     private function collectGids($gids)
     {
-        // Collect the unicode encoding table
+    // Collect the unicode encoding table
         $unicodeEncodingTable = TTF::getEncodingTable($this->cmap, 3, 1);
-
-        for ($i = 0; $i < count($gids); ++$i) {
+    
+        for ($i = 0; $i < count($gids); $i++) {
             $orgIndex = $gids[$i];
             $description = $this->glyf[$orgIndex];
             if (!$this->orgIndexAlreadyExists($orgIndex)) {
                 $unicodeValue = $unicodeEncodingTable == null ? null : TTF::indexToCharacter($unicodeEncodingTable, $orgIndex);
 
-        //XXXX THANOS
+            //XXXX THANOS
                 $this->TTFchars[] = new TTFchar($unicodeValue, $orgIndex, 0, $description);
             }
         }
@@ -431,9 +395,9 @@ class TTFsubset
 
     private function pushComponentsOfCompositeGlyphs()
     {
-        // If there exist composite glyphs (numberOfContours < 0), we have to append the components
+    // If there exist composite glyphs (numberOfContours < 0), we have to append the components
     // WARNING: This loop appends to $this->TTFchars (foreach will not work)
-        for ($i = 0; $i < count($this->TTFchars); ++$i) {
+        for ($i = 0; $i < count($this->TTFchars); $i++) {
             $TTFchar = $this->TTFchars[$i];
             $description = $TTFchar->description;
             if (strlen($description) == 0) {
@@ -443,7 +407,6 @@ class TTFsubset
             if ($glyph['numberOfContours'] >= 0) {
                 continue;
             }
-
             foreach ($glyph['components'] as $component) {
                 if (!$this->orgIndexAlreadyExists($component['glyphIndex'])) {
                     $orgIndex2 = $component['glyphIndex'];
@@ -460,7 +423,7 @@ class TTFsubset
 
     // Assign newIndex
         $newIndex = 0;
-        for ($i = 0; $i < count($this->TTFchars); ++$i) {
+        for ($i = 0; $i < count($this->TTFchars); $i++) {
             $this->TTFchars[$i]->newIndex = $newIndex++;
         }
     }
@@ -474,9 +437,9 @@ class TTFsubset
         foreach ($this->TTFchars as $TTFchar) {
             $orgIndex = $TTFchar->orgIndex;
             $newIndex = $TTFchar->newIndex;
-            $replacements[$orgIndex] = $orgIndex;
+            $replacements[$orgIndex] = $newIndex;
         }
-        for ($i = 0; $i < count($this->TTFchars); ++$i) {
+        for ($i = 0; $i < count($this->TTFchars); $i++) {
             $TTFchar = $this->TTFchars[$i];
             $description = $TTFchar->description;
             if (strlen($description) == 0) {
@@ -489,7 +452,7 @@ class TTFsubset
             $newDescription = TTF::replaceComponentsOfCompositeGlyph($description, $replacements);
             $this->TTFchars[$i]->description = $newDescription;
         }
-
+    
         if (self::VERBOSE) {
             foreach ($this->TTFchars as $TTFchar) {
                 echo sprintf("%4d %4d %4d %4d\n", $TTFchar->charCode, $TTFchar->orgIndex, $TTFchar->newIndex, strlen($TTFchar->description));
@@ -505,7 +468,6 @@ class TTFsubset
                 return true;
             }
         }
-
         return false;
     }
 
@@ -516,23 +478,21 @@ class TTFsubset
 
     private function map($index)
     {
-        for ($i = 0; $i < count($this->TTFchars); ++$i) {
+        for ($i = 0; $i < count($this->TTFchars); $i++) {
             $TTFchar = $this->TTFchars[$i];
             if ($TTFchar->orgIndex == $index) {
                 return $TTFchar->newIndex;
             }
         }
-
         return 0; // Map to index 0
     }
 
     private static function ORD($str)
     {
         $val = 0;
-        for ($i = 0; $i < strlen($str); ++$i) {
+        for ($i = 0; $i < strlen($str); $i++) {
             $val = 256 * $val + ord($str{$i});
         }
-
         return $val;
     }
 }

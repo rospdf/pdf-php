@@ -29,6 +29,15 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.45>
+
+- clean up some code in 'addText' and 'getDirectives' method
+- corrected callback coordinates on unicode fonts
+- fixed possible issues with full justification
+- use proper tempPath on windows by default
+- fixed ttf font program not properly shown (unicode subset)
+- fixed pager position (centered)
+
 3<0.12.44>
 
 - replaced each() method for PHP 7.2 compatibility reason #96
@@ -47,29 +56,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 - fixed issue #80
 - applied several PR's related to coding standards
 - replaced pack with md5 raw output
-
-3<0.12.40>
-
-- make addImage method public #73 - example imagetext.php
-
-3<0.12.39>
-
-- fixed issue #71
-- reduce callbacks proberly when reattaching in addText
-- improved stability and performance
-
-3<0.12.38>
-
-- finally fixed special char issue when encrypting documents (document info - #70)
-
-3<0.12.37>
-
-- fixed issue #70
-
-3<0.12.36>
-
-- released under the MIt license
-- fixed issue #55
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
@@ -555,7 +541,7 @@ Note that the code for the example and the actual one shown are not identical fo
 1<Base Class Functions>
 
 
-2<addText> (x,y,size,text[,width=0][,justification='left'][,angle=0][,wordSpaceAdjust=0][,test=0)
+2<addText> (x,y,size,text[,width=0][,justification='left'][,angle=0][,wordspace=0][,test=0)
 
 Add the text at a particular location on the page, noting that the origin on the axes in a pdf document is in the lower left corner by default.
 An angle can be supplied as this will do the obvious (in degrees).
@@ -962,8 +948,6 @@ This selects a font to be used from this point in the document. Errors can occur
 In all versions prior to 0.12 it was required to "convert" ttf fonts into either *.AFM or *.UFM for unicode font files.
 Since version >= 0.12.0 R&OS pdf class natively reads the information from the TTF font by using TTF.php
 It also supports font supbsetting  (>= 0.11.8) by using TTFsubset.php. Thanks to Thanos Efraimidis (4real.gr).
-
-<b>The experimental version 0.12 currently does not support Type 1 fonts</b>
 
 The encoding directive is still experimental and no guarantee its working at all in version >= 0.12. But theoretical  it allows the user to re-map character numbers from the 0->255 range to any named character in the set (as most of the sets have more than 256 characters). It should be an array of <number> => <name> pairs in an associative array. This is important to ensure that the right width for the character is used within the presentation characters, it has been noticed that sometimes, although the right character appears on the page, the incorrect width has been caluclated, using this function to explicitly set that number to the named character should fix the problem.
 Note that the encoding directive will be effective <b>only the first time</b> that a font is selected, and it should not be used on symbolic fonts (such as Symbol or ZapfDingbats).
