@@ -377,7 +377,7 @@ class Cezpdf extends Cpdf
                         $xpos = $this->ezBackground['xpos'];
                     }
 
-                    $this->addBackgroundImage($xpos, $ypos);
+                    $this->addBackgroundImage($this->ezBackground['xpos'],$this->ezBackground['ypos']);
 
                     if ($this->ezBackground['repeat'] & 1) { // repeat-x
                         $numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
