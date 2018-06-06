@@ -367,30 +367,30 @@ class Cezpdf extends Cpdf
                     }
                     break;
                 case 'image':
-                    $ypos = 0;
+                    $ypos = $this->ezBackground['ypos'];
+                    $xpos = $this->ezBackground['xpos'];
+
                     if ($this->ezBackground['repeat'] == 1) {
-                        $ypos = $this->ezBackground['ypos'];
+                        $xpos = 0;
                     }
-
-                    $xpos = 0;
+                    
                     if ($this->ezBackground['repeat'] == 2) {
-                        $xpos = $this->ezBackground['xpos'];
+                        $ypos = 0;
                     }
 
-                    $this->addBackgroundImage($this->ezBackground['xpos'],$this->ezBackground['ypos']);
+                    $this->addBackgroundImage($xpos, $ypos);
 
                     if ($this->ezBackground['repeat'] & 1) { // repeat-x
                         $numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
-                        for ($i = 1; $i <= $numX; ++$i) {
+                        for ($i = 0; $i < $numX; ++$i) {
                             $xpos = ($this->ezBackground['width'] * $i);
                             $this->addBackgroundImage($xpos, $ypos);
                         }
                     }
 
-                    $xpos = 0;
                     if ($this->ezBackground['repeat'] & 2) { // repeat-y
                         $numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
-                        for ($i = 1; $i <= $numY; ++$i) {
+                        for ($i = 0; $i < $numY; ++$i) {
                             $ypos = ($this->ezBackground['height'] * $i);
                             $this->addBackgroundImage($xpos, $ypos);
                         }
@@ -400,9 +400,9 @@ class Cezpdf extends Cpdf
                         $numX = ceil($this->ez['pageWidth'] / $this->ezBackground['width']);
                         $numY = ceil($this->ez['pageHeight'] / $this->ezBackground['height']);
 
-                        for ($i = 1; $i <= $numX; ++$i) {
+                        for ($i = 0; $i < $numX; ++$i) {
                             $xpos = ($this->ezBackground['width'] * $i);
-                            for ($j = 1; $j <= $numY; ++$j) {
+                            for ($j = 0; $j < $numY; ++$j) {
                                 $ypos = ($this->ezBackground['height'] * $j);
                                 $this->addBackgroundImage($xpos, $ypos);
                             }
