@@ -3201,7 +3201,7 @@ class Cpdf
             unset($this->stateStack[$n]);
             --$this->nStateStack;
         }
-        $this->objects[$this->currentContents]['c'] .= "Q";
+        $this->objects[$this->currentContents]['c'] .= "\nQ";
     }
 
     /**
