@@ -16,7 +16,7 @@ $pdf->FontSubset = true;
 //Cpdf::$DEBUGLEVEL = Cpdf::DEBUG_ROWS;
 
 $ls = new CpdfLineStyle(1, 'butt', 'miter');
-$table = $pdf->NewTable(['ly'=>774, 'ux'=>280], 4, null, $ls, CpdfTable::DRAWLINE_HEADERROW);
+$table = $pdf->NewTable(['uy'=>480, 'ly'=>400, 'addux'=>-20], 4, null, $ls, CpdfTable::DRAWLINE_HEADERROW);
 // disable page break for tables by settings BreakPage to 0 (zero)
 //$table->BreakPage = 0;
 
@@ -27,7 +27,7 @@ $table->Fit = true;
 
 for ($i=1; $i <= 4; $i+=2) {
     $table->AddCell("ROW $i", null, [0.5, 0.7, 0.2]);
-    $table->AddCell("HOUSTON USA € $");
+    $table->AddCell("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata");
     $table->AddCell("汉");
     $table->AddCell("лобо");
     
