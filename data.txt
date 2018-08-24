@@ -29,9 +29,13 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
-3<0.12.47>
+3<0.12.48>
 
 - possible fix for #104 allowing addTextWrap to again wrap line break
+
+3<0.12.47>
+
+- fixed issue #105
 
 3<0.12.46>
 
@@ -50,10 +54,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - replaced each() method for PHP 7.2 compatibility reason #96
 - applied PR #98
-
-3<0.12.43>
-
-- fixed issue #84
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
