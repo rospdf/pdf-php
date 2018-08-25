@@ -3019,8 +3019,8 @@ class Cpdf
 
     public function addTextWrap($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test = 0)
     {
-        $parts = preg_split ('/$\R?^/m', $text);
-        foreach($parts as $v) {
+        $parts = preg_split('/$\R?^/m', $text);
+        foreach ($parts as $v) {
             $this->addText($x, $y, $size, $v, $width, $justification, $angle, $wordSpaceAdjust, $test);
             $y -= $this->getFontHeight($size);
         }
