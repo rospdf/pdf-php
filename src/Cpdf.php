@@ -2942,7 +2942,7 @@ class Cpdf
      */
     public function addText($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test = 0)
     {
-        if (empty($text)) {
+        if (strlen($text) <= 0) {
             return '';
         }
 
