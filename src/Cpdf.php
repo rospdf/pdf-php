@@ -401,6 +401,11 @@ class Cpdf
     protected $checkpoint = '';
 
     /**
+     * stores the callback state for addText
+     */
+    protected $callback = [];
+
+    /**
      * Constructor - start with a new PDF document.
      *
      * @param array $pageSize  Array of 4 numbers, defining the bottom left and upper right corner of the page. first two are normally zero
@@ -2924,14 +2929,10 @@ class Cpdf
             case 'b':
                 if ($info['status'] == 'start') {
                     if (!strpos($this->currentTextState, $tag)) {
-                        $this->currentTextState = $tag;
+                        $this->currentTextState .= $tag;
                     }
                 } else {
-                    $p = strrpos($this->currentTextState, $tag);
-                    if ($p !== false) {
-                        // then there is one to remove
-                        $this->currentTextState = substr($this->currentTextState, 0, $p).substr($this->currentTextState, $p + 1);
-                    }
+                    $this->currentTextState = str_replace($tag, '', $this->currentTextState);
                 }
                 break;
         }
