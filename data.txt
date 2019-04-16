@@ -29,6 +29,14 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+
+3<0.12.50>
+
+- fixed issue #116
+- Removed deprecated method 'each()' from CezTableImage.php
+- Slightly improved the uniord() method
+- Possible fix for issue #114, #115 and #117
+
 3<0.12.49>
 
 - fixed issue #113
