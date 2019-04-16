@@ -2818,12 +2818,12 @@ class Cpdf
         $orgTextState = $this->currentTextState;
         $info = null;
 
-        while(($p=mb_strpos($text, '<', $offset, 'UTF-8')) !== false) {
+        while (($p=mb_strpos($text, '<', $offset, 'UTF-8')) !== false) {
             $pEnd = mb_strpos($text, '>', $p, 'UTF-8');
 
             if ($pEnd === false) {
                 break;
-            } 
+            }
 
             $part = mb_substr($text, $offset, $p - $offset, 'UTF-8');
 
@@ -2865,7 +2865,7 @@ class Cpdf
                 return $result;
             }
 
-            $funcRaw = mb_substr($text, $p , $pEnd + 1 - $p, 'UTF-8');
+            $funcRaw = mb_substr($text, $p, $pEnd + 1 - $p, 'UTF-8');
             $m = preg_match('/<\/?([cC]:|)('.$this->allowedTags.')\>/u', $funcRaw, $regs);
 
             if ($m) {
@@ -2914,7 +2914,7 @@ class Cpdf
             $info = null;
         }
 
-        if($offset <  $length) {
+        if ($offset <  $length) {
             $rest = mb_substr($text, $offset, null, 'UTF-8');
             $textLength = $this->getTextLength($size, $rest, $width, $angle, $wordSpaceAdjust);
 
@@ -2994,7 +2994,9 @@ class Cpdf
 
         $parts = $this->addTextWithDirectives($text, $x, $y, $size, $width, $justification, $angle, $wordSpaceAdjust);
 
-        $parsedText = implode('', array_map(function ($v) { return $v['text']; }, $parts));
+        $parsedText = implode('', array_map(function ($v) {
+            return $v['text'];
+        }, $parts));
 
         // only adjust full, when 80 percent of the width is used
         if (($justification == 'full' && ($orgWidth / 100 * 80) < ($orgWidth - $width)) || $justification != 'full') {
@@ -3008,7 +3010,7 @@ class Cpdf
             $this->addContent(sprintf("\nBT %.3F %.3F %.3F %.3F %.3F %.3F Tm", cos($a), -sin($a), sin($a), cos($a), $x, $y));
         }
 
-        foreach($callbacks as $info) {
+        foreach ($callbacks as $info) {
             $info['x'] = $x;
             $info['y'] = $y;
 
@@ -3021,7 +3023,7 @@ class Cpdf
         }
 
         $xOffset = 0;
-        foreach($parts as $info) {
+        foreach ($parts as $info) {
             $place_text = $this->filterText($info['text'], false);
 
             $this->addContent(' /F'.$this->currentFontNum.' '.sprintf('%.1F', $size).' Tf');
@@ -3050,7 +3052,7 @@ class Cpdf
             }
         }
 
-        foreach($this->callback as $info) {
+        foreach ($this->callback as $info) {
             $info['x'] = $x  + ($orgWidth - $width) + $xOffset;
             $info['status'] = 'end';
             $info['y'] = $y;
@@ -3084,22 +3086,22 @@ class Cpdf
     private function uniord($c)
     {
         $h = ord($c{0});
-		if ($h <= 0x7F) {
-			return $h;
-		} else if ($h < 0xC2) {
-			return false;
-		} else if ($h <= 0xDF) {
-			return ($h & 0x1F) << 6 | (ord($c{1}) & 0x3F);
-		} else if ($h <= 0xEF) {
-			return ($h & 0x0F) << 12 | (ord($c{1}) & 0x3F) << 6
-			| (ord($c{2}) & 0x3F);
-		} else if ($h <= 0xF4) {
-			return ($h & 0x0F) << 18 | (ord($c{1}) & 0x3F) << 12
-			| (ord($c{2}) & 0x3F) << 6
-			| (ord($c{3}) & 0x3F);
-		} else {
-			return false;
-		}
+        if ($h <= 0x7F) {
+            return $h;
+        } elseif ($h < 0xC2) {
+            return false;
+        } elseif ($h <= 0xDF) {
+            return ($h & 0x1F) << 6 | (ord($c{1}) & 0x3F);
+        } elseif ($h <= 0xEF) {
+            return ($h & 0x0F) << 12 | (ord($c{1}) & 0x3F) << 6
+            | (ord($c{2}) & 0x3F);
+        } elseif ($h <= 0xF4) {
+            return ($h & 0x0F) << 18 | (ord($c{1}) & 0x3F) << 12
+            | (ord($c{2}) & 0x3F) << 6
+            | (ord($c{3}) & 0x3F);
+        } else {
+            return false;
+        }
     }
 
     /**
