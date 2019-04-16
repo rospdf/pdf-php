@@ -157,6 +157,12 @@ class Cpdf
     public $cacheTimeout = 86400;
 
     /**
+     * Used to identify any space char for line breaks (either in Unicode or ANSI)
+     * @var array
+     */
+    protected $spaces = array(32, 5760, 6158, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8200, 8201, 8202, 8203, 8204, 8205, 8287, 8288, 12288);
+
+    /**
      * stores the font family information for either core fonts or any other TTF font program.
      * Once the font family is defined, directives like bold and italic.
      *
@@ -3032,28 +3038,23 @@ class Cpdf
      */
     private function uniord($c)
     {
-        // important condition to allow char "0" (zero) being converted to decimal
-        if (strlen($c) <= 0) {
-            return false;
-        }
-        $ord0 = isset($c{0}) ? ord($c{0}) : -1;
-        if ($ord0 >= 0 && $ord0 <= 127) {
-            return $ord0;
-        }
-        $ord1 = isset($c{1}) ? ord($c{1}) : -1;
-        if ($ord0 >= 192 && $ord0 <= 223) {
-            return ($ord0 - 192) * 64 + ($ord1 - 128);
-        }
-        $ord2 = isset($c{2}) ? ord($c{2}) : -1;
-        if ($ord0 >= 224 && $ord0 <= 239) {
-            return ($ord0 - 224) * 4096 + ($ord1 - 128) * 64 + ($ord2 - 128);
-        }
-        $ord3 = isset($c{3}) ? ord($c{3}) : -1;
-        if ($ord0 >= 240 && $ord0 <= 247) {
-            return ($ord0 - 240) * 262144 + ($ord1 - 128) * 4096 + ($ord2 - 128) * 64 + ($ord3 - 128);
-        }
-
-        return false;
+        $h = ord($c{0});
+		if ($h <= 0x7F) {
+			return $h;
+		} else if ($h < 0xC2) {
+			return false;
+		} else if ($h <= 0xDF) {
+			return ($h & 0x1F) << 6 | (ord($c{1}) & 0x3F);
+		} else if ($h <= 0xEF) {
+			return ($h & 0x0F) << 12 | (ord($c{1}) & 0x3F) << 6
+			| (ord($c{2}) & 0x3F);
+		} else if ($h <= 0xF4) {
+			return ($h & 0x0F) << 18 | (ord($c{1}) & 0x3F) << 12
+			| (ord($c{2}) & 0x3F) << 6
+			| (ord($c{3}) & 0x3F);
+		} else {
+			return false;
+		}
     }
 
     /**
@@ -3070,9 +3071,6 @@ class Cpdf
 
     private function getTextLength($size, $text, $maxWidth = 0, $angle = 0, $wa = 0)
     {
-        // Used to identify any space char for line breaks (either in Unicode or ANSI)
-        $spaces = array(32, 5760, 6158, 8192, 8193, 8194, 8195, 8196, 8197, 8198, 8200, 8201, 8202, 8203, 8204, 8205, 8287, 8288, 12288);
-
         if (!$this->numFonts) {
             $this->selectFont('./fonts/Helvetica');
         }
@@ -3095,7 +3093,7 @@ class Cpdf
             }
 
             // count the number of spaces
-            if (in_array($cOrd, $spaces)) {
+            if (in_array($cOrd, $this->spaces)) {
                 $nspaces++;
             }
 
@@ -3108,12 +3106,12 @@ class Cpdf
                 $w += $this->fonts[$cf]['C'][$cOrd];
             }
             // word space adjust
-            if ($wa > 0 && in_array($cOrd, $spaces)) {
+            if ($wa > 0 && in_array($cOrd, $this->spaces)) {
                 $w += $wa;
             }
 
             // find space or minus for a clean line break
-            if (in_array($cOrd, $spaces) && $maxWidth > 0) {
+            if (in_array($cOrd, $this->spaces) && $maxWidth > 0) {
                 $break = $i;
                 $truncateChar = 1;
                 $breakWidth = ($w - $this->fonts[$cf]['C'][$cOrd]) * $size / 1000;
