@@ -29,12 +29,6 @@ $conf = array(
 'cols' => array('num' => array('bgcolor' => array(1, 1, 0))),
 );
 
-// custom column widths
-// $conf['cols'] = array(
-//                   /*'num' => ['width' => 30],*/
-//                   /*'type' => ['width' => 100]*/
-//                 );
-
 $pdf->ezTable($data, $cols, '', $conf);
 
 if (isset($_GET['d']) && $_GET['d']) {
