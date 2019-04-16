@@ -29,6 +29,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.51>
+
+- PSR only
 
 3<0.12.50>
 
@@ -52,20 +55,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 3<0.12.46>
 
 - applied PR #103 and fixed background repeater
-
-3<0.12.45>
-
-- clean up some code in 'addText' and 'getDirectives' method
-- corrected callback coordinates on unicode fonts
-- fixed possible issues with full justification
-- use proper tempPath on windows by default
-- fixed ttf font program not properly shown (unicode subset)
-- fixed pager position (centered)
-
-3<0.12.44>
-
-- replaced each() method for PHP 7.2 compatibility reason #96
-- applied PR #98
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
