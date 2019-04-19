@@ -455,20 +455,26 @@ class Cpdf
                  $this->objects[$id] = array('t' => 'destination', 'info' => array());
                  $tmp = '';
                 switch ($options['type']) {
+                    case 'Fit':
+                    case 'FitB':
+                        break;
                     case 'XYZ':
+                        $tmp = ' ' .$options['p1'] . ' ' . $options['p2'] . ' '.$options['p3'];
+                        break;
                     case 'FitR':
-                        $tmp = ' '.$options['p3'].$tmp;
+                        $tmp = ' ' . $options['p1'] . ' ' . $options['p2'] . ' '.$options['p3'] . $options['p4'];
+                        break;
                     case 'FitH':
                     case 'FitV':
                     case 'FitBH':
                     case 'FitBV':
-                        $tmp = ' '.$options['p1'].' '.$options['p2'].$tmp;
-                    case 'Fit':
-                    case 'FitB':
-                        $tmp = $options['type'].$tmp;
-                        $this->objects[$id]['info']['string'] = $tmp;
-                        $this->objects[$id]['info']['page'] = $options['page'];
+                        $tmp = $options['p1'];
+                        break;
                 }
+                
+                $this->objects[$id]['info']['string'] = $options['type'] . $tmp;
+                $this->objects[$id]['info']['page'] = $options['page'];
+
                 break;
             case 'out':
                 $tmp = $o['info'];

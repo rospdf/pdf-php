@@ -38,7 +38,7 @@ class Creport extends Cezpdf
         $lbl = rawurldecode(substr($tmp, 1));
         $num = $this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
         $this->reportContents[] = array($lbl, $num, $lvl);
-        $this->addDestination('toc' . (count($this->reportContents) - 1), 'Fit', $info['y'] + $info['height']);
+        $this->addDestination('toc' . (count($this->reportContents) - 1), 'XYZ', 0, $info['y'] + $info['height'], 0);
     }
 
     public function dots($info)
