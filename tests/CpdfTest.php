@@ -7,10 +7,11 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
     private $output;
     private $outDir = 'tests/out';
 
-    public function __construct(){
+    public function __construct()
+    {
         parent::__construct();
 
-        if( !is_dir('tests/out') ) {
+        if (!is_dir('tests/out')) {
             mkdir('tests/out');
         }
     }
@@ -19,7 +20,7 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
      * simple text output test
      */
     public function test_SimplePdf()
-    {    
+    {
         $pdf = new Cezpdf('a4', 'portrait');
         $pdf->addText(30, 760, 12, "Hello world");
 
@@ -34,21 +35,16 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
     {
         $pdf = new Cezpdf('a4', 'portrait');
         
-        $pdf->ezText("Hello world");
+        $letters = implode('', range('A', 'Z'));
+        $numbers = implode('', range(0, 9));
 
-        $pdf->selectFont('Courier');
+        foreach (['Helvetica', 'Courier', 'Times-Roman', 'Symbol'] as $v) {
+            $pdf->selectFont($v);
+            $pdf->ezText("<b>$v:</b>\n$letters $numbers");
+            $pdf->ezText("");
+        }
 
-        $pdf->ezText("Hello Courier");
-
-        $pdf->selectFont('Times-Roman');
-
-        $pdf->ezText("Hello Times-Roman");
-
-        $pdf->selectFont('Symbol');
-
-        $pdf->ezText("Hello Symbol");
-
-        $this->output = $pdf->ezOutput();
+        $this->output = $pdf->ezOutput(true);
 
         $this->savePdf(__FUNCTION__ . '.pdf');
 
@@ -91,7 +87,7 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Test (unicode) TTF fonts while subsetting the font program
-     * 
+     *
      * FIX: Unicode fonts invalidates the pdf - see below error from https://www.pdf-online.com/osa/validate.aspx
      * ----
      * The key CapHeight is required but missing.
@@ -147,28 +143,28 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
 
     /**
      * pdf document validation (simplified)
-     * 
+     *
      * TODO: Validate against ISOs and embed fonts
      */
     private function validate()
     {
-        if(substr($this->output, 0, 4) != '%PDF') {
+        if (substr($this->output, 0, 4) != '%PDF') {
             return false;
         }
 
         $lines = preg_split('/\n/', $this->output, -1, PREG_SPLIT_NO_EMPTY);
 
         $eof = $lines[count($lines) - 1];
-        $size = $lines[count($lines) - 2]; 
+        $size = $lines[count($lines) - 2];
 
-        if($eof != '%%EOF') {
+        if ($eof != '%%EOF') {
             return false;
         }
 
         // calculated from the size from trailer, assume the next is 'xref'
         $xref = substr($this->output, intval($size), 4);
 
-        if($xref !== 'xref') {
+        if ($xref !== 'xref') {
             return false;
         }
 
@@ -180,7 +176,6 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
      */
     private function validateXref()
     {
-        
     }
 
     /**
@@ -188,6 +183,5 @@ class CpdfTest extends \PHPUnit_Framework_TestCase
      */
     private function validateFont()
     {
-
     }
 }
