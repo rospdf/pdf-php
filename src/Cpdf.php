@@ -2856,7 +2856,7 @@ class Cpdf
             $x += $textLength[0];
             $y += $textLength[1];
 
-            if ($textLength[2] > 0) {
+            if ($textLength[2] >= 0) {
                 $text = mb_substr($text, $offset + $textLength[2] + $textLength[3], null, 'UTF-8');
                 array_push($result, ['text' => mb_substr($part, 0, $textLength[2], 'UTF-8'), 'nspaces' => $textLength[4], 'callback' => $info]);
 
@@ -2920,7 +2920,7 @@ class Cpdf
 
             $width -= $textLength[0];
 
-            if ($textLength[2] > 0) {
+            if ($textLength[2] >= 0) {
                 $rest = mb_substr($rest, 0, $textLength[2], 'UTF-8');
                 $text = mb_substr($text, $offset + $textLength[2] + $textLength[3], null, 'UTF-8');
             } else {
