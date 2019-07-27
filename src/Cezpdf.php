@@ -1496,7 +1496,8 @@ class Cezpdf extends Cpdf
             $height = $this->getFontHeight($options['fontSize']);
             $descender = $this->getFontDescender($options['fontSize']);
 
-            $y0 = $y + $descender;
+//          $y0 = $y + $descender; // REPLACED THIS LINE WITH THE FOLLOWING
+            $y0 = $y - $options['rowGap'];
             $dy = 0;
             if ($options['showHeadings']) {
                 // patch #9 start
@@ -1640,7 +1641,8 @@ class Cezpdf extends Cpdf
 
                             $this->setColor($options['textCol'][0], $options['textCol'][1], $options['textCol'][2], 1);
                             $y = ($options['nextPageY']) ? $nextPageY : ($this->ez['pageHeight'] - $this->ez['topMargin']);
-                            $y0 = $y + $descender;
+//                          $y0 = $y + $descender; // REPLACED THIS LINE WITH THE FOLLOWING
+                            $y0 = $y - $options['rowGap'];
                             $mx = 0;
                             if ($options['showHeadings']) {
                                 // patch #9 start

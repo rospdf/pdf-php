@@ -29,6 +29,19 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.54>
+
+- Fixed issue #127
+- Slightly amended table-enhancements example
+
+3<0.12.53>
+
+- Fixed issue #125
+
+3<0.12.52>
+
+- Fixed issue #123
+
 3<0.12.51>
 
 - PSR only
@@ -40,22 +53,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 - Removed deprecated method 'each()' from CezTableImage.php
 - Slightly improved the uniord() method
 - Possible fix for issue #114, #115 and #117
-
-3<0.12.49>
-
-- fixed issue #113
-
-3<0.12.48>
-
-- possible fix for #104 allowing addTextWrap to again wrap line break
-
-3<0.12.47>
-
-- fixed issue #105
-
-3<0.12.46>
-
-- applied PR #103 and fixed background repeater
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
