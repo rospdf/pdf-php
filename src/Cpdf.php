@@ -2998,6 +2998,18 @@ class Cpdf
 
         $callbacks = $this->callback;
 
+        foreach ($callbacks as $info) {
+            $info['x'] = $x;
+            $info['y'] = $y;
+
+            if (!$info['isCustom']) {
+                $this->defaultFormatting($info);
+                $this->setCurrentFont();
+            } else {
+                $this->{$info['func']}($info);
+            }
+        }
+        
         $parts = $this->addTextWithDirectives($text, $x, $y, $size, $width, $justification, $angle, $wordSpaceAdjust);
 
         $parsedText = implode('', array_map(function ($v) {
@@ -3014,18 +3026,6 @@ class Cpdf
         } else {
             $a = deg2rad((float) $angle);
             $this->addContent(sprintf("\nBT %.3F %.3F %.3F %.3F %.3F %.3F Tm", cos($a), -sin($a), sin($a), cos($a), $x, $y));
-        }
-
-        foreach ($callbacks as $info) {
-            $info['x'] = $x;
-            $info['y'] = $y;
-
-            if (!$info['isCustom']) {
-                $this->defaultFormatting($info);
-                $this->setCurrentFont();
-            } else {
-                $this->{$info['func']}($info);
-            }
         }
 
         $xOffset = 0;
