@@ -1733,7 +1733,17 @@ class Cezpdf extends Cpdf
                                             $just = 'left';
                                         }
 
-                                        $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
+                                        // grab the defined colors for this cell
+                                        if (isset($row[$colName."Color"]))
+                                            $textColor = $row[$colName."Color"];
+                                        else
+                                            $textColor = "";
+
+                                        // apply the color to the text
+                                        if (is_array($textColor))
+                                            $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], "<c:color:".$textColor[0].",".$textColor[1].",".$textColor[2].">".$line."</c:color>", $maxWidth[$colName], $just);
+                                        else
+                                            $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], "<c:color:".$options['textCol'][0].",".$options['textCol'][1].",".$options['textCol'][2].">".$line."</c:color>", $maxWidth[$colName], $just);
                                     }
                                 }
                             }
