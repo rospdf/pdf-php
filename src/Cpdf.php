@@ -3008,7 +3008,9 @@ class Cpdf
             $this->adjustWrapText($parsedText, $orgWidth - $width, $orgWidth, $x, $wordSpaceAdjust, $justification);
         }
 
-        foreach (array_filter($this->callback, function($v) { return $v['isCustom']; }) as $info) {
+        foreach (array_filter($this->callback, function ($v) {
+            return $v['isCustom'];
+        }) as $info) {
             $info['x'] = $x;
             $info['y'] = $y;
             $this->{$info['func']}($info);
@@ -3044,7 +3046,7 @@ class Cpdf
                     $this->addContent(' ET');
                     $this->{$cb['func']}($cb);
 
-                    if($cb['status'] == 'start' && !$cb['noClose']) {
+                    if ($cb['status'] == 'start' && !$cb['noClose']) {
                         $this->callback[$cb['func']] = $cb;
                     } else {
                         unset($this->callback[$cb['func']]);
@@ -3060,7 +3062,9 @@ class Cpdf
             }
         }
 
-        foreach (array_filter($this->callback, function($v) { return $v['isCustom']; }) as $info) {
+        foreach (array_filter($this->callback, function ($v) {
+            return $v['isCustom'];
+        }) as $info) {
             $info['status'] = 'end';
             $info['x'] = $x  + ($orgWidth - $width) + $xOffset;
             $info['y'] = $y;
