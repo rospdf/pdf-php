@@ -2303,9 +2303,9 @@ class Cezpdf extends Cpdf
                 }
 
                 $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height']);
-                $this->saveState();
                 $thick = $info['height'] * $lineFactor;
                 $this->setLineStyle($thick);
+                $this->saveState();
                 break;
             case 'end':
             case 'eol':

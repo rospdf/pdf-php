@@ -2896,7 +2896,8 @@ class Cpdf
                     'angle' => $angle,
                     'descender' => null,
                     'height' => $this->getFontHeight($size),
-                    'isCustom' => $isCustom
+                    'isCustom' => $isCustom,
+                    'noClose' => $noClose
                 ];
 
                 if (!$isCustom) {
@@ -2904,11 +2905,11 @@ class Cpdf
                     $this->setCurrentFont();
                 }
 
-                if (!$isEnd && !$noClose && !isset($this->callback[$func])) {
+                /*if (!$isEnd && !$noClose && !isset($this->callback[$func])) {
                     $this->callback[$func] = $info;
                 } else {
                     unset($this->callback[$func]);
-                }
+                }*/
             }
 
             array_push($result, ['text' => $part, 'nspaces' => $textLength[4], 'callback' => $info]);
@@ -2995,20 +2996,6 @@ class Cpdf
 
         $orgWidth = $width;
         $orgX = $x;
-
-        $callbacks = $this->callback;
-
-        foreach ($callbacks as $info) {
-            $info['x'] = $x;
-            $info['y'] = $y;
-
-            if (!$info['isCustom']) {
-                $this->defaultFormatting($info);
-                $this->setCurrentFont();
-            } else {
-                $this->{$info['func']}($info);
-            }
-        }
         
         $parts = $this->addTextWithDirectives($text, $x, $y, $size, $width, $justification, $angle, $wordSpaceAdjust);
 
@@ -3020,6 +3007,15 @@ class Cpdf
         if (($justification == 'full' && ($orgWidth / 100 * 80) < ($orgWidth - $width)) || $justification != 'full') {
             $this->adjustWrapText($parsedText, $orgWidth - $width, $orgWidth, $x, $wordSpaceAdjust, $justification);
         }
+
+        foreach (array_filter($this->callback, function($v) { return $v['isCustom']; }) as $info) {
+            $info['x'] = $x;
+            $info['y'] = $y;
+            $this->{$info['func']}($info);
+        }
+
+        $this->callback = [];
+
 
         if ($angle == 0) {
             $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
@@ -3047,7 +3043,13 @@ class Cpdf
 
                     $this->addContent(' ET');
                     $this->{$cb['func']}($cb);
-                    
+
+                    if($cb['status'] == 'start' && !$cb['noClose']) {
+                        $this->callback[$cb['func']] = $cb;
+                    } else {
+                        unset($this->callback[$cb['func']]);
+                    }
+                   
                     if ($angle == 0) {
                         $this->addContent("\n" . sprintf('BT %.3F %.3F Td', $cb['x'], $y));
                     } else {
@@ -3058,18 +3060,12 @@ class Cpdf
             }
         }
 
-        foreach ($this->callback as $info) {
-            $info['x'] = $x  + ($orgWidth - $width) + $xOffset;
+        foreach (array_filter($this->callback, function($v) { return $v['isCustom']; }) as $info) {
             $info['status'] = 'end';
+            $info['x'] = $x  + ($orgWidth - $width) + $xOffset;
             $info['y'] = $y;
 
-            if (!$info['isCustom']) {
-                $this->defaultFormatting($info);
-                $this->setCurrentFont();
-            } else {
-                $this->{$info['func']}($info);
-            }
-            $info['status'] = 'start';
+            $this->{$info['func']}($info);
         }
 
         $this->addContent(" ET");
