@@ -3016,9 +3016,6 @@ class Cpdf
             $this->{$info['func']}($info);
         }
 
-        $this->callback = [];
-
-
         if ($angle == 0) {
             $this->addContent(sprintf("\nBT %.3F %.3F Td", $x, $y));
         } else {
@@ -3180,6 +3177,7 @@ class Cpdf
                     $break = $i;
                 } else {
                     $truncateSpace = 1;
+                    $nspaces--;
                 }
 
                 return array(cos($a) * $breakWidth, -sin($a) * $breakWidth, $break, $truncateSpace, $nspaces);
