@@ -29,6 +29,11 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.55>
+
+- Image quality never greater 75% in addImage method #130
+- Possible fix for infinite loop when a word does not fit cell #129
+
 3<0.12.54>
 
 - Fixed issue #127
@@ -47,13 +52,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - PSR only
 - Fixed packagist
-
-3<0.12.50>
-
-- fixed issue #116
-- Removed deprecated method 'each()' from CezTableImage.php
-- Slightly improved the uniord() method
-- Possible fix for issue #114, #115 and #117
 
 Please refer to https://github.com/rospdf/pdf-php for all previous changes
 
@@ -368,46 +366,47 @@ The other options are described here below
 Below is an example output of ezTable containing the following $data
 
 #C
-$data = array(
- array('num'=>1,'name'=>'gandalf','type'=>'wizard')
-,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'https://github.com/rospdf/pdf-php')
-,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
-,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'https://github.com/rospdf/pdf-php')
-,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
-);
+$data = [
+['num'=>1,'name'=>'gandalf','type'=>'wizard' ]
+,['num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'https://github.com/rospdf/pdf-php' ]
+,['num'=>3,'name'=>'frodo','type'=>'hobbit' ]
+,['num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'https://github.com/rospdf/pdf-php' ]
+,['num'=>5,'name'=>'sauron','type'=>'really bad dude', 'typeFill' => [0.7,0.8,0.8], 'typeColor' => [0.8,0.1,0.1] ]
+];
 #c
 
 #C
-$pdf->ezTable($data,$cols,'',array(
+$pdf->ezTable($data,$cols,'', [
     'gridlines'=> EZ_GRIDLINE_DEFAULT,
-    'shadeHeadingCol'=>array(0.6,0.6,0.5),
+    'shadeHeadingCol'=> [0.6,0.6,0.5],
+    'alignHeadings'=>'center',
     'width'=>400,
-    'cols'=> array(
-        'name'=>array('bgcolor'=>array(0.9,0.9,0.7)),
-        'type'=>array('bgcolor'=>array(0.6,0.4,0.2))
-    )
-));
+    'cols'=> [
+        'name'=> ['bgcolor'=> [0.9,0.9,0.7] ],
+        'type'=> ['bgcolor'=> [0.6,0.4,0.2] ]
+    ]
+]);
 #c
 
 #X
-$data = array(
- array('num'=>1,'name'=>'gandalf','type'=>'wizard')
-,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'https://github.com/rospdf/pdf-php')
-,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
-,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'https://github.com/rospdf/pdf-php')
-,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
-);
-$cols = array('num'=>"<b>Number</b>",'name'=>'<b>Name</b>','type'=>'<b>Type</b>');
-$pdf->ezTable($data,$cols,'',array(
+$data = [
+['num'=>1,'name'=>'gandalf','type'=>'wizard' ]
+,['num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'https://github.com/rospdf/pdf-php' ]
+,['num'=>3,'name'=>'frodo','type'=>'hobbit' ]
+,['num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'https://github.com/rospdf/pdf-php' ]
+,['num'=>5,'name'=>'sauron','type'=>'really bad dude', 'typeFill' => [0.7,0.8,0.8], 'typeColor' => [0.8,0.1,0.1] ]
+];
+$cols = ['num'=>"<b>Number</b>",'name'=>'<b>Name</b>','type'=>'<b>Type</b>'];
+$pdf->ezTable($data,$cols,'', [
     'gridlines'=> EZ_GRIDLINE_DEFAULT,
-    'shadeHeadingCol'=>array(0.6,0.6,0.5),
+    'shadeHeadingCol'=> [0.6,0.6,0.5],
     'alignHeadings'=>'center',
     'width'=>400,
-    'cols'=> array(
-        'name'=>array('bgcolor'=>array(0.9,0.9,0.7)),
-        'type'=>array('bgcolor'=>array(0.6,0.4,0.2))
-    )
-));
+    'cols'=> [
+        'name'=> ['bgcolor'=> [0.9,0.9,0.7] ],
+        'type'=> ['bgcolor'=> [0.6,0.4,0.2] ]
+    ]
+]);
 #x
 
 <b>Please refer to examples/tables.php for more demos</b>

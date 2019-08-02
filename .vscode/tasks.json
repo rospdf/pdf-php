@@ -8,8 +8,10 @@
             "type": "shell",
             "command": "php",
             "args": [
-                "-S", "localhost:5000"
-            ]
-        },
+                "-S",
+                "localhost:5000"
+            ],
+            "problemMatcher": []
+        }
     ]
 }
