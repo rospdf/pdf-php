@@ -9,19 +9,29 @@ $pdf = new Cezpdf('a4', 'portrait');
 
 $pdf->selectFont('Courier');
 
-$imgHeight = 20;
-$imgWidth = 120;
-$fontSize = 8;
-$resampleFactor = 3;
+$fontSize = 15;
+$fontFile = realpath('../src/fonts/FreeSerif.ttf');
 
-$im = imagecreatetruecolor($imgWidth * $resampleFactor, $imgHeight * $resampleFactor);
+$text = 'Text using TTF font, added as image';
+
+$extra = [];
+$box = imageftbbox($fontSize, 0, $fontFile, $text, $extra);
+
+$width = abs($box[4] - $box[0]);
+$height = $box[5];
+
+$imgHeight = 50;
+$imgWidth = 400;
+
+$im = imagecreatetruecolor($imgWidth, $imgHeight);
+
 $text_color = imagecolorallocate($im, 233, 14, 91);
-imagettftext($im, $fontSize * $resampleFactor, 0, 13 * $resampleFactor, 13 * $resampleFactor, $text_color, '../src/fonts/FreeSans.ttf', 'A Simple Text String');
+imagettftext($im, $fontSize, 0, ($imgWidth - $width) / 2, ($imgHeight - $height) / 2, $text_color, $fontFile, $text);
 
-$pdf->addImage($im, 100, 700, $imgWidth, $imgHeight);
+$pdf->addImage($im, 100, 700, $imgWidth, $imgHeight, 100);
 
 if (isset($_GET['d']) && $_GET['d']) {
-    echo $pdf->ezOutput(true);
+    echo "<pre>" . $pdf->ezOutput(true) . "</pre>";
 } else {
     $pdf->ezStream();
 }

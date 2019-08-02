@@ -3777,12 +3777,6 @@ class Cpdf
         // note that this will only work with full colour images and makes them jpg images for display
         // later versions could present lossless image formats if there is interest.
 
-        // there seems to be some problem here in that images that have quality set above 75 do not appear
-        // not too sure why this is, but in the meantime I have restricted this to 75.
-        if ($quality > 75) {
-            $quality = 75;
-        }
-
         // if the width or height are set to zero, then set the other one based on keeping the image
         // height/width ratio the same, if they are both zero, then give up :)
         $imageWidth = imagesx($img);
