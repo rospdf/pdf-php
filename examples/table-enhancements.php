@@ -12,7 +12,7 @@ $pdf->selectFont('Helvetica');
 $data = [
     ['num' => 1, 'numColor' => [1,1,1], 'name' => 'gandalf', 'type' => 'wizard', 'typeFill' => [0, 1, 0], 'typeColor' => [1,0,0]],
     ['num' => 2, 'numColor' => [1,1,1], 'name' => 'bilbo', 'type' => 'hobbit'],
-    ['num' => 3, 'numColor' => [1,1,1], 'name' => 'frodo', 'type' => 'hobbit'],
+    ['num' => 3, 'numColor' => [1,1,1], 'name' => 'frodo', 'nameColor' => [0,0,1], 'type' => 'hobbit'],
     ['num' => 4, 'numColor' => [1,1,1], 'name' => str_repeat('saruman ', 300), 'type' => str_repeat('bad dude', 300), 'typeFill' => [197/255, 213/255, 203/255], 'typeColor' => [159/255, 168/255, 163/255]],
     ['num' => 5, 'numColor' => [1,1,1], 'name' => 'sauron', 'type' => 'really bad dude', 'typeFill' => [0, 0, 0], 'typeColor' => [1, 1, 1]],
 ];
@@ -39,7 +39,7 @@ $conf = [
 $pdf->ezTable($data, $cols, '', $conf);
 
 if (isset($_GET['d']) && $_GET['d']) {
-    echo $pdf->ezOutput(true);
+    echo "<pre>" . $pdf->ezOutput(true) . "</pre>";
 } else {
     $pdf->ezStream();
 }
