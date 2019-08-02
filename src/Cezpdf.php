@@ -1742,9 +1742,11 @@ class Cezpdf extends Cpdf
 
                                         // apply the color to the text
                                         if (is_array($textColor)) {
-                                            $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], "<c:color:".$textColor[0].",".$textColor[1].",".$textColor[2].">".$line."</c:color>", $maxWidth[$colName], $just);
+                                            $this->setColor($textColor[0],$textColor[1],$textColor[2]);
+                                            $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                         } else {
-                                            $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], "<c:color:".$options['textCol'][0].",".$options['textCol'][1].",".$options['textCol'][2].">".$line."</c:color>", $maxWidth[$colName], $just);
+                                            $this->setColor($options['textCol'][0], $options['textCol'][1], $options['textCol'][2]);
+                                            $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                         }
                                     }
                                 }
