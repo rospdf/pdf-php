@@ -2837,37 +2837,37 @@ class Cpdf
 
             $textLength = $this->getTextLength($size, $part, $width, $angle, $wordSpaceAdjust);
 
-            if ($textLength[2] >= 0 && $textLength[3] == 0) {
-                // when a force linebreak occures revert to previous
-                
-                $prev = &$result[count($result) - 1];
-
-                $c = mb_substr($prev['text'], -1, 1, 'UTF-8');
-                $cOrd = $this->uniord($c);
-                $isSpace = in_array($cOrd, $this->spaces);
-
-                if ($isSpace) {
-                    $prev['text'] = mb_substr($prev['text'], 0, -1, 'UTF-8');
-                    $width += $this->fonts[$this->currentFont]['C'][$cOrd] * $size / 1000;
-                }
-
-                $text = mb_substr($text, $offset, null, 'UTF-8');
-
-                $this->currentTextState = $orgTextState;
-                $this->setCurrentFont();
-                return $result;
-            }
-
             $width -= $textLength[0];
             $x += $textLength[0];
             $y += $textLength[1];
 
             if ($textLength[2] >= 0) {
-                $text = mb_substr($text, $offset + $textLength[2] + $textLength[3], null, 'UTF-8');
-                array_push($result, ['text' => mb_substr($part, 0, $textLength[2], 'UTF-8'), 'nspaces' => $textLength[4], 'callback' => $info]);
+                $prev = &$result[count($result) - 1];
+                // when its a force break and a previous result is available
+                if($textLength[3] == 0 && $prev != null && !empty($prev['text'])) {
+                    // recover the width and position
+                    $width += $textLength[0];
+                    $x += $textLength[0];
+                    $y += $textLength[1];
 
+                    $c = mb_substr($prev['text'], -1, 1, 'UTF-8');
+                    $cOrd = $this->uniord($c);
+                    $isSpace = in_array($cOrd, $this->spaces);
+
+                    if ($isSpace) {
+                        $prev['text'] = mb_substr($prev['text'], 0, -1, 'UTF-8');
+                        $width += $this->fonts[$this->currentFont]['C'][$cOrd] * $size / 1000;
+                    }
+
+                    $text = mb_substr($text, $offset, null, 'UTF-8');
+                } else {
+                    $text = mb_substr($text, $offset + $textLength[2] + $textLength[3], null, 'UTF-8');
+                    array_push($result, ['text' => mb_substr($part, 0, $textLength[2], 'UTF-8'), 'nspaces' => $textLength[4], 'callback' => $info]);    
+                }
+                
                 $this->currentTextState = $orgTextState;
                 $this->setCurrentFont();
+
                 return $result;
             }
 

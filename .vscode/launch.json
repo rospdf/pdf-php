@@ -5,7 +5,11 @@
             "name": "Listen for XDebug",
             "type": "php",
             "request": "launch",
-            "port": 9000
+            "port": 9000,
+            "preLaunchTask": "Run PHP Server",
+            "xdebugSettings": {
+                "max_depth": 3
+            }
         },
         {
             "name": "Launch currently open script",
