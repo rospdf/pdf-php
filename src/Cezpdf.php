@@ -1565,17 +1565,13 @@ class Cezpdf extends Cpdf
                         // specified for the cell is first choice
                     if ($fillColor && count($fillColor) && is_array($fillColor)) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $fillColor);
-                    } // color of the column is second choice
-                    elseif (isset($options['cols']) && isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor']) && is_array($options['cols'][$colName]['bgcolor'])) {
+                    } elseif (isset($options['cols']) && isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor']) && is_array($options['cols'][$colName]['bgcolor'])) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['cols'][$colName]['bgcolor']);
-                    } // all rows use the same shadeCol
-                    elseif ($options['shaded'] == 1 && $cnt % 2 == 1) {
+                    } elseif ($options['shaded'] == 1 && $cnt % 2 == 1) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
-                    } // alternating rows (options 1)
-                    elseif (($options['shaded'] == 2) && $cnt % 2 == 0) {
+                    } elseif (($options['shaded'] == 2) && $cnt % 2 == 0) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
-                    } // alternating rows (options 2)
-                    elseif (($options['shaded'] == 2) && $cnt % 2 == 1) {
+                    } elseif (($options['shaded'] == 2) && $cnt % 2 == 1) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol2']);
                     } else {
                         $rowColShading[] = array('color' => array());
@@ -1742,7 +1738,7 @@ class Cezpdf extends Cpdf
 
                                         // apply the color to the text
                                         if (is_array($textColor)) {
-                                            $this->setColor($textColor[0],$textColor[1],$textColor[2]);
+                                            $this->setColor($textColor[0], $textColor[1], $textColor[2]);
                                             $line = $this->addText($pos[$colName], $this->y, $options['fontSize'], $line, $maxWidth[$colName], $just);
                                         } else {
                                             $this->setColor($options['textCol'][0], $options['textCol'][1], $options['textCol'][2]);

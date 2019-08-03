@@ -2844,7 +2844,7 @@ class Cpdf
             if ($textLength[2] >= 0) {
                 $prev = &$result[count($result) - 1];
                 // when its a force break and a previous result is available
-                if($textLength[3] == 0 && $prev != null && !empty($prev['text'])) {
+                if ($textLength[3] == 0 && $prev != null && !empty($prev['text'])) {
                     // recover the width and position
                     $width += $textLength[0];
                     $x += $textLength[0];
@@ -2862,7 +2862,7 @@ class Cpdf
                     $text = mb_substr($text, $offset, null, 'UTF-8');
                 } else {
                     $text = mb_substr($text, $offset + $textLength[2] + $textLength[3], null, 'UTF-8');
-                    array_push($result, ['text' => mb_substr($part, 0, $textLength[2], 'UTF-8'), 'nspaces' => $textLength[4], 'callback' => $info]);    
+                    array_push($result, ['text' => mb_substr($part, 0, $textLength[2], 'UTF-8'), 'nspaces' => $textLength[4], 'callback' => $info]);
                 }
                 
                 $this->currentTextState = $orgTextState;
