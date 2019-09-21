@@ -2934,7 +2934,7 @@ class Cpdf
                 $text = '';
             }
 
-            array_push($result, ['text' => $rest, 'nspaces' => $textLength[4], 'callback' => $info]);
+            array_push($result, ['text' => $rest, 'nspaces' => $textLength[4], 'callback' => null]);
         } else {
             $text = '';
         }
