@@ -3076,7 +3076,7 @@ class Cpdf
 
     public function addTextWrap($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test = 0)
     {
-        while($text) {
+        while ($text) {
             $text = $this->addText($x, $y, $size, $text, $width, $justification, $angle, $wordSpaceAdjust, $test);
             $y -= $this->getFontHeight($size);
         }
