@@ -29,6 +29,12 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+
+3<0.12.57>
+
+- Fixed issue #134
+- Set automated full justification to 90 %
+
 3<0.12.56>
 
 - Fixed addTextWrap method
@@ -49,11 +55,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - Fixed issue #125
 
-3<0.12.52>
-
-- Fixed issue #123
-
-Please refer to https://github.com/rospdf/pdf-php for all previous changes
+Please refer to https://github.com/rospdf/pdf-php/releases for all previous changes
 
 #NP
 
