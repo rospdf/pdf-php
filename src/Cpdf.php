@@ -3003,8 +3003,8 @@ class Cpdf
             return $v['text'];
         }, $parts));
 
-        // only adjust full, when 80 percent of the width is used
-        if (($justification == 'full' && ($orgWidth / 100 * 80) < ($orgWidth - $width)) || $justification != 'full') {
+        // only adjust full, when 90 percent of the width is used
+        if (($justification == 'full' && ($orgWidth / 100 * 90) < ($orgWidth - $width)) || $justification != 'full') {
             $this->adjustWrapText($parsedText, $orgWidth - $width, $orgWidth, $x, $wordSpaceAdjust, $justification);
         }
 
