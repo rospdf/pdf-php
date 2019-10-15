@@ -3060,6 +3060,8 @@ class Cpdf
             }
         }
 
+        $this->addContent(" ET");
+
         foreach (array_filter($this->callback, function ($v) {
             return $v['isCustom'];
         }) as $info) {
@@ -3069,8 +3071,6 @@ class Cpdf
 
             $this->{$info['func']}($info);
         }
-
-        $this->addContent(" ET");
 
         return $text;
     }
