@@ -1947,7 +1947,9 @@ class Cezpdf extends Cpdf
         }
 
         $lines = preg_split("[\r\n|\r|\n]", $text);
-        foreach ($lines as $line) {
+        $c = count($lines);
+        for ($i = 0; $i < $c; $i++) {
+            $line = $lines[$i];
             $start = 1;
             while (strlen($line) || $start) {
                 $start = 0;
@@ -1971,6 +1973,14 @@ class Cezpdf extends Cpdf
                 } else {
                     $right = $this->ez['pageWidth'] - $this->ez['rightMargin'] - ((is_array($options) && isset($options['right'])) ? $options['right'] : 0);
                 }
+
+                if ($just == 'full' && $c == $i + 1) {
+                    $tmp = $this->addText($left, $this->y, $size, $line, $right - $left, $just, 0, 0, 1);
+                    if (!strlen($tmp)) {
+                        $just = "left";
+                    }
+                }
+
                 $line = $this->addText($left, $this->y, $size, $line, $right - $left, $just, 0, 0, $test);
             }
         }
