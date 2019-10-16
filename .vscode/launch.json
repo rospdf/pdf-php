@@ -6,7 +6,7 @@
             "type": "php",
             "request": "launch",
             "port": 9000,
-            "preLaunchTask": "Run PHP Server",
+            "preLaunchTask": "${defaultBuildTask}",
             "xdebugSettings": {
                 "max_depth": 3
             }

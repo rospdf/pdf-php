@@ -72,7 +72,7 @@ class Creport extends Cezpdf
 // this code has been modified to use ezpdf.
 
 $project_url = "https://github.com/rospdf/";
-$project_version = "0.12.57";
+$project_version = "Version 0.12.58";
 
 $pdf = new Creport('a4', 'portrait', 'none', null);
 
@@ -90,7 +90,10 @@ $pdf->setStrokeColor(0, 0, 0, 1);
 $pdf->line(20, 40, 578, 40);
 $pdf->line(20, 822, 578, 822);
 $pdf->addText(20, 30, 8, $project_url);
-$pdf->addText(515, 30, 8, 'Version ' . $project_version);
+
+$w = $pdf->getTextWidth(8, $project_version);
+$pdf->addText(578 - intval($w), 30, 8, $project_version);
+
 $pdf->restoreState();
 $pdf->closeObject();
 // note that object can be told to appear on just odd or even pages by changing 'all' to 'odd'
@@ -107,7 +110,7 @@ $pdf->selectFont($mainFont);
 $pdf->ezText("PHP Pdf Class\n", 30, array('justification' => 'centre'));
 $pdf->ezText("Native PDF document creation with PHP\n", 20, array('justification' => 'centre'));
 $pdf->ezText("released under the terms of the MIT license\n\n<c:alink:https://github.com/rospdf/pdf-php/graphs/contributors>Contributors</c:alink>\n", 14, array('justification' => 'centre'));
-$pdf->ezText("Version $project_version", 12, array('justification' => 'centre'));
+$pdf->ezText($project_version, 12, array('justification' => 'centre'));
 $pdf->ezSetDy(-150);
 // modified to use the local file if it can
 $pdf->ezText("FORK ON GITHUB.COM", 12, array('justification' => 'right'));
