@@ -12,6 +12,18 @@
             }
         },
         {
+            "name": "Listen for XDebug (docker)",
+            "type": "php",
+            "request": "launch",
+            "port": 9000,
+            "xdebugSettings": {
+                "max_depth": 3,
+            },
+            "pathMappings": {
+                "/var/www/html": "${workspaceRoot}"
+            }
+        },
+        {
             "name": "Launch currently open script",
             "type": "php",
             "request": "launch",

@@ -13,14 +13,23 @@ It uses the <a href="http://php.net/manual/en/features.commandline.webserver.php
 
 These are the steps on how to run the project
 - press F1 and type "task" followed by "Run PHP Server"
-- Open the URL <a href="http://localhost:9000">http://localhost:9000</a> in your favorite browser
+- Open the URL <a href="http://localhost:5000">http://localhost:5000</a> in your favorite browser
+
+## Run from docker
+
+Alternatively, you can use docker to populate the website incl. xdebug
+
+- Install [docker](https://www.docker.com/products/docker-desktop)
+- Execute `docker-compose up` to run the container
+- Open the URL <a href="http://localhost:8000">http://localhost:8000</a>
 
 ## Debugging with Visual Studio Code
 
-For debugging purposes Visual Studio Code uses the launch.json and the PHP Debug extensions.
+For debugging purposes Visual Studio Code uses the launch.json with xdebug.
 
-- press F5 to debug the PHP file (optional: PHP Debug extension is required)
-- add breakpoints to any php file
-- Open the URL <a href="http://localhost:9000">http://localhost:9000</a> in your favorite browser
+- Install the [PHP Debug](https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug) extension for vscode
+- Open the "Debug" panel (Ctrl + Shift + D) and select "Listen for XDebug" or "Listen for XDebug (docker)" for docker configuration
+- Pick a breakpoint on the file you which to debug
+- Refresh the webpage
 
 More details on how to debug PHP (using xdebug) please read <a hreF="https://marketplace.visualstudio.com/items?itemName=felixfbecker.php-debug">here</a>
