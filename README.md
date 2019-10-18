@@ -12,7 +12,7 @@ It comes with a base class called "Cpdf.php" plus a helper class "Cezpdf.php" to
 <div align="center">
     <a href="https://github.com/rospdf/pdf-php/blob/master/readme.pdf">DOCUMENTATION</a> :
     <a href="http://pdf-php.sf.net/">WEBSITE</a> :
-    <a href="DEVELOPER.md">DEVELOPER NOTES</a>
+    <a href="CONTRIBUTE.md">CONTRIBUTE</a>
 </div>
 
 ## Features
