@@ -1,6 +1,6 @@
 # ROS PHP Pdf creation class
 
-[![Latest Stable Version](https://poser.pugx.org/rospdf/pdf-php/v/stable)](https://packagist.org/packages/rospdf/pdf-php) [![Total Downloads](https://poser.pugx.org/rospdf/pdf-php/downloads)](https://packagist.org/packages/rospdf/pdf-php) [![Latest Unstable Version](https://poser.pugx.org/rospdf/pdf-php/v/unstable)](https://packagist.org/packages/rospdf/pdf-php) [![License](https://poser.pugx.org/rospdf/pdf-php/license)](https://packagist.org/packages/rospdf/pdf-php) [![Build Status](https://travis-ci.org/rospdf/pdf-php.svg?branch=master)](https://travis-ci.org/rospdf/pdf-php) 
+[![Latest Stable Version](https://poser.pugx.org/rospdf/pdf-php/v/stable)](https://packagist.org/packages/rospdf/pdf-php) [![Total Downloads](https://poser.pugx.org/rospdf/pdf-php/downloads)](https://packagist.org/packages/rospdf/pdf-php) [![Daily Downloads](https://poser.pugx.org/rospdf/pdf-php/d/daily)](https://packagist.org/packages/rospdf/pdf-php) [![License](https://poser.pugx.org/rospdf/pdf-php/license)](https://packagist.org/packages/rospdf/pdf-php) [![Build Status](https://travis-ci.org/rospdf/pdf-php.svg?branch=master)](https://travis-ci.org/rospdf/pdf-php) [![Donations Badge](https://yourdonation.rocks/images/badge.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CCU8QYD549JCU&source=url)
 
 ![ros.jpg](https://raw.githubusercontent.com/rospdf/pdf-php/master/ros.jpg "R&OS PHP Pdf creation class")
 
