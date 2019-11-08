@@ -491,7 +491,7 @@ class TTFsubset
     {
         $val = 0;
         for ($i = 0; $i < strlen($str); $i++) {
-            $val = 256 * $val + ord($str{$i});
+            $val = 256 * $val + ord($str[$i]);
         }
         return $val;
     }

@@ -924,10 +924,10 @@ class TTF
             // Collect the flags
             $flags = array();
             while (count($flags) <= $lastEndPoint) {
-                $flag = ord($description{$off});
+                $flag = ord($description[$off]);
                 $off++;
                 if (($flag & 0x08) != 0) {
-                    $num = ord($description{$off}) + 1;
+                    $num = ord($description[$off]) + 1;
                     $off++;
                 } else {
                     $num = 1;
@@ -1103,7 +1103,7 @@ class TTF
 
     private static function setByte(&$b, &$off, $val)
     {
-        $b{$off++} = chr($val);
+        $b[$off++] = chr($val);
     }
 
     private static function getUshort($b, &$off)
@@ -1115,8 +1115,8 @@ class TTF
 
     private static function setUshort(&$b, &$off, $val)
     {
-        $b{$off++} = chr($val / 256);
-        $b{$off++} = chr($val % 256);
+        $b[$off++] = chr($val / 256);
+        $b[$off++] = chr($val % 256);
     }
 
     private static function getShort($b, &$off)
@@ -1127,8 +1127,8 @@ class TTF
 
     private static function setShort(&$b, &$off, $val)
     {
-        $b{$off++} = chr(($val >> 8) & 0xff);
-        $b{$off++} = chr($val & 0xff);
+        $b[$off++] = chr(($val >> 8) & 0xff);
+        $b[$off++] = chr($val & 0xff);
     }
 
     private static function getUlong($b, &$off)
@@ -1143,10 +1143,10 @@ class TTF
 
     private static function setUlong(&$b, &$off, $val)
     {
-        $b{$off++} = chr(bcmod(bcdiv($val, '16777216', 0), '256'));
-        $b{$off++} = chr(bcmod(bcdiv($val, '65536', 0), '256'));
-        $b{$off++} = chr(bcmod(bcdiv($val, '256', 0), '256'));
-        $b{$off++} = chr(bcmod($val, '256'));
+        $b[$off++] = chr(bcmod(bcdiv($val, '16777216', 0), '256'));
+        $b[$off++] = chr(bcmod(bcdiv($val, '65536', 0), '256'));
+        $b[$off++] = chr(bcmod(bcdiv($val, '256', 0), '256'));
+        $b[$off++] = chr(bcmod($val, '256'));
     }
 
     private static function getLong($b, &$off)
@@ -1179,7 +1179,7 @@ class TTF
     
     private static function setFixed(&$b, &$off, $val)
     {
-        if ($val{0} == '-') {
+        if ($val[0] == '-') {
             $sign = -1;
             $val = substr($val, 1);
         } else {
@@ -1194,10 +1194,10 @@ class TTF
         }
         $mantissa *= $sign;
 
-        $b{$off++} = chr(($mantissa >> 8) & 0xff);
-        $b{$off++} = chr(($mantissa >> 0) & 0xff);
-        $b{$off++} = chr(($fraction >> 8) & 0xff);
-        $b{$off++} = chr(($fraction >> 0) & 0xff);
+        $b[$off++] = chr(($mantissa >> 8) & 0xff);
+        $b[$off++] = chr(($mantissa >> 0) & 0xff);
+        $b[$off++] = chr(($fraction >> 8) & 0xff);
+        $b[$off++] = chr(($fraction >> 0) & 0xff);
     }
 
     private static function getFword($b, &$off)
@@ -1222,8 +1222,8 @@ class TTF
 
     private static function getF2dot14($b, &$off)
     {
-        $val1 = ord($b{$off});
-        $val2 = ord($b{$off + 1});
+        $val1 = ord($b[$off]);
+        $val2 = ord($b[$off + 1]);
         $val = 256 * $val1 + $val2;
 
         $mantissa = ($val >> 14) & 0x03;
@@ -1254,7 +1254,7 @@ class TTF
     {
         $i = 0;
         while ($i < $num) {
-            $b{$off++} = $val{$i++};
+            $b[$off++] = $val[$i++];
         }
     }
 
@@ -1289,7 +1289,7 @@ class TTF
             $bit1 = $flag & $mask1;
             $bit4 = $flag & $mask2;
             if ($bit1 != 0) {
-                $b = ord($code{$off++});
+                $b = ord($code[$off++]);
                 if ($bit4 != 0) {
                     // Positive 8-bit
                     $val = $b;
@@ -1303,8 +1303,8 @@ class TTF
                     $val = 0;
                 } else {
                     // Signed 16-bit
-                    $b1 = ord($code{$off++});
-                    $b2 = ord($code{$off++});
+                    $b1 = ord($code[$off++]);
+                    $b2 = ord($code[$off++]);
                     $b = 256 * $b1 + $b2;
                     if ($b >= 32768) {
                         $b -= 65536;

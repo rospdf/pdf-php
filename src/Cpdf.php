@@ -2383,12 +2383,12 @@ class Cpdf
         // fill color
         $color = str_replace('#', '', $hex);
         if (strlen($color) == 3) {
-            $color = $color{0}
-            .$color{0}
-            .$color{1}
-            .$color{1}
-            .$color{2}
-            .$color{2};
+            $color = $color[0]
+            .$color[0]
+            .$color[1]
+            .$color[1]
+            .$color[2]
+            .$color[2];
         }
         $r = number_format(hexdec(substr($color, 0, 2)) / 255, 4);
         $g = number_format(hexdec(substr($color, 2, 2)) / 255, 4);
@@ -2404,12 +2404,12 @@ class Cpdf
         // stroke color
         $color = str_replace('#', '', $hex);
         if (strlen($color) == 3) {
-            $color = $color{0}
-            .$color{0}
-            .$color{1}
-            .$color{1}
-            .$color{2}
-            .$color{2};
+            $color = $color[0]
+            .$color[0]
+            .$color[1]
+            .$color[1]
+            .$color[2]
+            .$color[2];
         }
         $r = number_format(hexdec(substr($color, 0, 2)) / 255, 4);
         $g = number_format(hexdec(substr($color, 2, 2)) / 255, 4);
@@ -3089,20 +3089,20 @@ class Cpdf
      */
     private function uniord($c)
     {
-        $h = ord($c{0});
+        $h = ord($c[0]);
         if ($h <= 0x7F) {
             return $h;
         } elseif ($h < 0xC2) {
             return false;
         } elseif ($h <= 0xDF) {
-            return ($h & 0x1F) << 6 | (ord($c{1}) & 0x3F);
+            return ($h & 0x1F) << 6 | (ord($c[1]) & 0x3F);
         } elseif ($h <= 0xEF) {
-            return ($h & 0x0F) << 12 | (ord($c{1}) & 0x3F) << 6
-            | (ord($c{2}) & 0x3F);
+            return ($h & 0x0F) << 12 | (ord($c[1]) & 0x3F) << 6
+            | (ord($c[2]) & 0x3F);
         } elseif ($h <= 0xF4) {
-            return ($h & 0x0F) << 18 | (ord($c{1}) & 0x3F) << 12
-            | (ord($c{2}) & 0x3F) << 6
-            | (ord($c{3}) & 0x3F);
+            return ($h & 0x0F) << 18 | (ord($c[1]) & 0x3F) << 12
+            | (ord($c[2]) & 0x3F) << 6
+            | (ord($c[3]) & 0x3F);
         } else {
             return false;
         }
