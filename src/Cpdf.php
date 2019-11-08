@@ -2017,7 +2017,7 @@ class Cpdf
                                 $width = floatval($m[2]);
 
                                 if ($c >= 0) {
-                                    if ($c != hexdec($n)) {
+                                    if (!preg_match('/^[a-f0-9]+$/i', $n) || $c != hexdec($n)) {
                                         $cachedFont['codeToName'][$c] = $n;
                                     }
                                     $cachedFont['C'][$c] = $width;
