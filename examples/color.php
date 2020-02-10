@@ -14,7 +14,7 @@ class Creport extends Cezpdf
     }
 }
 
-$pdf = new Creport('a4', 'portrait', 'color', array(0.8, 0.8, 0.8));
+$pdf = new Creport('a4', 'portrait', 'color', [0.8, 0.8, 0.8]);
 
 $pdf->ezSetMargins(0, 0, 0, 0);
 
@@ -54,12 +54,12 @@ if (empty($_GET['disable'])) {
     }
 }
 
-$pdf->ezText($result, 12, array('justification' => $_GET['justify']));
+$pdf->ezText($result, 12, ['justification' => $_GET['justify']]);
 
 if (isset($_GET['d']) && $_GET['d']) {
     echo '<pre>';
     echo $pdf->ezOutput(true);
     echo '</pre>';
 } else {
-    $pdf->ezStream(array('compress' => 0));
+    $pdf->ezStream(['compress' => 0]);
 }

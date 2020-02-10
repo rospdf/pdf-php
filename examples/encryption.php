@@ -48,5 +48,8 @@ if (isset($_GET['d']) && $_GET['d']) {
     } else {
         $encMode = 'NONE';
     }
-    $pdf->ezStream(array('compress' => 0,'Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : '') . '.pdf', 'attached' => 0));
+    $pdf->ezStream([
+        'compress' => 0,
+        'Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : '') . '.pdf', 'attached' => 0
+    ]);
 }

@@ -78,12 +78,12 @@ class CezTableImage extends Cezpdf
             $options = [];
         }
 
-        $defaults = array('shaded' => 1, 'showBgCol' => 0, 'shadeCol' => array(0.8, 0.8, 0.8), 'shadeCol2' => array(0.7, 0.7, 0.7), 'fontSize' => 10, 'titleFontSize' => 12,
-        'titleGap' => 5, 'lineCol' => array(0, 0, 0), 'gap' => 5, 'xPos' => 'centre', 'xOrientation' => 'centre',
-        'showHeadings' => 1, 'textCol' => array(0, 0, 0), 'width' => 0, 'maxWidth' => 0, 'cols' => [], 'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5,
+        $defaults = ['shaded' => 1, 'showBgCol' => 0, 'shadeCol' => [0.8, 0.8, 0.8], 'shadeCol2' => [0.7, 0.7, 0.7], 'fontSize' => 10, 'titleFontSize' => 12,
+        'titleGap' => 5, 'lineCol' => [0, 0, 0], 'gap' => 5, 'xPos' => 'centre', 'xOrientation' => 'centre',
+        'showHeadings' => 1, 'textCol' => [0, 0, 0], 'width' => 0, 'maxWidth' => 0, 'cols' => [], 'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5,
         'innerLineThickness' => 1, 'outerLineThickness' => 1, 'splitRows' => 0, 'protectRows' => 1, 'nextPageY' => 0,
         'shadeHeadingCol' => [], 'gridlines' => EZ_GRIDLINE_DEFAULT,
-        );
+        ];
 
         foreach ($defaults as $key => $value) {
             if (is_array($value)) {
@@ -219,7 +219,7 @@ class CezTableImage extends Cezpdf
                     $widest = 0;
                     foreach ($cols0 as $colName => $w) {
                         if ($w > $widest) {
-                            $aWidest = array($colName);
+                            $aWidest = [$colName];
                             $nWidest = $widest;
                             $widest = $w;
                         } elseif ($w == $widest) {

@@ -187,7 +187,7 @@ class TTFsubset
                 $lsbs[] = $allMetrics[$i][1];
             }
         }
-        $this->newHmtx = array('metrics' => $metrics, 'lsbs' => $lsbs);
+        $this->newHmtx = ['metrics' => $metrics, 'lsbs' => $lsbs];
     }
 
     // Construct new cmap table
@@ -419,7 +419,7 @@ class TTFsubset
 
     private function assignNewIndices()
     {
-        usort($this->TTFchars, array('TTFsubset', 'TTFcharComparatorOnCharCode'));
+        usort($this->TTFchars, ['TTFsubset', 'TTFcharComparatorOnCharCode']);
 
     // Assign newIndex
         $newIndex = 0;

@@ -38,7 +38,7 @@ function code39($text, $barcodethinwidth = 2, $barcodeheight = 40, $xpos = 0, $y
                                                     $barcodethickwidth
             : $barcodethinwidth;
             if (($baridx + 1) % 2) {
-                $rectangle[] = array('x' => $xpos, 'y' => $ypos, 'b' => $elementwidth, 'h' => $barcodeheight);
+                $rectangle[] = ['x' => $xpos, 'y' => $ypos, 'b' => $elementwidth, 'h' => $barcodeheight];
             }
             $xpos += $elementwidth;
         }
@@ -103,7 +103,11 @@ for ($i = 0; $i < 7; ++$i) {
 }
 $pdf->ezText("This example shows you how to implement code39 barcodes in ROS PDF class. It uses the Callback function 'rect' which is defined in the custom class Creport (inhierted from Cezpdf)\n");
 $pdf->ezText('<b>IMPORTANT: In version >= 0.12.0 it is required to allow custom tags (by using $pdf->allowedTags) before using it</b>');
-$pdf->ezTable($mydata, array('value' => 'Value', 'barcode' => 'Barcode'), '', array('showLines' => 3, 'shaded' => 0, 'rowGap' => 6, 'showHeadings' => 1, 'cols' => array('barcode' => array('width' => $MAXcodeWidth + 10))));
+$pdf->ezTable($mydata, 
+    ['value' => 'Value', 'barcode' => 'Barcode'], 
+    '', 
+    ['showLines' => 3, 'shaded' => 0, 'rowGap' => 6, 'showHeadings' => 1, 'cols' => ['barcode' => ['width' => $MAXcodeWidth + 10]]]
+);
 
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);

@@ -39,7 +39,7 @@ $pdf->openHere('Fit');
 
 $content = file_get_contents('utf8.txt');
 
-$pdf->ezText($content, 10, array('justification' => 'full'));
+$pdf->ezText($content, 10, ['justification' => 'full']);
 
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);

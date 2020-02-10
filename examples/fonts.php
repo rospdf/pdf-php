@@ -30,5 +30,5 @@ $pdf->ezText('Text in zapfdingbats');
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);
 } else {
-    $pdf->ezStream(array('compress' => 0));
+    $pdf->ezStream(['compress' => 0]);
 }

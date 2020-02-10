@@ -54,7 +54,7 @@ class Cezpdf extends Cpdf
      /**
      * used to store most of the page configuration parameters.
      */
-    public $ez = array('fontSize' => 10);
+    public $ez = ['fontSize' => 10];
     /**
      * stores the actual vertical position on the page of the writing point, very important.
      */
@@ -77,9 +77,9 @@ class Cezpdf extends Cpdf
      * allow a couple of options:
      * orientation can be 'portrait' or 'landscape'
      * or, to actually set the coordinates, then pass an array in as the first parameter.
-     * the defaults are as shown.
+     * the defaults are as shown
      *
-     * 2002-07-24 - Nicola Asuni (info@tecnick.com):
+     * 2002-07-24 - Nicola Asuni (info@tecnick.com)
      * Added new page formats (45 standard ISO paper formats and 4 american common formats)
      * paper cordinates are calculated in this way: (inches * 72) where 1 inch = 2.54 cm
      *
@@ -102,160 +102,160 @@ class Cezpdf extends Cpdf
      *
      * @param mixed  $paper       paper format as string ('A4', 'A5', 'B5', ...) or an array with two/four elements defining the size
      * @param string $orientation either portrait or landscape
-     * @param string $type        background type - 'none', 'image' or 'color'
-     * @param array  $options     see options from above
-     */
+     * @param string $type background type - 'none', 'image' or 'color'
+     * @param array $options see options from above
+     **/
     public function __construct($paper = 'a4', $orientation = 'portrait', $type = 'none', $options = [])
     {
         if (!is_array($paper)) {
             switch (strtoupper($paper)) {
                 case '4A0':
-                    $size = array(0, 0, 4767.87, 6740.79);
+                    $size = [0, 0, 4767.87, 6740.79];
                     break;
                 case '2A0':
-                    $size = array(0, 0, 3370.39, 4767.87);
+                    $size = [0, 0, 3370.39, 4767.87];
                     break;
                 case 'A0':
-                    $size = array(0, 0, 2383.94, 3370.39);
+                    $size = [0, 0, 2383.94, 3370.39];
                     break;
                 case 'A1':
-                    $size = array(0, 0, 1683.78, 2383.94);
+                    $size = [0, 0, 1683.78, 2383.94];
                     break;
                 case 'A2':
-                    $size = array(0, 0, 1190.55, 1683.78);
+                    $size = [0, 0, 1190.55, 1683.78];
                     break;
                 case 'A3':
-                    $size = array(0, 0, 841.89, 1190.55);
+                    $size = [0, 0, 841.89, 1190.55];
                     break;
                 case 'A4':
                 default:
-                    $size = array(0, 0, 595.28, 841.89);
+                    $size = [0, 0, 595.28, 841.89];
                     break;
                 case 'A5':
-                    $size = array(0, 0, 419.53, 595.28);
+                    $size = [0, 0, 419.53, 595.28];
                     break;
                 case 'A6':
-                    $size = array(0, 0, 297.64, 419.53);
+                    $size = [0, 0, 297.64, 419.53];
                     break;
                 case 'A7':
-                    $size = array(0, 0, 209.76, 297.64);
+                    $size = [0, 0, 209.76, 297.64];
                     break;
                 case 'A8':
-                    $size = array(0, 0, 147.40, 209.76);
+                    $size = [0, 0, 147.40, 209.76];
                     break;
                 case 'A9':
-                    $size = array(0, 0, 104.88, 147.40);
+                    $size = [0, 0, 104.88, 147.40];
                     break;
                 case 'A10':
-                    $size = array(0, 0, 73.70, 104.88);
+                    $size = [0, 0, 73.70, 104.88];
                     break;
                 case 'B0':
-                    $size = array(0, 0, 2834.65, 4008.19);
+                    $size = [0, 0, 2834.65, 4008.19];
                     break;
                 case 'B1':
-                    $size = array(0, 0, 2004.09, 2834.65);
+                    $size = [0, 0, 2004.09, 2834.65];
                     break;
                 case 'B2':
-                    $size = array(0, 0, 1417.32, 2004.09);
+                    $size = [0, 0, 1417.32, 2004.09];
                     break;
                 case 'B3':
-                    $size = array(0, 0, 1000.63, 1417.32);
+                    $size = [0, 0, 1000.63, 1417.32];
                     break;
                 case 'B4':
-                    $size = array(0, 0, 708.66, 1000.63);
+                    $size = [0, 0, 708.66, 1000.63];
                     break;
                 case 'B5':
-                    $size = array(0, 0, 498.90, 708.66);
+                    $size = [0, 0, 498.90, 708.66];
                     break;
                 case 'B6':
-                    $size = array(0, 0, 354.33, 498.90);
+                    $size = [0, 0, 354.33, 498.90];
                     break;
                 case 'B7':
-                    $size = array(0, 0, 249.45, 354.33);
+                    $size = [0, 0, 249.45, 354.33];
                     break;
                 case 'B8':
-                    $size = array(0, 0, 175.75, 249.45);
+                    $size = [0, 0, 175.75, 249.45];
                     break;
                 case 'B9':
-                    $size = array(0, 0, 124.72, 175.75);
+                    $size = [0, 0, 124.72, 175.75];
                     break;
                 case 'B10':
-                    $size = array(0, 0, 87.87, 124.72);
+                    $size = [0, 0, 87.87, 124.72];
                     break;
                 case 'C0':
-                    $size = array(0, 0, 2599.37, 3676.54);
+                    $size = [0, 0, 2599.37, 3676.54];
                     break;
                 case 'C1':
-                    $size = array(0, 0, 1836.85, 2599.37);
+                    $size = [0, 0, 1836.85, 2599.37];
                     break;
                 case 'C2':
-                    $size = array(0, 0, 1298.27, 1836.85);
+                    $size = [0, 0, 1298.27, 1836.85];
                     break;
                 case 'C3':
-                    $size = array(0, 0, 918.43, 1298.27);
+                    $size = [0, 0, 918.43, 1298.27];
                     break;
                 case 'C4':
-                    $size = array(0, 0, 649.13, 918.43);
+                    $size = [0, 0, 649.13, 918.43];
                     break;
                 case 'C5':
-                    $size = array(0, 0, 459.21, 649.13);
+                    $size = [0, 0, 459.21, 649.13];
                     break;
                 case 'C6':
-                    $size = array(0, 0, 323.15, 459.21);
+                    $size = [0, 0, 323.15, 459.21];
                     break;
                 case 'C7':
-                    $size = array(0, 0, 229.61, 323.15);
+                    $size = [0, 0, 229.61, 323.15];
                     break;
                 case 'C8':
-                    $size = array(0, 0, 161.57, 229.61);
+                    $size = [0, 0, 161.57, 229.61];
                     break;
                 case 'C9':
-                    $size = array(0, 0, 113.39, 161.57);
+                    $size = [0, 0, 113.39, 161.57];
                     break;
                 case 'C10':
-                    $size = array(0, 0, 79.37, 113.39);
+                    $size = [0, 0, 79.37, 113.39];
                     break;
                 case 'RA0':
-                    $size = array(0, 0, 2437.80, 3458.27);
+                    $size = [0, 0, 2437.80, 3458.27];
                     break;
                 case 'RA1':
-                    $size = array(0, 0, 1729.13, 2437.80);
+                    $size = [0, 0, 1729.13, 2437.80];
                     break;
                 case 'RA2':
-                    $size = array(0, 0, 1218.90, 1729.13);
+                    $size = [0, 0, 1218.90, 1729.13];
                     break;
                 case 'RA3':
-                    $size = array(0, 0, 864.57, 1218.90);
+                    $size = [0, 0, 864.57, 1218.90];
                     break;
                 case 'RA4':
-                    $size = array(0, 0, 609.45, 864.57);
+                    $size = [0, 0, 609.45, 864.57];
                     break;
                 case 'SRA0':
-                    $size = array(0, 0, 2551.18, 3628.35);
+                    $size = [0, 0, 2551.18, 3628.35];
                     break;
                 case 'SRA1':
-                    $size = array(0, 0, 1814.17, 2551.18);
+                    $size = [0, 0, 1814.17, 2551.18];
                     break;
                 case 'SRA2':
-                    $size = array(0, 0, 1275.59, 1814.17);
+                    $size = [0, 0, 1275.59, 1814.17];
                     break;
                 case 'SRA3':
-                    $size = array(0, 0, 907.09, 1275.59);
+                    $size = [0, 0, 907.09, 1275.59];
                     break;
                 case 'SRA4':
-                    $size = array(0, 0, 637.80, 907.09);
+                    $size = [0, 0, 637.80, 907.09];
                     break;
                 case 'LETTER':
-                    $size = array(0, 0, 612.00, 792.00);
+                    $size = [0, 0, 612.00, 792.00];
                     break;
                 case 'LEGAL':
-                    $size = array(0, 0, 612.00, 1008.00);
+                    $size = [0, 0, 612.00, 1008.00];
                     break;
                 case 'EXECUTIVE':
-                    $size = array(0, 0, 521.86, 756.00);
+                    $size = [0, 0, 521.86, 756.00];
                     break;
                 case 'FOLIO':
-                    $size = array(0, 0, 612.00, 936.00);
+                    $size = [0, 0, 612.00, 936.00];
                     break;
             }
             switch (strtolower($orientation)) {
@@ -540,7 +540,7 @@ class Cezpdf extends Cpdf
     /**
      * starts to flow text into columns.
      *
-     * @param $options array with option for gaps and number of columns - default: array('gap'=>10, 'num'=>2)
+     * @param $options array with option for gaps and number of columns - default: ['gap'=>10, 'num'=>2]
      */
     public function ezColumnsStart($options = [])
     {
@@ -549,14 +549,14 @@ class Cezpdf extends Cpdf
             // if we are already in a column mode then just return.
             return;
         }
-        $def = array('gap' => 10, 'num' => 2);
+        $def = ['gap' => 10, 'num' => 2];
         foreach ($def as $k => $v) {
             if (!isset($options[$k])) {
                 $options[$k] = $v;
             }
         }
         // setup the columns
-        $this->ez['columns'] = array('on' => 1, 'colNum' => 1);
+        $this->ez['columns'] = ['on' => 1, 'colNum' => 1];
 
         // store the current margins
         $this->ez['columns']['margins'] = array(
@@ -603,7 +603,7 @@ class Cezpdf extends Cpdf
             case '1':
                 if (isset($this->ezPages[$pageNum])) {
                     $this->ez['insertMode'] = 1;
-                    $this->ez['insertOptions'] = array('id' => $this->ezPages[$pageNum], 'pos' => $pos);
+                    $this->ez['insertOptions'] = ['id' => $this->ezPages[$pageNum], 'pos' => $pos];
                 }
                 break;
             case '0':
@@ -681,7 +681,7 @@ class Cezpdf extends Cpdf
             $this->ez['pageNumbering'] = [];
         }
         $i = count($this->ez['pageNumbering']);
-        $this->ez['pageNumbering'][$i][$this->ezPageCount] = array('x' => $x, 'y' => $y, 'pos' => $pos, 'pattern' => $pattern, 'num' => $num, 'size' => $size);
+        $this->ez['pageNumbering'][$i][$this->ezPageCount] = ['x' => $x, 'y' => $y, 'pos' => $pos, 'pattern' => $pattern, 'num' => $num, 'size' => $size];
 
         return $i;
     }
@@ -1001,7 +1001,7 @@ class Cezpdf extends Cpdf
                 } else {
                     $justification = 'left';
                 }
-                $this->ezText($colHeading, $size, array('aleft' => $pos[$colName], 'aright' => ($maxWidth[$colName] + $pos[$colName]), 'justification' => $justification));
+                $this->ezText($colHeading, $size, ['aleft' => $pos[$colName], 'aright' => $maxWidth[$colName] + $pos[$colName], 'justification' => $justification]);
                 $dy = $y - $this->y;
                 if ($dy > $mx) {
                     $mx = $dy;
@@ -1072,7 +1072,7 @@ class Cezpdf extends Cpdf
      * 'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'
      * 'width'=> <number> which will specify the width of the table, if it turns out to not be this wide, then it will stretch the table to fit, if it is wider then each cell will be made proportionalty smaller, and the content may have to wrap.
      * 'maxWidth'=> <number> similar to 'width', but will only make table smaller than it wants to be
-     * 'cols' => array(<colname>=>array('justification'=>'left','width'=>100,'link'=>linkDataName,'bgcolor'=>array(r,g,b) ),<colname>=>....) allow the setting of other paramaters for the individual columns
+     * 'cols' => [<colname>=>array('justification'=>'left','width'=>100,'link'=>linkDataName,'bgcolor'=>array(r,g,b] ),<colname>=>....) allow the setting of other paramaters for the individual columns
      * 'minRowSpace'=> the minimum space between the bottom of each row and the bottom margin, in which a new row will be started if it is less, then a new page would be started, default=-100
      * 'innerLineThickness'=>1
      * 'outerLineThickness'=>1
@@ -1101,11 +1101,11 @@ class Cezpdf extends Cpdf
      *
      * <pre>
      * $data = array(
-     *    array('num'=>1,'name'=>'gandalf','type'=>'wizard')
-     *   ,array('num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/')
-     *   ,array('num'=>3,'name'=>'frodo','type'=>'hobbit')
-     *   ,array('num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php')
-     *   ,array('num'=>5,'name'=>'sauron','type'=>'really bad dude')
+     *    ['num'=>1,'name'=>'gandalf','type'=>'wizard']
+     *   ,['num'=>2,'name'=>'bilbo','type'=>'hobbit','url'=>'http://www.ros.co.nz/pdf/']
+     *   ,['num'=>3,'name'=>'frodo','type'=>'hobbit']
+     *   ,['num'=>4,'name'=>'saruman','type'=>'bad dude','url'=>'http://sourceforge.net/projects/pdf-php']
+     *   ,['num'=>5,'name'=>'sauron','type'=>'really bad dude']
      *   );
      * $pdf->ezTable($data);
      * </pre>
@@ -1138,11 +1138,11 @@ class Cezpdf extends Cpdf
 
         $defaults = array(
             /* shading */
-            'shaded' => 1, 'shadeCol' => array(0.8, 0.8, 0.8), 'shadeCol2' => array(0.7, 0.7, 0.7), 'shadeHeadingCol' => [],
+            'shaded' => 1, 'shadeCol' => [0.8, 0.8, 0.8], 'shadeCol2' => [0.7, 0.7, 0.7], 'shadeHeadingCol' => [],
             /* font */
-            'fontSize' => 10, 'titleFontSize' => 12, 'textCol' => array(0, 0, 0),
+            'fontSize' => 10, 'titleFontSize' => 12, 'textCol' => [0, 0, 0],
             /* border */
-            'gridlines' => EZ_GRIDLINE_DEFAULT, 'lineCol' => array(0, 0, 0), 'innerLineThickness' => 1, 'outerLineThickness' => 1,
+            'gridlines' => EZ_GRIDLINE_DEFAULT, 'lineCol' => [0, 0, 0], 'innerLineThickness' => 1, 'outerLineThickness' => 1,
             /* position, size and padding */
             'width' => 0, 'maxWidth' => 0, 'titleGap' => 5, 'gap' => 5, 'xPos' => 'centre', 'xOrientation' => 'centre',
             'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5, 'splitRows' => 0, 'protectRows' => 1, 'nextPageY' => 0,
@@ -1293,7 +1293,7 @@ class Cezpdf extends Cpdf
                     $widest = 0;
                     foreach ($cols0 as $colName => $w) {
                         if ($w > $widest) {
-                            $aWidest = array($colName);
+                            $aWidest = [$colName];
                             $nWidest = $widest;
                             $widest = $w;
                         } elseif ($w == $widest) {
@@ -1564,17 +1564,17 @@ class Cezpdf extends Cpdf
                         // decide which color to use!
                         // specified for the cell is first choice
                     if ($fillColor && count($fillColor) && is_array($fillColor)) {
-                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $fillColor);
+                        $rowColShading[] = ['x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $fillColor];
                     } elseif (isset($options['cols']) && isset($options['cols'][$colName]) && isset($options['cols'][$colName]['bgcolor']) && is_array($options['cols'][$colName]['bgcolor'])) {
-                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['cols'][$colName]['bgcolor']);
+                        $rowColShading[] = ['x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['cols'][$colName]['bgcolor']];
                     } elseif ($options['shaded'] == 1 && $cnt % 2 == 1) {
-                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
+                        $rowColShading[] = ['x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']];
                     } elseif (($options['shaded'] == 2) && $cnt % 2 == 0) {
-                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']);
+                        $rowColShading[] = ['x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol']];
                     } elseif (($options['shaded'] == 2) && $cnt % 2 == 1) {
-                        $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol2']);
+                        $rowColShading[] = ['x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol2']];
                     } else {
-                        $rowColShading[] = array('color' => []);
+                        $rowColShading[] = ['color' => []];
                     }
                 }
 
@@ -1868,8 +1868,8 @@ class Cezpdf extends Cpdf
     {
         // this function will intially be used to implement underlining support, but could be used for a range of other
         // purposes
-        $search = array('<u>', '<U>', '</u>', '</U>');
-        $replace = array('<c:uline>', '<c:uline>', '</c:uline>', '</c:uline>');
+        $search = ['<u>', '<U>', '</u>', '</U>'];
+        $replace = ['<c:uline>', '<c:uline>', '</c:uline>', '</c:uline>'];
 
         return str_replace($search, $replace, $text);
     }
@@ -1897,7 +1897,7 @@ class Cezpdf extends Cpdf
      *
      * **Example**<br>
      * <pre>
-     * $pdf->ezText('This is a text string\nplus next line', 12, array('justification'=> 'center'));
+     * $pdf->ezText('This is a text string\nplus next line', 12, ['justification'=> 'center']);
      * </pre>
      *
      * @param string $text    text string
@@ -2003,7 +2003,7 @@ class Cezpdf extends Cpdf
      *
      * **Example**<br>
      * <pre>
-     * $pdf->ezImage('file.jpg', 5, 100, 'full', 'right', array('color'=> array(0.2, 0.4, 0.4), 'width'=> 2, 'cap'=>'round'));
+     * $pdf->ezImage('file.jpg', 5, 100, 'full', 'right', ['color'=> array(0.2, 0.4, 0.4], 'width'=> 2, 'cap'=>'round'));
      * </pre>
      *
      * @param string $image image file or url path
@@ -2266,7 +2266,7 @@ class Cezpdf extends Cpdf
                 if (!isset($this->ez['links'])) {
                     $this->ez['links'] = [];
                 }
-                $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'url' => $info['p']);
+                $this->ez['links'][] = ['x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'url' => $info['p']];
                 if ($internal == 0) {
                     $this->saveState();
                     $this->setColor(0, 0, 1);
@@ -2312,7 +2312,7 @@ class Cezpdf extends Cpdf
                     $this->ez['links'] = [];
                 }
 
-                $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height']);
+                $this->ez['links'][] = ['x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height']];
                 $thick = $info['height'] * $lineFactor;
                 $this->setLineStyle($thick);
                 $this->saveState();

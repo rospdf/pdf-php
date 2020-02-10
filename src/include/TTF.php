@@ -54,7 +54,7 @@ class TTF
             $checksum = self::getUlong($b, $off);
             $offset = self::getUlong($b, $off);
             $length = self::getUlong($b, $off);
-            $this->tables[$name] = array('offset' => $offset, 'length' => $length);
+            $this->tables[$name] = ['offset' => $offset, 'length' => $length];
         }
         if (self::VERBOSE) {
             echo sprintf("==== Table directory\n");
@@ -287,13 +287,13 @@ class TTF
         for ($i = 0; $i < $numberOfHMetrics; $i++) {
             $advanceWidth = self::getUFword($b, $off);
             $lsb = self::getFword($b, $off);
-            $metrics[] = array($advanceWidth, $lsb);
+            $metrics[] = [$advanceWidth, $lsb];
         }
         for ($i = $numberOfHMetrics; $i < $numGlyphs; $i++) {
             $lsb = self::getFword($b, $off);
             $lsbs[] = $lsb;
         }
-        return array('metrics' => $metrics, 'lsbs' => $lsbs);
+        return ['metrics' => $metrics, 'lsbs' => $lsbs];
     }
 
     public static function marshalHmtx($metrics, $lsbs)
@@ -895,7 +895,7 @@ class TTF
             return $metrics[$index];
         } else {
             // Get advance width from last element of metrics
-            return array($metrics[$numberOfHMetrics - 1][0], $lsbs[$index - $numberOfHMetrics]);
+            return [$metrics[$numberOfHMetrics - 1][0], $lsbs[$index - $numberOfHMetrics]];
         }
     }
 
@@ -1075,7 +1075,7 @@ class TTF
             $searchRange *= 2;
         }
         $rangeShift = $count * $size - $searchRange;
-        return array('SearchRange' => $searchRange, 'EntrySelector' => $entrySelector, 'RangeShift' => $rangeShift);
+        return ['SearchRange' => $searchRange, 'EntrySelector' => $entrySelector, 'RangeShift' => $rangeShift];
     }
 
     private static function calculateTableChecksum($data)

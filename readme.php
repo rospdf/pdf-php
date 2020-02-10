@@ -37,7 +37,7 @@ class Creport extends Cezpdf
         $lvl = $tmp[0];
         $lbl = rawurldecode(substr($tmp, 1));
         $num = $this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
-        $this->reportContents[] = array($lbl, $num, $lvl);
+        $this->reportContents[] = [$lbl, $num, $lvl];
         $this->addDestination('toc' . (count($this->reportContents) - 1), 'XYZ', 0, $info['y'] + $info['height'], 0);
     }
 
@@ -107,13 +107,13 @@ $codeFont = './src/fonts/Courier.afm';
 // select a font
 $pdf->selectFont($mainFont);
 
-$pdf->ezText("PHP Pdf Class\n", 30, array('justification' => 'centre'));
-$pdf->ezText("Native PDF document creation with PHP\n", 20, array('justification' => 'centre'));
-$pdf->ezText("released under the terms of the MIT license\n\n<c:alink:https://github.com/rospdf/pdf-php/graphs/contributors>Contributors</c:alink>\n", 14, array('justification' => 'centre'));
-$pdf->ezText($project_version, 12, array('justification' => 'centre'));
+$pdf->ezText("PHP Pdf Class\n", 30, ['justification' => 'centre']);
+$pdf->ezText("Native PDF document creation with PHP\n", 20, ['justification' => 'centre']);
+$pdf->ezText("released under the terms of the MIT license\n\n<c:alink:https://github.com/rospdf/pdf-php/graphs/contributors>Contributors</c:alink>\n", 14, ['justification' => 'centre']);
+$pdf->ezText($project_version, 12, ['justification' => 'centre']);
 $pdf->ezSetDy(-150);
 // modified to use the local file if it can
-$pdf->ezText("FORK ON GITHUB.COM", 12, array('justification' => 'right'));
+$pdf->ezText("FORK ON GITHUB.COM", 12, ['justification' => 'right']);
 
 $pdf->openHere('Fit');
 
@@ -162,7 +162,7 @@ $pdf->ezStartPageNumbers(intval($pdf->ez['pageWidth'] / 2), 28, 10, 'center');
 
 $size = 12;
 $height = $pdf->getFontHeight($size);
-$textOptions = array('justification' => 'full');
+$textOptions = ['justification' => 'full'];
 $collecting = 0;
 $code = '';
 
@@ -178,12 +178,12 @@ foreach ($data as $line) {
                 break;
             case '#C':
                 $pdf->selectFont($codeFont);
-                $textOptions = array('justification' => 'left', 'left' => 20, 'right' => 20);
+                $textOptions = ['justification' => 'left', 'left' => 20, 'right' => 20];
                 $size = 10;
                 break;
             case '#c':
                 $pdf->selectFont($mainFont);
-                $textOptions = array('justification' => 'full');
+                $textOptions = ['justification' => 'full'];
                 $size = 12;
                 break;
             case '#X':
@@ -210,7 +210,7 @@ foreach ($data as $line) {
             case '1':
                 $pdf->saveState();
                 $pdf->setColor(0.5, 0.5, 0.5);
-                $pdf->ezText("# " . $tmp2 . " #", 26, array('justification' => 'centre'));
+                $pdf->ezText("# " . $tmp2 . " #", 26, ['justification' => 'centre']);
                 $pdf->restoreState();
                 break;
             case '2':
@@ -226,7 +226,7 @@ foreach ($data as $line) {
 
                     $w = $pdf->getTextWidth(18, "# " . $tmp2);
                     $pdf->y = $pdf->y + 15;
-                    $pdf->ezText($tmp3, 12, array('left' => $w));
+                    $pdf->ezText($tmp3, 12, ['left' => $w]);
                     $pdf->restoreState();
 
                     if ($pdf->ezPageCount == $thisPageNum) {
@@ -242,7 +242,7 @@ foreach ($data as $line) {
             case '3':
                 $pdf->saveState();
                 $pdf->setColor(0.5, 0.5, 0.5);
-                $pdf->ezText("" . $tmp2, 12, array('justification' => 'left'));
+                $pdf->ezText("" . $tmp2, 12, ['justification' => 'left']);
                 $pdf->restoreState();
                 break;
         }
@@ -262,16 +262,16 @@ $pdf->ezNewPage();
 
 $pdf->saveState();
 $pdf->setColor(0.5, 0.5, 0.5);
-$pdf->ezText("Table of Contents\n", 26, array('justification' => 'centre'));
+$pdf->ezText("Table of Contents\n", 26, ['justification' => 'centre']);
 $xpos = 520;
 $contents = $pdf->reportContents;
 foreach ($contents as $k => $v) {
     switch ($v[2]) {
         case '1':
-            $y = $pdf->ezText('<c:ilink:toc' . $k . '>' . $v[0] . '</c:ilink><C:dots:1' . $v[1] . '>', 16, array('aright' => $xpos));
+            $y = $pdf->ezText('<c:ilink:toc' . $k . '>' . $v[0] . '</c:ilink><C:dots:1' . $v[1] . '>', 16, ['aright' => $xpos]);
             break;
         case '2':
-            $pdf->ezText('<c:ilink:toc' . $k . '>' . $v[0] . '</c:ilink><C:dots:2' . $v[1] . '>', 12, array('left' => 50, 'aright' => $xpos));
+            $pdf->ezText('<c:ilink:toc' . $k . '>' . $v[0] . '</c:ilink><C:dots:2' . $v[1] . '>', 12, ['left' => 50, 'aright' => $xpos]);
             break;
     }
 }

@@ -15,8 +15,8 @@ include 'Cezpdf.php';
 class CezDummy extends Cezpdf
 {
     public $data = array(
-                    array('first' => 'John', 'last' => 'Doe'),
-                    array('first' => 'Ole', 'last' => 'K.'),
+                    ['first' => 'John', 'last' => 'Doe'],
+                    ['first' => 'Ole', 'last' => 'K.'],
                 );
     /**
      * @param Cezpdf $ezpdf current cezpdf object

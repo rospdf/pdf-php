@@ -37,5 +37,5 @@ $pdf->ezText("Followed by an <c:ilink:test001>internal</c:ilink> link which requ
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);
 } else {
-    $pdf->ezStream(array('compress' => 0));
+    $pdf->ezStream(['compress' => 0]);
 }
