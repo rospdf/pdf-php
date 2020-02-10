@@ -43,7 +43,7 @@ $pdf->ezImage('../ros.jpg', 0, 0, 'none', 'right');
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);
 } else {
-    $pdf->ezStream(array('compress' => 0));
+    $pdf->ezStream(['compress' => 0]);
 }
 
 //error_log($pdf->messages);

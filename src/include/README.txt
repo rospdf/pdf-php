@@ -9,7 +9,7 @@ This will create 'inp.pdf' and 'inp.png'. 'inp.pdf' will display all glyphs, for
 The code below creates a subset that contains only glyphs with ids in (3,8,13)
 
 $t = new TTFsubset();
-$subset = $t->doSubset('inp.ttf', null, array(3,8,13));
+$subset = $t->doSubset('inp.ttf', null, [3,8,13]);
 file_put_contents('out.ttf', $subset);
 
 The code below creates a subset that contains characters in (0xe1d1, 0xe1d2)

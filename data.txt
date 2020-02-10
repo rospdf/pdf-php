@@ -29,6 +29,10 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.60>
+- Compatibility for php 7.4 using PR #136
+- Slighty improved *.afm font loading for compatibility reason
+
 3<0.12.58>
 
 - Recovered $test option in addText() method #128
@@ -49,12 +53,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - Image quality never greater 75% in addImage method #130
 - Possible fix for infinite loop when a word does not fit cell #129
-
-3<0.12.54>
-
-- Fixed issue #127
-- Recovered textCol option in ezTable #127
-- Slightly amended table-enhancements example
 
 Please refer to https://github.com/rospdf/pdf-php/releases for all previous changes
 
@@ -81,7 +79,7 @@ The functions of ezpdf are described in the next section, though as it is a clas
 It is anticipated that in practise only the simplest of documents will be able to be created using just ezpdf functions, they should be used in conjunction with the base class functions to achieve the desired result.
 
 
-2<Cezpdf> ([paper='a4'],[orientation='portrait'],[type='none'],[options=array()])
+2<Cezpdf> ([paper='a4'],[orientation='portrait'],[type='none'],[options=[]])
 
 This is the constructor function, and allows the user to set up a basic page without having to know exactly how many units across and up the page is going to be.
 Valid values for paper are listed below, a two or four member array can also be passed, a two member array will be interpreted as the size of the page in centimeters, and a four member array will be the size of the page in points, similar to the call to the base calss constructor function.
@@ -111,7 +109,7 @@ Starting ezpdf with the code below will create an a4 portrait document.
 This document shows you the 'color' type with following:
 
 #C
-$pdf = new Cezpdf('a4','portrait','color',array(0.8,0.8,0.8));
+$pdf = new Cezpdf('a4','portrait','color',[0.8,0.8,0.8]);
 #c
 
 If you want to get started in an easy manner, then here is the 'hello world' program:
@@ -152,9 +150,9 @@ Example calls could be (you would use only one of these):
 
 #C
 $pdf->ezColumnsStart();
-$pdf->ezColumnsStart(array('num'=>3));
-$pdf->ezColumnsStart(array('num'=>3,'gap'=>2));
-$pdf->ezColumnsStart(array('gap'=>20));
+$pdf->ezColumnsStart(['num'=>3]);
+$pdf->ezColumnsStart(['num'=>3,'gap'=>2]);
+$pdf->ezColumnsStart(['gap'=>20]);
 #c 
 
 <i>ezColumnStop</i> is used to stop multi-column mode.
@@ -264,31 +262,31 @@ This will create a document with 23 pages, the numbering shown on each of the pa
 
 #X
 $array = array(
-array('p'=>1,'c'=>'blank')
-,array('p'=>2,'c'=>'1 of 3')
-,array('p'=>3,'c'=>'2 of 3')
-,array('p'=>4,'c'=>'3 of 3')
-,array('p'=>5,'c'=>'1 of 3')
-,array('p'=>6,'c'=>'2 of 3')
-,array('p'=>7,'c'=>'3 of 3')
-,array('p'=>8,'c'=>'1 of 3')
-,array('p'=>9,'c'=>'2 of 3')
-,array('p'=>10,'c'=>'3 of 3')
-,array('p'=>11,'c'=>'4 of 4')
-,array('p'=>12,'c'=>'1 of 8')
-,array('p'=>13,'c'=>'2 of 8')
-,array('p'=>14,'c'=>'3 of 8')
-,array('p'=>15,'c'=>'4 of 8')
-,array('p'=>16,'c'=>'5 of 8, 1 of 6, 1 of 8')
-,array('p'=>17,'c'=>'6 of 8, 2 of 6, 2 of 8')
-,array('p'=>18,'c'=>'7 of 8, 3 of 6, 3 of 8')
-,array('p'=>19,'c'=>'8 of 8, 4 of 6, 4 of 8')
-,array('p'=>20,'c'=>'5 of 6, 5 of 8')
-,array('p'=>21,'c'=>'6 of 6, 6 of 8')
-,array('p'=>22,'c'=>'blank')
-,array('p'=>23,'c'=>'blank')
+['p'=>1,'c'=>'blank']
+,['p'=>2,'c'=>'1 of 3']
+,['p'=>3,'c'=>'2 of 3']
+,['p'=>4,'c'=>'3 of 3']
+,['p'=>5,'c'=>'1 of 3']
+,['p'=>6,'c'=>'2 of 3']
+,['p'=>7,'c'=>'3 of 3']
+,['p'=>8,'c'=>'1 of 3']
+,['p'=>9,'c'=>'2 of 3']
+,['p'=>10,'c'=>'3 of 3']
+,['p'=>11,'c'=>'4 of 4']
+,['p'=>12,'c'=>'1 of 8']
+,['p'=>13,'c'=>'2 of 8']
+,['p'=>14,'c'=>'3 of 8']
+,['p'=>15,'c'=>'4 of 8']
+,['p'=>16,'c'=>'5 of 8, 1 of 6, 1 of 8']
+,['p'=>17,'c'=>'6 of 8, 2 of 6, 2 of 8']
+,['p'=>18,'c'=>'7 of 8, 3 of 6, 3 of 8']
+,['p'=>19,'c'=>'8 of 8, 4 of 6, 4 of 8']
+,['p'=>20,'c'=>'5 of 6, 5 of 8']
+,['p'=>21,'c'=>'6 of 6, 6 of 8']
+,['p'=>22,'c'=>'blank']
+,['p'=>23,'c'=>'blank']
 );
-$pdf->ezTable($array,array('p'=>'page','c'=>'contents'));
+$pdf->ezTable($array,['p'=>'page','c'=>'contents']);
 #x
 
 
@@ -322,8 +320,8 @@ The return value from the function is the y-position of the writing pointer afte
 <strong>since 0.12.27 $data can contain the follow keys to colorize cells</strong>
 
 #C
-'[columnName]Fill' => array(r,g,b)  // used to fill a cell background color
-'[columnName]Color' => array(r,g,b) // used to color the cell text
+'[columnName]Fill' => [r,g,b]  // used to fill a cell background color
+'[columnName]Color' => [r,g,b] // used to color the cell text
 #c
 
 The other options are described here below
@@ -348,7 +346,7 @@ The other options are described here below
 'xOrientation' => 'left','right','center','centre', position of the table w.r.t 'xPos'. This entry is to be used in conjunction with 'xPos' to give control over the lateral position of the table.
 'width' => <number>, the exact width of the table, the cell widths will be adjusted to give the table this width.
 'maxWidth' => <number>, the maximum width of the table, the cell widths will only be adjusted if the table width is going to be greater than this.
-'cols' => array(<colname>=> array('justification'=>'left', 'width'=>100, 'link'=><linkColName>, 'bgcolor'=> (r,g,b)), <colname>=>....) allow the setting of other paramaters for the individual columns, each column can have its width and/or its justification set.
+'cols' => [<colname>=> array('justification'=>'left', 'width'=>100, 'link'=><linkColName>, 'bgcolor'=> (r,g,b]), <colname>=>....) allow the setting of other paramaters for the individual columns, each column can have its width and/or its justification set.
 'innerLineThickness' => <number>, the thickness of the inner lines, defaults to 1
 'outerLineThickness' => <number>, the thickness of the outer lines, defaults to 1
 'protectRows' => <number>, the number of rows to keep with the heading, if there are less than this on a page, then all is moved to the next page.
@@ -617,37 +615,37 @@ $pdf->line(100,$pdf->y,400,$pdf->y);
 $pdf->ezSetDy(-5);
 #x
 #C
-$pdf->setLineStyle(5,'','',array(5));
+$pdf->setLineStyle(5,'','',[5]);
 #c
 #X
-$pdf->setLineStyle(5,'','',array(5));
+$pdf->setLineStyle(5,'','',[5]);
 $pdf->ezSetDy(-8,'makeSpace');
 $pdf->line(100,$pdf->y,400,$pdf->y);
 $pdf->ezSetDy(-5);
 #x
 #C
-$pdf->setLineStyle(5,'','',array(10,5));
+$pdf->setLineStyle(5,'','',[10,5]);
 #c
 #X
-$pdf->setLineStyle(5,'','',array(10,5));
+$pdf->setLineStyle(5,'','',[10,5]);
 $pdf->ezSetDy(-8,'makeSpace');
 $pdf->line(100,$pdf->y,400,$pdf->y);
 $pdf->ezSetDy(-5);
 #x
 #C
-$pdf->setLineStyle(5,'','',array(20,5,10,5));
+$pdf->setLineStyle(5,'','',[20,5,10,5]);
 #c
 #X
-$pdf->setLineStyle(5,'','',array(20,5,10,5));
+$pdf->setLineStyle(5,'','',[20,5,10,5]);
 $pdf->ezSetDy(-8,'makeSpace',4);
 $pdf->line(100,$pdf->y,400,$pdf->y);
 $pdf->ezSetDy(-5);
 #x
 #C
-$pdf->setLineStyle(5,'round','',array(0,15));
+$pdf->setLineStyle(5,'round','',[0,15]);
 #c
 #X
-$pdf->setLineStyle(5,'round','',array(0,15));
+$pdf->setLineStyle(5,'round','',[0,15]);
 $pdf->ezSetDy(-8,'makeSpace');
 $pdf->line(100,$pdf->y,400,$pdf->y);
 $pdf->ezSetDy(-5);
@@ -680,7 +678,7 @@ $pdf->ellipse(200,$y+40,5);
 $pdf->ellipse(250,$y+5,5);
 $pdf->ellipse(350,$y,5);
 $pdf->ellipse(400,$y+45,5);
-$pdf->setLineStyle(0.5,'','',array(10,5));
+$pdf->setLineStyle(0.5,'','',[10,5]);
 $pdf->line(200,$y+40,250,$y+5);
 $pdf->line(250,$y+5,350,$y);
 $pdf->line(350,$y,400,$y+45);
@@ -724,12 +722,12 @@ $pdf->ellipse(300,$pdf->y+25,40,20,45);
 Of course the previous line style features also apply to these lines
 
 #C
-$pdf->setLineStyle(4,'round','',array(0,6,4,6));
+$pdf->setLineStyle(4,'round','',[0,6,4,6]);
 $pdf->ellipse(300,$y+25,40,20,45);
 #c
 #X
 $pdf->ezSetDy(-50,'makeSpace');
-$pdf->setLineStyle(4,'round','',array(0,6,4,6));
+$pdf->setLineStyle(4,'round','',[0,6,4,6]);
 $pdf->ellipse(300,$pdf->y+25,40,20,45);
 #x
 
@@ -758,11 +756,11 @@ Draw a polygon, where there are np points, and p is an array containing (x0,y0,x
 If f=1 then fill the area.
 
 #C
-$pdata = array(200,10,400,20,300,50,150,40);
+$pdata = [200,10,400,20,300,50,150,40];
 $pdf->polygon($pdata,4);
 #c
 #X
-$pdata = array(200,10,400,20,300,50,150,40);
+$pdata = [200,10,400,20,300,50,150,40];
 $pdf->ezSetDy(-60,'makeSpace');
 for ($i=1;$i<count($pdata);$i+=2){
   $pdata[$i]+=$pdf->y;
@@ -775,7 +773,7 @@ $pdf->polygon($pdata,4,1);
 #c
 #X
 $pdf->ezSetDy(-60,'makeSpace');
-$pdata = array(200,10,400,20,300,50,150,40);
+$pdata = [200,10,400,20,300,50,150,40];
 $pdf->ezSetDy(-60,'makeSpace');
 for ($i=1;$i<count($pdata);$i+=2){
   $pdata[$i]+=$pdf->y;
@@ -789,7 +787,7 @@ $pdf->polygon($pdata,4,1);
 #c
 #X
 $pdf->ezSetDy(-60,'makeSpace');
-$pdata = array(200,10,400,20,300,50,150,40);
+$pdata = [200,10,400,20,300,50,150,40];
 $pdf->ezSetDy(-60,'makeSpace');
 for ($i=1;$i<count($pdata);$i+=2){
   $pdata[$i]+=$pdf->y;
@@ -956,7 +954,7 @@ Note that the encoding directive will be effective <b>only the first time</b> th
 // use a Times-Roman font with MacExpertEncoding
 $pdf->selectFont('Times-Roman','MacExpertEncoding');
 // this next line should be equivalent
-$pdf->selectFont('Times-Roman',array('encoding'=>'MacExpertEncoding'));
+$pdf->selectFont('Times-Roman',['encoding'=>'MacExpertEncoding']);
 
 // setup the helvetica font for use with german characters
 $diff=array(196=>'Adieresis',228=>'adieresis',
@@ -1031,7 +1029,7 @@ Setting either off the passwords will mean that the user will have to enter a pa
 The pc array can be used to <b>allow</b> specific actions. The following example, sets an owner password, a user password, and allows printing and cut & paste.
 
 #C
-$pdf->setEncryption('trees','frogs',array('copy','print'));
+$pdf->setEncryption('trees','frogs',['copy','print']);
 #c
 
 
@@ -1123,7 +1121,7 @@ include 'class.ezpdf.php';
 class Creport extends Cezpdf {
 
 // <i>make a location to store the information that will be collected during document formation</i>
-var $reportContents = array();
+var $reportContents = [];
 
 // <i>it is neccesary to manually call the constructor of the extended class</i>
 function Creport($p,$o){
@@ -1140,7 +1138,7 @@ function rf($info){
   $lvl = $tmp[0];
   $lbl = rawurldecode(substr($tmp,1));
   $num=$this->ezWhatPageNumber($this->ezGetCurrentPageNumber());
-  $this->reportContents[] = array($lbl,$num,$lvl );
+  $this->reportContents[] = [$lbl,$num,$lvl ];
 }
 
 /*<i>
@@ -1166,7 +1164,7 @@ function dots($info){
       break;
   }
   $this->saveState();
-  $this->setLineStyle($thick,'round','',array(0,10));
+  $this->setLineStyle($thick,'round','',[0,10]);
   $this->line($xpos,$info['y'],$info['x']+5,$info['y']);
   $this->restoreState();
   $this->addText($xpos+5,$info['y'],$size,$lbl);

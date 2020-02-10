@@ -59,7 +59,7 @@ class TTFsubset
         $this->unmarshal($fontFile);
     
     // Initialize TTFchars array
-        $this->TTFchars = array();
+        $this->TTFchars = [];
     // Push index 0 (missing character) anyhow
         $this->TTFchars[] = new TTFchar(null, 0, 0, $this->glyf[0]);
     // Push index 1 (null character) anyhow
@@ -124,7 +124,7 @@ class TTFsubset
 
         $newPostRaw = TTF::marshalPost($this->newPost);
 
-        $tables = array();
+        $tables = [];
         $tables['head'] = $newHeadRaw;
         $tables['hhea'] = $newHheaRaw;
         $tables['maxp'] = $newMaxpRaw;
@@ -155,7 +155,7 @@ class TTFsubset
     // Construct new hmtx table
     private function constructHmtx()
     {
-        $allMetrics = array();
+        $allMetrics = [];
         foreach ($this->TTFchars as $TTFchar) {
             $allMetrics[] = TTF::getHMetrics($this->hmtx, $this->numberOfHMetrics, $TTFchar->orgIndex);
         }
@@ -178,8 +178,8 @@ class TTFsubset
             $this->newNumberOfHMetrics = $i + 1;
         }
     
-        $metrics = array();
-        $lsbs = array();
+        $metrics = [];
+        $lsbs = [];
         for ($i = 0; $i < $numAllMetrics; $i++) {
             if ($i < $this->newNumberOfHMetrics) {
                 $metrics[] = $allMetrics[$i];
@@ -187,13 +187,13 @@ class TTFsubset
                 $lsbs[] = $allMetrics[$i][1];
             }
         }
-        $this->newHmtx = array('metrics' => $metrics, 'lsbs' => $lsbs);
+        $this->newHmtx = ['metrics' => $metrics, 'lsbs' => $lsbs];
     }
 
     // Construct new cmap table
     private function constructCmap()
     {
-        $newTables = array();
+        $newTables = [];
         foreach ($this->cmap['tables'] as $table) {
             $platformID = $table['platformID'];
             $platformSpecificID = $table['platformSpecificID'];
@@ -212,11 +212,11 @@ class TTFsubset
                      'version' => $version,
                      'glyphIdArray' => $glyphIdArray);
             } elseif ($format == 4) {
-                $newEndCountArray = array();
-                $newStartCountArray = array();
-                $newIdDeltaArray = array();
-                $newIdRangeOffsetArray = array();
-                $newGlyphIdArray = array();
+                $newEndCountArray = [];
+                $newStartCountArray = [];
+                $newIdDeltaArray = [];
+                $newIdRangeOffsetArray = [];
+                $newGlyphIdArray = [];
                 // Skip entries with null charCode
                 $i = 0;
                 $cnt = count($this->TTFchars);
@@ -311,8 +311,8 @@ class TTFsubset
     // Construct new loca and glyf tables
     private function constructLocaAndGlyf()
     {
-        $this->newGlyf = array();
-        $this->newLoca = array();
+        $this->newGlyf = [];
+        $this->newLoca = [];
         $offset = 0;
         foreach ($this->TTFchars as $TTFchar) {
             $description = $TTFchar->description;
@@ -339,7 +339,7 @@ class TTFsubset
             // 'gn2' will be the new 'glyphNames' array
             // As new indices are assigned sequentially, 'gn2' will have
             // its first indices set
-            $gn2 = array();
+            $gn2 = [];
             foreach ($this->TTFchars as $TTFchar) {
                 $orgIndex = $TTFchar->orgIndex;
                 $newIndex = $TTFchar->newIndex;
@@ -419,7 +419,7 @@ class TTFsubset
 
     private function assignNewIndices()
     {
-        usort($this->TTFchars, array('TTFsubset', 'TTFcharComparatorOnCharCode'));
+        usort($this->TTFchars, ['TTFsubset', 'TTFcharComparatorOnCharCode']);
 
     // Assign newIndex
         $newIndex = 0;
@@ -433,7 +433,7 @@ class TTFsubset
 
     // If there exist composite glyphs, replace the components' glyphIndices
     // First construct a from=>to array
-        $replacements = array();
+        $replacements = [];
         foreach ($this->TTFchars as $TTFchar) {
             $orgIndex = $TTFchar->orgIndex;
             $newIndex = $TTFchar->newIndex;
@@ -491,7 +491,7 @@ class TTFsubset
     {
         $val = 0;
         for ($i = 0; $i < strlen($str); $i++) {
-            $val = 256 * $val + ord($str{$i});
+            $val = 256 * $val + ord($str[$i]);
         }
         return $val;
     }

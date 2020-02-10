@@ -15,7 +15,7 @@ if (!isset($_GET['nocrypt'])) {
     $owner = (isset($_GET['owner'])) ? $_GET['owner'] : '';
 
     $mode = (isset($_GET['mode']) && is_numeric($_GET['mode'])) ? $_GET['mode'] : 1;
-    $pdf->setEncryption($user, $owner, array(), $mode);
+    $pdf->setEncryption($user, $owner, [], $mode);
 } else {
     $pdf->addInfo('Title', 'R&OS PDF Title (plain)');
     $mode = 0;
@@ -48,5 +48,8 @@ if (isset($_GET['d']) && $_GET['d']) {
     } else {
         $encMode = 'NONE';
     }
-    $pdf->ezStream(array('compress' => 0,'Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : '') . '.pdf', 'attached' => 0));
+    $pdf->ezStream([
+        'compress' => 0,
+        'Content-Disposition' => 'encrypted_'.$encMode.(isset($_GET['user']) ? '_withUserPW' : '').(isset($_GET['owner']) ? '_withOwnerPW' : '') . '.pdf', 'attached' => 0
+    ]);
 }

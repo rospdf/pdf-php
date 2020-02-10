@@ -1,4 +1,4 @@
-FROM php:7.1-cli
+FROM php:7.4-cli
 
 RUN docker-php-ext-install -j$(nproc) bcmath
 RUN pecl install xdebug && docker-php-ext-enable xdebug

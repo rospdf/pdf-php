@@ -63,7 +63,7 @@ For more details on how to use `composer` please refer to the documentation - ht
 include 'src/Cezpdf.php'; // Or use 'vendor/autoload.php' when installed through composer
 
 // Initialize a ROS PDF class object using DIN-A4, with background color gray
-$pdf = new Cezpdf('a4','portrait','color',array(0.8,0.8,0.8));
+$pdf = new Cezpdf('a4','portrait','color',[0.8,0.8,0.8]);
 // Set pdf Bleedbox
 $pdf->ezSetMargins(20,20,20,20);
 // Use one of the pdf core fonts
@@ -76,9 +76,9 @@ $size=12;
 $pdf->openHere('Fit');
 
 // Output some colored text by using text directives and justify it to the right of the document
-$pdf->ezText("PDF with some <c:color:1,0,0>blue</c:color> <c:color:0,1,0>red</c:color> and <c:color:0,0,1>green</c:color> colours", $size, array('justification'=>'right'));
+$pdf->ezText("PDF with some <c:color:1,0,0>blue</c:color> <c:color:0,1,0>red</c:color> and <c:color:0,0,1>green</c:color> colours", $size, ['justification'=>'right']);
 // Output the pdf as stream, but uncompress
-$pdf->ezStream(array('compress'=>0));
+$pdf->ezStream(['compress'=>0]);
 ?>
 ```
 

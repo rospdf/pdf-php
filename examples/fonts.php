@@ -10,7 +10,7 @@ class Creport extends Cezpdf
 {
     public function __construct($p, $o)
     {
-        parent::__construct($p, $o, 'none', array());
+        parent::__construct($p, $o, 'none', []);
     }
 }
 $pdf = new Creport('a4', 'portrait');
@@ -30,5 +30,5 @@ $pdf->ezText('Text in zapfdingbats');
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);
 } else {
-    $pdf->ezStream(array('compress' => 0));
+    $pdf->ezStream(['compress' => 0]);
 }

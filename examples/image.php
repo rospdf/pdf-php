@@ -10,7 +10,7 @@ class Creport extends Cezpdf
 {
     public function __construct($p, $o)
     {
-        parent::__construct($p, $o, 'color', array(0.8, 0.8, 0.8));
+        parent::__construct($p, $o, 'color', [0.8, 0.8, 0.8]);
     }
 }
 $pdf = new Creport('a4', 'portrait');
@@ -48,7 +48,7 @@ $pdf->ezImage('images/test_alpha.gif', 0, 0, 'none', 'right');
 if (isset($_GET['d']) && $_GET['d']) {
     echo $pdf->ezOutput(true);
 } else {
-    $pdf->ezStream(array('compress' => 0));
+    $pdf->ezStream(['compress' => 0]);
 }
 
 //error_log($pdf->messages);
