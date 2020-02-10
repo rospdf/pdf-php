@@ -111,6 +111,7 @@ $pdf->ezText("PHP Pdf Class\n", 30, ['justification' => 'centre']);
 $pdf->ezText("Native PDF document creation with PHP\n", 20, ['justification' => 'centre']);
 $pdf->ezText("released under the terms of the MIT license\n\n<c:alink:https://github.com/rospdf/pdf-php/graphs/contributors>Contributors</c:alink>\n", 14, ['justification' => 'centre']);
 $pdf->ezText($project_version, 12, ['justification' => 'centre']);
+$pdf->ezText('php ' . phpversion(), 12, ['justification' => 'centre']);
 $pdf->ezSetDy(-150);
 // modified to use the local file if it can
 $pdf->ezText("FORK ON GITHUB.COM", 12, ['justification' => 'right']);

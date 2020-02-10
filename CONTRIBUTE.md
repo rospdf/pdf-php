@@ -21,7 +21,7 @@ Alternatively, you can use docker to populate the website incl. xdebug
 
 - Install [docker](https://www.docker.com/products/docker-desktop)
 - Execute `docker-compose up` to run the container
-- Open the URL <a href="http://localhost:8000">http://localhost:8000</a>
+- Open the URL <a href="http://localhost:5000">http://localhost:5000 (through port mapping)</a>
 
 ## Debugging with Visual Studio Code
 

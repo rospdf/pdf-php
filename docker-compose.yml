@@ -5,4 +5,4 @@ services:
     volumes:
         - ./:/var/www/html
     ports:
-        - "8000:8000"
+        - "5000:8000"
