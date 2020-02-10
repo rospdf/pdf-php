@@ -154,7 +154,7 @@ class Cpdf
      *
      * @var int default is 86400 which is 1 day
      */
-    public $cacheTimeout = 86400;
+    public $cacheTimeout = 0;
 
     /**
      * Used to identify any space char for line breaks (either in Unicode or ANSI)
@@ -2017,9 +2017,7 @@ class Cpdf
                                 $width = floatval($m[2]);
 
                                 if ($c >= 0) {
-                                    if ($c != hexdec($n)) {
-                                        $cachedFont['codeToName'][$c] = $n;
-                                    }
+                                    $cachedFont['codeToName'][$c] = $n;
                                     $cachedFont['C'][$c] = $width;
                                     $cachedFont['C'][$n] = $width;
                                 } else {

@@ -30,7 +30,8 @@ Note that this document was generated using the demo script 'readme.php' which c
 1<Changelog>
 
 3<0.12.60>
-- compatibility for php 7.4
+- Compatibility for php 7.4 using PR #136
+- Slighty improved *.afm font loading for compatibility reason
 
 3<0.12.58>
 
@@ -52,12 +53,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - Image quality never greater 75% in addImage method #130
 - Possible fix for infinite loop when a word does not fit cell #129
-
-3<0.12.54>
-
-- Fixed issue #127
-- Recovered textCol option in ezTable #127
-- Slightly amended table-enhancements example
 
 Please refer to https://github.com/rospdf/pdf-php/releases for all previous changes
 
