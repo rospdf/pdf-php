@@ -14,7 +14,7 @@
 
 // don't want any warnings turning up in the pdf code if the server is set to 'anal' mode.
 //error_reporting(7);
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 include './src/Cezpdf.php';
@@ -22,7 +22,7 @@ include './src/Cezpdf.php';
 // define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf
 {
-    public $reportContents = array();
+    public $reportContents = [];
 
     public function __construct($p, $o, $t, $op)
     {

@@ -33,7 +33,7 @@ $pdf->ezTable($data, array('type' => 'Type', 'name' => '<i>Alias</i>'), '', arra
 
 // get all user defined constants starting with 'EZ_GRIDLINE'
 $all_constants = get_defined_constants();
-$userConstants = array();
+$userConstants = [];
 foreach ($all_constants as $k => $v) {
     if (substr($k, 0, 11) == 'EZ_GRIDLINE') {
         $userConstants[$k] = $v;

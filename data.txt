@@ -81,7 +81,7 @@ The functions of ezpdf are described in the next section, though as it is a clas
 It is anticipated that in practise only the simplest of documents will be able to be created using just ezpdf functions, they should be used in conjunction with the base class functions to achieve the desired result.
 
 
-2<Cezpdf> ([paper='a4'],[orientation='portrait'],[type='none'],[options=array()])
+2<Cezpdf> ([paper='a4'],[orientation='portrait'],[type='none'],[options=[]])
 
 This is the constructor function, and allows the user to set up a basic page without having to know exactly how many units across and up the page is going to be.
 Valid values for paper are listed below, a two or four member array can also be passed, a two member array will be interpreted as the size of the page in centimeters, and a four member array will be the size of the page in points, similar to the call to the base calss constructor function.
@@ -1123,7 +1123,7 @@ include 'class.ezpdf.php';
 class Creport extends Cezpdf {
 
 // <i>make a location to store the information that will be collected during document formation</i>
-var $reportContents = array();
+var $reportContents = [];
 
 // <i>it is neccesary to manually call the constructor of the extended class</i>
 function Creport($p,$o){

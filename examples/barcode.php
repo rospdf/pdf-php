@@ -83,7 +83,7 @@ $height = $pdf->getFontHeight($size);
 // modified to use the local file if it can
 $pdf->openHere('Fit');
 
-$mydata = array();
+$mydata = [];
 $MAXcodeWidth = 0;
 for ($i = 0; $i < 7; ++$i) {
     $const = '';

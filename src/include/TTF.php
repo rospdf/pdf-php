@@ -48,7 +48,7 @@ class TTF
         $searchRange = self::getUshort($b, $off);
         $entrySelector = self::getUshort($b, $off);
         $rangeShift = self::getUshort($b, $off);
-        $this->tables = array();
+        $this->tables = [];
         for ($i = 0; $i < $numTables; $i++) {
             $name = self::getRaw($b, $off, 4);
             $checksum = self::getUlong($b, $off);
@@ -81,17 +81,17 @@ class TTF
     ////////////////////////////////////////////////////////////////////////////////
     public function unmarshalName()
     {
-        $name = array();
+        $name = [];
         $b = $this->getTableRaw('name');
         $off = 0;
         $name['format'] = self::getUshort($b, $off);
         $name['count'] = self::getUshort($b, $off);
         $name['offset'] = self::getUshort($b, $off);
-        $name['nameRecords'] = array();
+        $name['nameRecords'] = [];
 
         $tmp = $name['offset'];
         for ($i = 0; $i < $name['count']; ++$i) {
-            $name['nameRecords'][$i] = array();
+            $name['nameRecords'][$i] = [];
             $name['nameRecords'][$i]['platformID'] = self::getUshort($b, $off);
             $name['nameRecords'][$i]['platformSpecificID'] = self::getUshort($b, $off);
             $name['nameRecords'][$i]['languageID'] = self::getUshort($b, $off);
@@ -107,7 +107,7 @@ class TTF
     
     public function unmarshalHead()
     {
-        $head = array(); // To return
+        $head = []; // To return
         $b = $this->getTableRaw('head'); // Get raw bytes for 'head' table
         $off = 0;
         $head['version'] = self::getRaw($b, $off, 4); // This is actually fixed
@@ -156,7 +156,7 @@ class TTF
 
     public function unmarshalHhea()
     {
-        $hhea = array(); // To return
+        $hhea = []; // To return
         $b = $this->getTableRaw('hhea'); // Get raw bytes for 'hhea' table
         $off = 0;
         $hhea['version'] = self::getRaw($b, $off, 4); // This is actually fixed
@@ -197,7 +197,7 @@ class TTF
 
     public function unmarshalMaxp()
     {
-        $maxp = array(); // To return
+        $maxp = []; // To return
         $b = $this->getTableRaw('maxp'); // Get raw bytes for 'maxp' table
         $off = 0;
         $maxp['version'] = self::getRaw($b, $off, 4); // This is actually fixed
@@ -242,7 +242,7 @@ class TTF
 
     public function unmarshalLoca($indexToLocFormat, $numGlyphs)
     {
-        $loca = array(); // To return
+        $loca = []; // To return
         $b = $this->getTableRaw('loca'); // Get raw bytes for 'loca' table
         $off = 0;
         if ($indexToLocFormat == 0) {
@@ -280,8 +280,8 @@ class TTF
 
     public function unmarshalHmtx($numberOfHMetrics, $numGlyphs)
     {
-        $metrics = array(); // To return
-        $lsbs = array(); // To return
+        $metrics = []; // To return
+        $lsbs = []; // To return
         $b = $this->getTableRaw('hmtx'); // Get raw bytes for 'hmtx' table
         $off = 0;
         for ($i = 0; $i < $numberOfHMetrics; $i++) {
@@ -317,7 +317,7 @@ class TTF
 
     public function unmarshalGlyf($loca)
     {
-        $glyf = array(); // To return
+        $glyf = []; // To return
         $b = $this->getTableRaw('glyf'); // Get raw bytes for 'glyf' table
 
         $num = count($loca) - 1;
@@ -339,16 +339,16 @@ class TTF
 
     public function unmarshalCmap()
     {
-        $cmap = array(); // To return
+        $cmap = []; // To return
         $b = $this->getTableRaw('cmap'); // Get raw bytes for 'cmap' table
         $off = 0;
         $cmap['version'] = self::getUshort($b, $off);
         $cmap['numTables'] = self::getUshort($b, $off);
-        $cmap['tables'] = array();
+        $cmap['tables'] = [];
         $numTables = $cmap['numTables'];
-        $platformIDs = array();
-        $platformSpecificIDs = array();
-        $offsets = array();
+        $platformIDs = [];
+        $platformSpecificIDs = [];
+        $offsets = [];
         for ($i = 0; $i < $numTables; $i++) {
             $platformIDs[] = self::getUshort($b, $off);
             $platformSpecificIDs[] = self::getUshort($b, $off);
@@ -360,7 +360,7 @@ class TTF
             $length = self::getUshort($b, $off);
             $version = self::getUshort($b, $off);
             if ($format == 0) {
-                $glyphIdArray = array();
+                $glyphIdArray = [];
                 for ($cid = 0; $cid < 256; $cid++) {
                     $glyphIdArray[] = self::getByte($b, $off);
                 }
@@ -379,11 +379,11 @@ class TTF
                 $rangeShift = self::getUshort($b, $off);
 
                 $segCount = $segCountX2 / 2;
-                $endCountArray = array();
-                $startCountArray = array();
-                $idDeltaArray = array();
-                $idRangeOffsetArray = array();
-                $glyphIdArray = array();
+                $endCountArray = [];
+                $startCountArray = [];
+                $idDeltaArray = [];
+                $idRangeOffsetArray = [];
+                $glyphIdArray = [];
                 for ($seg = 0; $seg < $segCount; $seg++) {
                         $endCountArray[] = self::getUshort($b, $off);
                 }
@@ -414,7 +414,7 @@ class TTF
             } elseif ($format == 6) {
                 $firstCode = self::getUshort($b, $off);
                 $entryCount = self::getUshort($b, $off);
-                $glyphIdArray = array();
+                $glyphIdArray = [];
                 for ($cid = $firstCode; $cid < $firstCode + $entryCount; $cid++) {
                         $glyphIdArray[] = self::getUshort($b, $off);
                 }
@@ -437,9 +437,9 @@ class TTF
                     throw new Exception('cmap format is 10.0');
                 } elseif ($format == '12.0') {
                     $nGroups = self::getUlong($b, $off);
-                    $startCharCodes = array();
-                    $endCharCodes = array();
-                    $startGlyphCodes = array();
+                    $startCharCodes = [];
+                    $endCharCodes = [];
+                    $startGlyphCodes = [];
                     for ($grp = 0; $grp < $nGroups; $grp++) {
                         $startCharCodes[] = self::getUlong($b, $off);
                         $endCharCodes[] = self::getUlong($b, $off);
@@ -463,7 +463,7 @@ class TTF
 
     public static function marshalCmap($cmap)
     {
-        $lengths = array(); // To hold the length of each table
+        $lengths = []; // To hold the length of each table
     
         $sz = 4 + 8 * count($cmap['tables']);
         foreach ($cmap['tables'] as $table) {
@@ -584,7 +584,7 @@ class TTF
 
     public function unmarshalPost()
     {
-        $post = array(); // To return
+        $post = []; // To return
         $b = $this->getTableRaw('post'); // Get raw bytes for 'post' table
         $off = 0;
     // Collect standard header
@@ -603,11 +603,11 @@ class TTF
         } elseif ($post['formatType'] == '2.0') {
             // Collect numGlyphs, glyphNameIndex array and glyphNames (Pascal strings)
             $numGlyphs = self::getUshort($b, $off);
-            $glyphNameIndex = array();
+            $glyphNameIndex = [];
             for ($i = 0; $i < $numGlyphs; $i++) {
                 $glyphNameIndex[] = self::getUshort($b, $off);
             }
-            $glyphNames = array();
+            $glyphNames = [];
             while ($off < strlen($b)) {
                 $len = self::getByte($b, $off);
                 $name = self::getRaw($b, $off, $len);
@@ -616,7 +616,7 @@ class TTF
 
             // 'gn' will contain either a number (for Macintosh standard order glyph name)
             // or a string (otherwise)
-            $gn = array();
+            $gn = [];
             for ($i = 0; $i < count($glyphNameIndex); $i++) {
                 $index = $glyphNameIndex[$i];
                 if ($index >= 0 && $index <= 257) {
@@ -673,7 +673,7 @@ class TTF
         } elseif ($post['formatType'] == '2.0') {
             $gn = $post['glyphNames'];
             $numGlyphs = count($gn);
-            $glyphNames = array();
+            $glyphNames = [];
             self::setUshort($b, $off, $numGlyphs); // Push numGlyphs
             for ($i = 0; $i < $numGlyphs; $i++) {
                 if (is_string($gn[$i])) {
@@ -712,9 +712,9 @@ class TTF
         $numTables = count($tables);
 
     // Arrays to hold for each table, the checksum, the offset and the length
-        $checksums = array();
-        $offsets = array();
-        $lengths = array();
+        $checksums = [];
+        $offsets = [];
+        $lengths = [];
 
         $sb = str_repeat(chr(0), 12 + $numTables * 16); // Allocate room for table directory
         foreach (self::$tableNamesOrderedByRank as $tableName) {
@@ -911,7 +911,7 @@ class TTF
         $yMax = self::getFword($description, $off);
         if ($numberOfContours >= 0) {
             // Collect the endPoints of contours. Save the last endPoint
-            $endPointsOfContours = array();
+            $endPointsOfContours = [];
             for ($i = 0; $i < $numberOfContours; $i++) {
                 $lastEndPoint = self::getUshort($description, $off);
                 $endPointsOfContours[] = $lastEndPoint;
@@ -922,7 +922,7 @@ class TTF
             $instructions = self::getRaw($description, $off, $instructionLength);
 
             // Collect the flags
-            $flags = array();
+            $flags = [];
             while (count($flags) <= $lastEndPoint) {
                 $flag = ord($description[$off]);
                 $off++;
@@ -950,7 +950,7 @@ class TTF
              'instructions' => $instructions,
              'flags' => $flags, 'xs' => $xs, 'ys' => $ys);
         } else {
-            $components = array();
+            $components = [];
         
             do {
                 $flags = self::getUshort($description, $off);
@@ -1283,7 +1283,7 @@ class TTF
 
     private static function getCoordinates($code, &$off, $flags, $mask1, $mask2)
     {
-        $ret = array();
+        $ret = [];
         for ($i = 0; $i < count($flags); $i++) {
             $flag = $flags[$i];
             $bit1 = $flag & $mask1;

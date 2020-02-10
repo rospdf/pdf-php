@@ -15,7 +15,7 @@ if (!isset($_GET['nocrypt'])) {
     $owner = (isset($_GET['owner'])) ? $_GET['owner'] : '';
 
     $mode = (isset($_GET['mode']) && is_numeric($_GET['mode'])) ? $_GET['mode'] : 1;
-    $pdf->setEncryption($user, $owner, array(), $mode);
+    $pdf->setEncryption($user, $owner, [], $mode);
 } else {
     $pdf->addInfo('Title', 'R&OS PDF Title (plain)');
     $mode = 0;

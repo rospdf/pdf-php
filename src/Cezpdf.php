@@ -62,7 +62,7 @@ class Cezpdf extends Cpdf
     /**
      * keep an array of the ids of the pages, making it easy to go back and add page numbers etc.
      */
-    public $ezPages = array();
+    public $ezPages = [];
     /**
      * stores the number of pages used in this document.
      */
@@ -71,7 +71,7 @@ class Cezpdf extends Cpdf
     /**
      * background color/image information.
      */
-    protected $ezBackground = array();
+    protected $ezBackground = [];
     /**
      * Assuming that people don't want to specify the paper size using the absolute coordinates
      * allow a couple of options:
@@ -105,7 +105,7 @@ class Cezpdf extends Cpdf
      * @param string $type        background type - 'none', 'image' or 'color'
      * @param array  $options     see options from above
      */
-    public function __construct($paper = 'a4', $orientation = 'portrait', $type = 'none', $options = array())
+    public function __construct($paper = 'a4', $orientation = 'portrait', $type = 'none', $options = [])
     {
         if (!is_array($paper)) {
             switch (strtoupper($paper)) {
@@ -542,7 +542,7 @@ class Cezpdf extends Cpdf
      *
      * @param $options array with option for gaps and number of columns - default: array('gap'=>10, 'num'=>2)
      */
-    public function ezColumnsStart($options = array())
+    public function ezColumnsStart($options = [])
     {
         // start from the current y-position, make the set number of columne
         if (isset($this->ez['columns']) && $this->ez['columns'] == 1) {
@@ -678,7 +678,7 @@ class Cezpdf extends Cpdf
             $pattern = '{PAGENUM} of {TOTALPAGENUM}';
         }
         if (!isset($this->ez['pageNumbering'])) {
-            $this->ez['pageNumbering'] = array();
+            $this->ez['pageNumbering'] = [];
         }
         $i = count($this->ez['pageNumbering']);
         $this->ez['pageNumbering'][$i][$this->ezPageCount] = array('x' => $x, 'y' => $y, 'pos' => $pos, 'pattern' => $pattern, 'num' => $num, 'size' => $size);
@@ -750,7 +750,7 @@ class Cezpdf extends Cpdf
         // if $next=1, then do this page, but not the next, else do not do this page either
         // if $i is set, then stop that particular pagenumbering sequence.
         if (!isset($this->ez['pageNumbering'])) {
-            $this->ez['pageNumbering'] = array();
+            $this->ez['pageNumbering'] = [];
         }
         if ($next && isset($this->ez['pageNumbering'][$i][$this->ezPageCount]) && is_array($this->ez['pageNumbering'][$i][$this->ezPageCount])) {
             // then this has only just been started, this will over-write the start, and nothing will appear
@@ -961,7 +961,7 @@ class Cezpdf extends Cpdf
      * @param float $y    actual Y position
      * @param $optionsAll
      */
-    protected function ezTableColumnHeadings($cols, $pos, $maxWidth, $height, $descender, $gap, $size, &$y, $optionsAll = array())
+    protected function ezTableColumnHeadings($cols, $pos, $maxWidth, $height, $descender, $gap, $size, &$y, $optionsAll = [])
     {
         // uses ezText to add the text, and returns the height taken by the largest heading
         // this page will move the headings to a new page if they will not fit completely on this one
@@ -970,7 +970,7 @@ class Cezpdf extends Cpdf
         if (isset($optionsAll['cols'])) {
             $options = $optionsAll['cols'];
         } else {
-            $options = array();
+            $options = [];
         }
 
         $mx = 0;
@@ -1133,12 +1133,12 @@ class Cezpdf extends Cpdf
         }
 
         if (!is_array($options)) {
-            $options = array();
+            $options = [];
         }
 
         $defaults = array(
             /* shading */
-            'shaded' => 1, 'shadeCol' => array(0.8, 0.8, 0.8), 'shadeCol2' => array(0.7, 0.7, 0.7), 'shadeHeadingCol' => array(),
+            'shaded' => 1, 'shadeCol' => array(0.8, 0.8, 0.8), 'shadeCol2' => array(0.7, 0.7, 0.7), 'shadeHeadingCol' => [],
             /* font */
             'fontSize' => 10, 'titleFontSize' => 12, 'textCol' => array(0, 0, 0),
             /* border */
@@ -1147,7 +1147,7 @@ class Cezpdf extends Cpdf
             'width' => 0, 'maxWidth' => 0, 'titleGap' => 5, 'gap' => 5, 'xPos' => 'centre', 'xOrientation' => 'centre',
             'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5, 'splitRows' => 0, 'protectRows' => 1, 'nextPageY' => 0,
             /* other */
-            'showHeadings' => 1, 'cols' => array(), 'evenColumns' => 0, 'evenColumnsMin' => 20
+            'showHeadings' => 1, 'cols' => [], 'evenColumns' => 0, 'evenColumnsMin' => 20
         );
 
         foreach ($defaults as $key => $value) {
@@ -1195,7 +1195,7 @@ class Cezpdf extends Cpdf
         }
 
         // figure out the maximum widths of the text within each column
-        $maxWidth = array();
+        $maxWidth = [];
         foreach ($cols as $colName => $colTitle) {
             if (empty($colTitle)) {
                 $maxWidth[$colName] = 0;
@@ -1220,7 +1220,7 @@ class Cezpdf extends Cpdf
         $minFontWidth = intval($this->fonts[$this->currentFont]['FontBBox'][2] / 1000 * $options['fontSize']);
 
         // calculate the start positions of each of the columns
-        $pos = array();
+        $pos = [];
         $x = 0;
         $t = $x;
         $adjustmentWidth = 0;
@@ -1259,8 +1259,8 @@ class Cezpdf extends Cpdf
 
         if ($options['width'] && $adjustmentWidth > 0 && $setWidth < $options['width']) {
             // first find the current widths of the columns involved in this mystery
-            $cols0 = array();
-            $cols1 = array();
+            $cols0 = [];
+            $cols1 = [];
             $xq = 0;
             $presentWidth = 0;
             $last = '';
@@ -1288,7 +1288,7 @@ class Cezpdf extends Cpdf
                 while ($presentWidth > $neededWidth && $cnt < 100) {
                     ++$cnt; // insurance policy
                     // find the widest columns, and the next to widest width
-                    $aWidest = array();
+                    $aWidest = [];
                     $nWidest = 0;
                     $widest = 0;
                     foreach ($cols0 as $colName => $w) {
@@ -1341,7 +1341,7 @@ class Cezpdf extends Cpdf
 
         // if the option is set to 2 and one of the columns is too narrow we need to look at recalculating the columns
         if ($options['evenColumns'] == 2) {
-            $posVals = array();
+            $posVals = [];
             foreach ($pos as $w) {
                 array_unshift($posVals, $w);
             }
@@ -1392,7 +1392,7 @@ class Cezpdf extends Cpdf
             }
             // recalculate the column widths
             $last = -1;
-            $newWidth = array();
+            $newWidth = [];
             foreach ($pos as $key => $val) {
                 if ($last >= 0) {
                     $newWidth[$lastKey] = ($val - $last) - $options['gap'];
@@ -1548,7 +1548,7 @@ class Cezpdf extends Cpdf
             $cnt = 0;
             $newPage = 0;
             foreach ($data as $row) {
-                $rowColShading = array();
+                $rowColShading = [];
                 foreach ($cols as $colName => $colHeading) {
                     // grab the defined colors for this cell
                     if (isset($row[$colName.'Fill'])) {
@@ -1574,7 +1574,7 @@ class Cezpdf extends Cpdf
                     } elseif (($options['shaded'] == 2) && $cnt % 2 == 1) {
                         $rowColShading[] = array('x' => $rowX, 'y' => $rowY, 'width' => $rowW, 'color' => $options['shadeCol2']);
                     } else {
-                        $rowColShading[] = array('color' => array());
+                        $rowColShading[] = array('color' => []);
                     }
                 }
 
@@ -1669,7 +1669,7 @@ class Cezpdf extends Cpdf
                         // if these cells need to be split over a page, then $newPage will be set, and the remaining
                         // text will be placed in $leftOvers
                         $newPage = 0;
-                        $leftOvers = array();
+                        $leftOvers = [];
 
                         foreach ($cols as $colName => $colTitle) {
                             $this->ezSetY($y + $height);
@@ -1688,7 +1688,7 @@ class Cezpdf extends Cpdf
                                     $lines = preg_split("[\r\n|\r|\n]", $row[$colName]);
                                 }
                             } else {
-                                $lines = array();
+                                $lines = [];
                             }
                             $this->y -= $options['rowGap'];
                             foreach ($lines as $line) {
@@ -1907,7 +1907,7 @@ class Cezpdf extends Cpdf
      *
      * @return float|bool Y position or true/false if $test parameter is set
      */
-    public function ezText($text, $size = 0, $options = array(), $test = 0)
+    public function ezText($text, $size = 0, $options = [], $test = 0)
     {
         // apply the filtering which will make the underlining function.
         $text = $this->ezProcessText($text);
@@ -2202,7 +2202,7 @@ class Cezpdf extends Cpdf
         } else {
             $newNum = 0;
             $this->ez['numTemplates'] = 1;
-            $this->ez['templates'] = array();
+            $this->ez['templates'] = [];
         }
 
         $this->ez['templates'][$newNum]['code'] = $code;
@@ -2219,7 +2219,7 @@ class Cezpdf extends Cpdf
      *
      * @deprecated method deprecated in 0.12.0
      */
-    public function execTemplate($id, $data = array(), $options = array())
+    public function execTemplate($id, $data = [], $options = [])
     {
         // execute the given template on the current document.
         if (!isset($this->ez['templates'][$id])) {
@@ -2264,7 +2264,7 @@ class Cezpdf extends Cpdf
                 // the beginning of the link
                 // this should contain the URl for the link as the 'p' entry, and will also contain the value of 'nCallback'
                 if (!isset($this->ez['links'])) {
-                    $this->ez['links'] = array();
+                    $this->ez['links'] = [];
                 }
                 $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height'], 'url' => $info['p']);
                 if ($internal == 0) {
@@ -2309,7 +2309,7 @@ class Cezpdf extends Cpdf
             case 'sol':
                 // the beginning of the underline zone
                 if (!isset($this->ez['links'])) {
-                    $this->ez['links'] = array();
+                    $this->ez['links'] = [];
                 }
 
                 $this->ez['links'][] = array('x' => $info['x'], 'y' => $info['y'], 'angle' => $info['angle'], 'descender' => $info['descender'], 'height' => $info['height']);

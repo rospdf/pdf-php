@@ -40,7 +40,7 @@ class CezTableImage extends Cezpdf
     /**
      * @param Cezpdf $ezpdf current cezpdf object
      */
-    public function __construct($p, $o = 'portrait', $t = 'none', $op = array())
+    public function __construct($p, $o = 'portrait', $t = 'none', $op = [])
     {
         parent::__construct($p, $o, $t, $op);
         $this->allowedTags .= '|showimage:.*?';
@@ -68,21 +68,21 @@ class CezTableImage extends Cezpdf
             if (!is_array($v)) {
                 return;
             }
-            $cols = array();
+            $cols = [];
             foreach ($v as $k1 => $v1) {
                 $cols[$k1] = $k1;
             }
         }
 
         if (!is_array($options)) {
-            $options = array();
+            $options = [];
         }
 
         $defaults = array('shaded' => 1, 'showBgCol' => 0, 'shadeCol' => array(0.8, 0.8, 0.8), 'shadeCol2' => array(0.7, 0.7, 0.7), 'fontSize' => 10, 'titleFontSize' => 12,
         'titleGap' => 5, 'lineCol' => array(0, 0, 0), 'gap' => 5, 'xPos' => 'centre', 'xOrientation' => 'centre',
-        'showHeadings' => 1, 'textCol' => array(0, 0, 0), 'width' => 0, 'maxWidth' => 0, 'cols' => array(), 'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5,
+        'showHeadings' => 1, 'textCol' => array(0, 0, 0), 'width' => 0, 'maxWidth' => 0, 'cols' => [], 'minRowSpace' => -100, 'rowGap' => 2, 'colGap' => 5,
         'innerLineThickness' => 1, 'outerLineThickness' => 1, 'splitRows' => 0, 'protectRows' => 1, 'nextPageY' => 0,
-        'shadeHeadingCol' => array(), 'gridlines' => EZ_GRIDLINE_DEFAULT,
+        'shadeHeadingCol' => [], 'gridlines' => EZ_GRIDLINE_DEFAULT,
         );
 
         foreach ($defaults as $key => $value) {
@@ -129,7 +129,7 @@ class CezTableImage extends Cezpdf
 
         $middle = ($this->ez['pageWidth'] - $this->ez['rightMargin']) / 2 + ($this->ez['leftMargin']) / 2;
         // figure out the maximum widths of the text within each column
-        $maxWidth = array();
+        $maxWidth = [];
         foreach ($cols as $colName => $colHeading) {
             $maxWidth[$colName] = 0;
         }
@@ -155,7 +155,7 @@ class CezTableImage extends Cezpdf
         }
 
         // calculate the start positions of each of the columns
-        $pos = array();
+        $pos = [];
         $x = 0;
         $t = $x;
         $adjustmentWidth = 0;
@@ -185,8 +185,8 @@ class CezTableImage extends Cezpdf
 
         if ($options['width'] && $adjustmentWidth > 0 && $setWidth < $options['width']) {
             // first find the current widths of the columns involved in this mystery
-            $cols0 = array();
-            $cols1 = array();
+            $cols0 = [];
+            $cols1 = [];
             $xq = 0;
             $presentWidth = 0;
             $last = '';
@@ -214,7 +214,7 @@ class CezTableImage extends Cezpdf
                 while ($presentWidth > $neededWidth && $cnt < 100) {
                     ++$cnt; // insurance policy
                     // find the widest columns, and the next to widest width
-                    $aWidest = array();
+                    $aWidest = [];
                     $nWidest = 0;
                     $widest = 0;
                     foreach ($cols0 as $colName => $w) {
@@ -501,7 +501,7 @@ class CezTableImage extends Cezpdf
                         // if these cells need to be split over a page, then $newPage will be set, and the remaining
                         // text will be placed in $leftOvers
                         $newPage = 0;
-                        $leftOvers = array();
+                        $leftOvers = [];
 
                         foreach ($cols as $colName => $colTitle) {
                             $this->ezSetY($y + $height);
@@ -522,7 +522,7 @@ class CezTableImage extends Cezpdf
                                     $lines = preg_split("[\r\n|\r|\n]", $row[$colName]);
                                 }
                             } else {
-                                $lines = array();
+                                $lines = [];
                             }
                             $this->y -= $options['rowGap'];
                             foreach ($lines as $line) {

@@ -9,7 +9,7 @@ class Creport extends Cezpdf
 {
     public function __construct($p, $o)
     {
-        parent::__construct($p, $o, 'none', array());
+        parent::__construct($p, $o, 'none', []);
         $this->isUnicode = true;
         // always embed the font for the time being
         //$this->embedFont = false;

@@ -10,7 +10,7 @@ class Creport extends Cezpdf
 {
     public function __construct($p, $o)
     {
-        parent::__construct($p, $o, 'none', array());
+        parent::__construct($p, $o, 'none', []);
     }
 }
 $pdf = new Creport('a4', 'portrait');
