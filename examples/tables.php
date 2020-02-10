@@ -77,9 +77,9 @@ $pdf->ezTable($data, $cols, '', ['shadeHeadingCol' => [0.4, 0.6, 0.6], 'width' =
 $pdf->ezText("\nColored columns and a header\n");
 $pdf->ezTable($data, $cols, '', [
             'showHeadings' => 1, 'showBgCol' => 1, 'width' => 400,
-            'shadeHeadingCol' => [0.6, 0.6, 0.5], 
+            'shadeHeadingCol' => [0.6, 0.6, 0.5],
             'cols' => [
-                'name' => ['bgcolor' => [0.9, 0.9, 0.7]], 
+                'name' => ['bgcolor' => [0.9, 0.9, 0.7]],
                 'type' => ['bgcolor' => [0.6, 0.4, 0.2]],
             ]
         ]);
