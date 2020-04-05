@@ -1,6 +1,4 @@
 <?php
-
-error_reporting(E_ALL & ~E_NOTICE);
 set_include_path('../src/'.PATH_SEPARATOR.get_include_path());
 
 include 'Cezpdf.php';
@@ -11,31 +9,24 @@ class Creport extends Cezpdf
     {
         parent::__construct($p, $o, 'none', []);
         $this->isUnicode = true;
-        // always embed the font for the time being
-        //$this->embedFont = false;
-        // since version 0.11.8 it is required to allow custom callbacks
         $this->allowedTags .= '|uline';
     }
 }
+
 $pdf = new Creport('a4', 'portrait');
 
-$start = microtime(true);
-
 $pdf->ezSetMargins(20, 20, 20, 20);
-//$pdf->rtl = true; // all text output to "right to left"
-//$pdf->setPreferences('Direction','R2L'); // optional: set the preferences to "Right To Left"
 
-$f = (isset($_GET['font'])) ? $_GET['font'] : 'FreeSerif';
+$mainFont = (isset($_GET['font'])) ? $_GET['font'] : 'FreeSerif';
 
 $tmp = array(
-    'b' => 'FreeSerifBold',
+    'b' => $mainFont .'Bold',
 );
+
 $pdf->setFontFamily('FreeSerif', $tmp);
 
-$mainFont = $f;
-// select a font
+// select a font and fully embed it
 $pdf->selectFont($mainFont);
-$pdf->openHere('Fit');
 
 $content = file_get_contents('utf8.txt');
 

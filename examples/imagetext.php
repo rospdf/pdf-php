@@ -1,5 +1,4 @@
 <?php
-error_reporting(E_ALL);
 set_include_path('../src/'.PATH_SEPARATOR.get_include_path());
 date_default_timezone_set('UTC');
 
