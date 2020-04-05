@@ -31,6 +31,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 3<0.12.61>
 - Fixed issue #139
+- Fixed full justification during line breaks using $pdf->ezText()
 
 3<0.12.60>
 - Compatibility for php 7.4 using PR #136
@@ -51,11 +52,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - Fixed addTextWrap method
 - Fixed issue #132
-
-3<0.12.55>
-
-- Image quality never greater 75% in addImage method #130
-- Possible fix for infinite loop when a word does not fit cell #129
 
 Please refer to https://github.com/rospdf/pdf-php/releases for all previous changes
 
@@ -544,8 +540,7 @@ Note that the code for the example and the actual one shown are not identical fo
 
 2<addText> (x,y,size,text[,width=0][,justification='left'][,angle=0][,wordspace=0][,test=0)
 
-Add the text at a particular location on the page, noting that the origin on the axes in a pdf document is in the lower left corner by default.
-An angle can be supplied as this will do the obvious (in degrees).
+Add the text at a particular location on the page, noting that the origin on the axes in a pdf document is in the lower left corner by default. An angle can be supplied as this will do the obvious (in degrees).
 
 'adjust', gives the value of units to be added to the width of each space within the text. This is used mainly to support the justification options within the ezpdf ezText function.
 
