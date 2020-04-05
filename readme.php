@@ -13,8 +13,6 @@
 //===================================================================================================
 
 // don't want any warnings turning up in the pdf code if the server is set to 'anal' mode.
-//error_reporting(7);
-//error_reporting(E_ALL);
 date_default_timezone_set('UTC');
 
 include './src/Cezpdf.php';
