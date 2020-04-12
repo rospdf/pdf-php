@@ -530,11 +530,10 @@ class Cezpdf extends Cpdf
             } else {
                 $this->ezPages[$this->ezPageCount] = $this->newPage();
             }
+            $this->setBackground();
         } else {
             $this->y = $this->ez['pageHeight'] - $this->ez['topMargin'];
         }
-
-        $this->setBackground();
     }
 
     /**

@@ -29,6 +29,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.62>
+- Fixed repeating background image when using ezColumnsStart
+
 3<0.12.61>
 - Fixed issue #139
 - Fixed full justification during line breaks using $pdf->ezText()
