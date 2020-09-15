@@ -2840,7 +2840,11 @@ class Cpdf
             $y += $textLength[1];
 
             if ($textLength[2] >= 0) {
-                $prev = &$result[count($result) - 1];
+                if (isset($result[count($result) - 1])) {
+                    $prev = &$result[count($result) - 1];
+                } else {
+                    $prev = null;
+                }
                 // when its a force break and a previous result is available
                 if ($textLength[3] == 0 && $prev != null && !empty($prev['text'])) {
                     // recover the width and position
