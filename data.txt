@@ -29,6 +29,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.63>
+- Merged PR #146
+
 3<0.12.62>
 - Fixed repeating background image when using ezColumnsStart
 
@@ -50,11 +53,6 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 - Fixed issue #134
 - Set automated full justification to 90 %
-
-3<0.12.56>
-
-- Fixed addTextWrap method
-- Fixed issue #132
 
 Please refer to https://github.com/rospdf/pdf-php/releases for all previous changes
 
