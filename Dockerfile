@@ -1,10 +1,24 @@
-FROM php:7.4-cli
+FROM php:8.0-cli
 
-RUN docker-php-ext-install -j$(nproc) bcmath
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git
 
-RUN echo 'xdebug.remote_enable=1' >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-RUN echo 'xdebug.remote_autostart=1' >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
-RUN echo 'xdebug.remote_host=host.docker.internal' >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+# Install PHP extensions + composer
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
+RUN install-php-extensions \
+    bcmath \
+    zip \
+    gd \
+    intl \
+    xdebug \
+    @composer
+
+# Configure XDEBUG
+RUN echo 'xdebug.mode=debug' >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+RUN echo 'xdebug.start_with_request=yes' >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+RUN echo 'xdebug.client_host=host.docker.internal' >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+WORKDIR /var/www/html
 CMD [ "php", "-S", "0.0.0.0:8000", "-t", "/var/www/html"]
