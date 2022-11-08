@@ -3512,7 +3512,7 @@ class Cpdf
                             for ($ypx = 0; $ypx < $default['info']['height']; ++$ypx) {
                                 $colorBits = imagecolorat($img, $xpx, $ypx);
                                 $color = imagecolorsforindex($img, $colorBits);
-                                $color['alpha'] = (((127 - $color['alpha']) / 127) * 255);
+                                $color['alpha'] = intval((((127 - $color['alpha']) / 127) * 255));
                                 imagesetpixel($imgalpha, $xpx, $ypx, $color['alpha']);
                             }
                         }
