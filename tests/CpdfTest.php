@@ -58,7 +58,9 @@ class CpdfTest extends TestCase
     {
         $pdf = new Cezpdf('a4', 'portrait');
         $pdf->ezText('');
-        $pdf->ezImage('ros.jpg');
+        $pdf->ezImage(__DIR__.'/../examples/images/bg.jpg');
+        $pdf->ezImage(__DIR__.'/../examples/images/test_alpha.png');
+        $pdf->ezImage(__DIR__.'/../examples/images/test_alpha.gif');
 
         $this->output = $pdf->ezOutput();
 
