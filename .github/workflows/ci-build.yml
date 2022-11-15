@@ -38,9 +38,11 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           tools: phpunit:${{ matrix.phpunit-version }}
+      - name: Remove composer.lock
+        run: rm composer.lock
       - name: Remove PHPUnit from composer.json
         run: composer remove phpunit/phpunit --dev --no-update
-      - name: Get composer cache directory
+      - name: Prepare composer cache
         id: composer-cache
         run: |
           COMPOSER_CACHE_DIR=$(composer config cache-files-dir)
