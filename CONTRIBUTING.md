@@ -1,4 +1,4 @@
-# CONTRIBUTE
+# CONTRIBUTING
 
 To take part of the Development we recommend you to use the following tools
 
