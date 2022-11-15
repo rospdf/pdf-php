@@ -1,0 +1,65 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+
+    strategy:
+      matrix:
+        php-version:
+          - 7.3
+          - 7.4
+          - 8.0
+          - 8.1
+        include:
+          - php-version: 5.6
+            phpunit-version: 5.7
+          - php-version: 7.0
+            phpunit-version: 6.5
+          - php-version: 7.1
+            phpunit-version: 7.5
+          - php-version: 7.2
+            phpunit-version: 8.5
+          - phpunit-version: 9.5
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Setup PHP ${{ matrix.php-version }} with PHPUnit ${{ matrix.phpunit-version }}"
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          tools: phpunit:${{ matrix.phpunit-version }}
+      - name: Remove composer.lock
+        run: rm composer.lock
+      - name: Remove PHPUnit from composer.json
+        run: composer remove phpunit/phpunit --dev --no-update
+      - name: Prepare composer cache
+        id: composer-cache
+        run: |
+          COMPOSER_CACHE_DIR=$(composer config cache-files-dir)
+          mkdir -p ${COMPOSER_CACHE_DIR}
+          echo "dir=${COMPOSER_CACHE_DIR}" >> ${GITHUB_OUTPUT}
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ matrix.php-version }}-${{ hashFiles('**/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.php-version }}
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-source
+      - name: Run PHP_CodeSniffer
+        run: |
+          vendor/bin/phpcs --standard=phpcs.xml src -s
+          vendor/bin/phpcs --standard=phpcs.xml extensions -s
+          vendor/bin/phpcs --standard=phpcs.xml examples -s
+      - name: Run PHPUnit
+        run: phpunit
