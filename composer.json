@@ -41,13 +41,18 @@
         "php": ">=5.6.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "3.*",
-        "phpunit/phpunit": "^5.7"
+        "squizlabs/php_codesniffer": "^3.7",
+        "phpunit/phpunit": "^9.5",
+        "phpcompatibility/php-compatibility": "^9.3"
     },
     "extra": {
         "branch-alias": {
             "dev-experimental": "0.13.x-dev",
             "dev-master": "0.12.x-dev"
         }
+    },
+    "scripts": {
+        "post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility",
+        "post-update-cmd" : "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility"
     }
 }

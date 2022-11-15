@@ -1457,7 +1457,7 @@ class Cpdf
                     $this->objects[$id]['info']['Filter'] = '/DCTDecode';
                     $this->objects[$id]['info']['BitsPerComponent'] = 8;
                 } elseif ($options['type'] == 'png') {
-                    if (strlen($options['pdata'])) {
+                    if (strlen(isset($options['pdata']) ? $options['pdata'] : '')) {
                         ++$this->numObj;
                         $this->objects[$this->numObj] = ['t' => 'image', 'c' => '', 'info' => []];
                         $this->objects[$this->numObj]['info'] = ['Type' => '/XObject', 'Subtype' => '/Image', 'Width' => $options['iw'], 'Height' => $options['ih'], 'ColorSpace' => '/DeviceGray', 'BitsPerComponent' => '8', 'DecodeParms' => '<< /Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$options['iw'].' >>'];
@@ -3512,7 +3512,7 @@ class Cpdf
                             for ($ypx = 0; $ypx < $default['info']['height']; ++$ypx) {
                                 $colorBits = imagecolorat($img, $xpx, $ypx);
                                 $color = imagecolorsforindex($img, $colorBits);
-                                $color['alpha'] = (((127 - $color['alpha']) / 127) * 255);
+                                $color['alpha'] = (int) (((127 - $color['alpha']) / 127) * 255);
                                 imagesetpixel($imgalpha, $xpx, $ypx, $color['alpha']);
                             }
                         }
