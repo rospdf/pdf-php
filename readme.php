@@ -4,11 +4,11 @@
 // suggested as a good way to create such a file, nor a great example of prose,
 // but hopefully it will be useful
 //
-// adding ?d=1 to the url calling this will cause the pdf code itself to ve echoed to the
+// adding ?d=1 to the url calling this will cause the pdf code itself to be echoed to the
 // browser, this is quite useful for debugging purposes.
 // there is no option to save directly to a file here, but this would be trivial to implement.
 //
-// note that this file comprisises both the demo code, and the generator of the pdf documentation
+// note that this file comprises both the demo code, and the generator of the pdf documentation
 //
 //===================================================================================================
 
@@ -17,7 +17,7 @@ date_default_timezone_set('UTC');
 
 include './src/Cezpdf.php';
 
-// define a clas extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
+// define a class extension to allow the use of a callback to get the table of contents, and to put the dots in the toc
 class Creport extends Cezpdf
 {
     public $reportContents = [];
@@ -70,7 +70,7 @@ class Creport extends Cezpdf
 // this code has been modified to use ezpdf.
 
 $project_url = "https://github.com/rospdf/";
-$project_version = "Version 0.12.63";
+$project_version = "Version 0.12.64";
 
 $pdf = new Creport('a4', 'portrait', 'none', null);
 

@@ -29,8 +29,11 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.64>
+- Compatibility with PHP 8.1 #164
+
 3<0.12.63>
-- Merged PR #146
+- Fix notice with PHP 7.4 #146
 
 3<0.12.62>
 - Fixed repeating background image when using ezColumnsStart
@@ -54,7 +57,7 @@ Note that this document was generated using the demo script 'readme.php' which c
 - Fixed issue #134
 - Set automated full justification to 90 %
 
-Please refer to https://github.com/rospdf/pdf-php/releases for all previous changes
+Please refer to <c:alink:https://github.com/rospdf/pdf-php/releases>https://github.com/rospdf/pdf-php/releases</c:alink> for all previous changes
 
 #NP
 
@@ -915,7 +918,7 @@ x,y are the position of the lower left corner of the image, and w,h are the widt
 
 2<addPngFromFile> (imgFileName,x,y,w,[h],[angle=0])
 
-Similar to <i>addJepgFromFile</i>, but for PNG images.
+Similar to <i>addJpegFromFile</i>, but for PNG images.
 
 2<output> ([debug=0]) = a
 
