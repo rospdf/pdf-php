@@ -24,6 +24,16 @@ jobs:
           - 7.4
           - 8.0
           - 8.1
+        include:
+          - php-version: 5.6
+            phpunit-version: 5.7
+          - php-version: 7.0
+            phpunit-version: 6.5
+          - php-version: 7.1
+            phpunit-version: 7.5
+          - php-version: 7.2
+            phpunit-version: 8.5
+          - phpunit-version: 9.5
 
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +41,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          tools: phpunit
+          tools: phpunit:${{ matrix.phpunit-version }}
+      - name: Remove PHPUnit from composer.json
+        run: composer remove phpunit/phpunit --dev --no-update
       - name: Install dependencies
         run: composer install --no-interaction --prefer-source
       - name: Run PHP_CodeSniffer
