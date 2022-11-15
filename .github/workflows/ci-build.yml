@@ -40,4 +40,4 @@ jobs:
           vendor/bin/phpcs --standard=phpcs.xml extensions -s
           vendor/bin/phpcs --standard=phpcs.xml examples -s
       - name: Run PHPUnit
-        run: vendor/bin/phpunit
+        run: phpunit
