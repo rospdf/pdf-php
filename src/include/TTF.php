@@ -1115,7 +1115,7 @@ class TTF
 
     private static function setUshort(&$b, &$off, $val)
     {
-        $b[$off++] = chr((int) $val / 256);
+        $b[$off++] = chr((int) ($val / 256));
         $b[$off++] = chr($val % 256);
     }
 
