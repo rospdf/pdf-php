@@ -29,6 +29,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 
 1<Changelog>
 
+3<0.12.65>
+- Fix PHP 8.1 conversion from float deprecation #168
+
 3<0.12.64>
 - Compatibility with PHP 8.1 #164
 
@@ -47,15 +50,9 @@ Note that this document was generated using the demo script 'readme.php' which c
 - Slighty improved *.afm font loading for compatibility reason
 
 3<0.12.58>
-
 - Recovered $test option in addText() method #128
 - Fixed broken PDF 1.3 standard when using callbacks
 - Proper calculate full justification on last line
-
-3<0.12.57>
-
-- Fixed issue #134
-- Set automated full justification to 90 %
 
 Please refer to <c:alink:https://github.com/rospdf/pdf-php/releases>https://github.com/rospdf/pdf-php/releases</c:alink> for all previous changes
 
