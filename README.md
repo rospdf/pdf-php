@@ -1,24 +1,29 @@
 # ROS PHP Pdf creation class
 
-[![Latest Stable Version](https://poser.pugx.org/rospdf/pdf-php/v/stable)](https://packagist.org/packages/rospdf/pdf-php) [![Total Downloads](https://poser.pugx.org/rospdf/pdf-php/downloads)](https://packagist.org/packages/rospdf/pdf-php) [![Daily Downloads](https://poser.pugx.org/rospdf/pdf-php/d/daily)](https://packagist.org/packages/rospdf/pdf-php) [![License](https://poser.pugx.org/rospdf/pdf-php/license)](https://packagist.org/packages/rospdf/pdf-php) [![Build Status](https://travis-ci.org/rospdf/pdf-php.svg?branch=master)](https://travis-ci.org/rospdf/pdf-php) [![Donations Badge](https://yourdonation.rocks/images/badge.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CCU8QYD549JCU&source=url)
+[![Latest Stable Version](https://poser.pugx.org/rospdf/pdf-php/v/stable)](https://packagist.org/packages/rospdf/pdf-php)
+[![Total Downloads](https://poser.pugx.org/rospdf/pdf-php/downloads)](https://packagist.org/packages/rospdf/pdf-php)
+[![Daily Downloads](https://poser.pugx.org/rospdf/pdf-php/d/daily)](https://packagist.org/packages/rospdf/pdf-php)
+[![License](https://poser.pugx.org/rospdf/pdf-php/license)](https://packagist.org/packages/rospdf/pdf-php)
+[![Build](https://github.com/rospdf/pdf-php/actions/workflows/ci-build.yml/badge.svg)](https://github.com/rospdf/pdf-php/actions/workflows/ci-build.yml)
+[![Donations Badge](https://raw.githubusercontent.com/k4m4/donations/master/images/badge.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CCU8QYD549JCU&source=url)
 
 ![ros.jpg](https://raw.githubusercontent.com/rospdf/pdf-php/master/ros.jpg "R&OS PHP Pdf creation class")
 
-This is the offical GIT clone from the R&OS PHP Pdf class previously stored on [sourceforge.net/projects/pdf-php](https://sourceforge.net/projects/pdf-php/). Development will take place here now.
+This is the official GIT clone from the R&OS PHP Pdf class previously stored on [sourceforge.net/projects/pdf-php](https://sourceforge.net/projects/pdf-php/). Development will take place here now.
 
 The R&OS Pdf class is used to generate PDF Documents using PHP without installing any additional modules or extensions
 It comes with a base class called "Cpdf.php" plus a helper class "Cezpdf.php" to generate tables, add backgrounds and provide paging.
 
 <div align="center">
     <a href="https://github.com/rospdf/pdf-php/blob/master/readme.pdf">DOCUMENTATION</a> :
-    <a href="http://pdf-php.sf.net/">WEBSITE</a> :
-    <a href="CONTRIBUTE.md">CONTRIBUTE</a>
+    <a href="https://pdf-php.sourceforge.net/">WEBSITE</a> :
+    <a href="CONTRIBUTING.md">CONTRIBUTING</a>
 </div>
 
 ## Features
 - Quick and easy to use
 - Support for extension classes
-- Unicode and ANSI formated text
+- Unicode and ANSI formatted text
 - Custom TTF fonts and font subsetting (version >= 0.11.8)
 - Auto page and line breaks
 - Text alignments (left, right, center, justified)
@@ -47,7 +52,7 @@ You can also use git to install it using:
 
 ### Installation via composer
 
-This library is also available on the dependecy manager `composer` - https://packagist.org/packages/rospdf/pdf-php
+This library is also available on the dependency manager `composer` - https://packagist.org/packages/rospdf/pdf-php
 
 Please follow the steps [here](https://getcomposer.org/download/) to install. Once this is done one simple command will get all dependencies for the package `rospdf/pdf-php`
 
