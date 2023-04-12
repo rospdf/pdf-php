@@ -1496,7 +1496,6 @@ class Cezpdf extends Cpdf
             $height = $this->getFontHeight($options['fontSize']);
             $descender = $this->getFontDescender($options['fontSize']);
 
-//          $y0 = $y + $descender; // REPLACED THIS LINE WITH THE FOLLOWING
             $y0 = $y - $options['rowGap'];
             $dy = 0;
             if ($options['showHeadings']) {
@@ -1637,7 +1636,6 @@ class Cezpdf extends Cpdf
 
                             $this->setColor($options['textCol'][0], $options['textCol'][1], $options['textCol'][2], 1);
                             $y = ($options['nextPageY']) ? $nextPageY : ($this->ez['pageHeight'] - $this->ez['topMargin']);
-//                          $y0 = $y + $descender; // REPLACED THIS LINE WITH THE FOLLOWING
                             $y0 = $y - $options['rowGap'];
                             $mx = 0;
                             if ($options['showHeadings']) {
@@ -1676,7 +1674,6 @@ class Cezpdf extends Cpdf
                             $colNewPage = 0;
                             if (isset($row[$colName])) {
                                 if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['link']) && strlen($options['cols'][$colName]['link'])) {
-                                    //$lines = explode("\n",$row[$colName]);
                                     $lines = preg_split("[\r\n|\r|\n]", $row[$colName]);
                                     if (isset($row[$options['cols'][$colName]['link']]) && strlen($row[$options['cols'][$colName]['link']])) {
                                         foreach ($lines as $k => $v) {
@@ -1684,7 +1681,6 @@ class Cezpdf extends Cpdf
                                         }
                                     }
                                 } else {
-                                    //$lines = explode("\n",$row[$colName]);
                                     $lines = preg_split("[\r\n|\r|\n]", $row[$colName]);
                                 }
                             } else {
@@ -1698,7 +1694,6 @@ class Cezpdf extends Cpdf
                                 if (isset($row[$colName.'Color'])) {
                                     $textColor = $row[$colName.'Color'];
                                     $this->setColor($textColor[0], $textColor[1], $textColor[2], true);
-                                    //$line = '<c:color:'.$textColor[0].','.$textColor[1].','.$textColor[2].'>'.$line . '</c:color>';
                                 } else {
                                     $this->setColor(0, 0, 0, true);
                                     $this->setStrokeColor(0, 0, 0, true);
@@ -1951,7 +1946,7 @@ class Cezpdf extends Cpdf
         for ($i = 0; $i < $c; $i++) {
             $line = $lines[$i];
             $start = 1;
-            while (strlen($line) || $start) {
+            while ($l = strlen($line) || $start) {
                 $start = 0;
                 $this->y = $this->y - $height;
                 if ($this->y < $this->ez['bottomMargin']) {
@@ -1983,6 +1978,10 @@ class Cezpdf extends Cpdf
                 }
 
                 $line = $this->addText($left, $this->y, $size, $line, $right - $left, $just, 0, 0, $test);
+
+                if ($l == strlen($line)) {
+                    $line = '';
+                }
 
                 if (is_array($options) && isset($options['justification'])) {
                     // recover justification
