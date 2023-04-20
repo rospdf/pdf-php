@@ -1979,10 +1979,6 @@ class Cezpdf extends Cpdf
 
                 $line = $this->addText($left, $this->y, $size, $line, $right - $left, $just, 0, 0, $test);
 
-                if ($l == strlen($line)) {
-                    $line = '';
-                }
-
                 if (is_array($options) && isset($options['justification'])) {
                     // recover justification
                     $just = $options['justification'];
