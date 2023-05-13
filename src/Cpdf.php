@@ -2909,7 +2909,9 @@ class Cpdf
 
                     $text = mb_substr($text, $offset, null, 'UTF-8');
                 } else {
-                    $text = mb_substr($text, $offset + $textLength[2] + $textLength[3], null, 'UTF-8');
+                    // make sure we advance at least 1 character
+                    $textOff = max(1, $offset + $textLength[2] + $textLength[3]);
+                    $text = mb_substr($text, $textOff, null, 'UTF-8');
                     array_push($result, ['text' => mb_substr($part, 0, $textLength[2], 'UTF-8'), 'nspaces' => $textLength[4], 'callback' => $info]);
                 }
                 
