@@ -2884,6 +2884,7 @@ class Cpdf
             $x += $textLength[0];
             $y += $textLength[1];
 
+            // text must be truncated
             if ($textLength[2] >= 0) {
                 if (isset($result[count($result) - 1])) {
                     $prev = &$result[count($result) - 1];
@@ -3060,7 +3061,9 @@ class Cpdf
             return $v['text'];
         }, $parts));
 
-        $this->adjustWrapText($parsedText, $orgWidth - $width, $orgWidth, $x, $wordSpaceAdjust, $justification);
+        if (($justification == 'full' && ($orgWidth / 100 * 90) < ($orgWidth - $width)) || $justification != 'full'){
+        	$this->adjustWrapText($parsedText, $orgWidth - $width, $orgWidth, $x, $wordSpaceAdjust, $justification);
+        }
 
         if ($test) {
             return $text;
