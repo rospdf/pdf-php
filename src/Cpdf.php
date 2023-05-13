@@ -2812,7 +2812,52 @@ class Cpdf
 
         return $text;
     }
-    
+
+
+    /**
+     * Prepares the text with directives for later processing in text addition.
+     *
+     * This function prepares text with directives at the specified coordinates and
+     * with the specified font size and style. The function also allows for text justification and
+     * rotation, and returns an array of text and formatting information.
+     *
+     * @param string &$text             The text to add to the PDF document
+     * @param float  $x                 The x coordinate of the starting point of the text
+     * @param float  $y                 The y coordinate of the starting point of the text
+     * @param float  $size              The font size of the text
+     * @param float  &$width            The maximum width available for the text
+     * @param string $justification     The justification of the text: "left", "center", or "right"
+     * @param float  $angle             The angle of rotation for the text
+     * @param float  $wordSpaceAdjust   The space between words in the text
+     *
+     * @return array                    An array of text and formatting information
+     *
+     * Example of returned array for:
+     *   $text = "Hello<b>World</b>! extra text"
+     *   $width = 100
+     *
+     *   [
+     *       0 => [
+     *           'text' => "Hello ",
+     *           'nspaces' => 1,
+     *           'callback' => ['func' => 'b', 'status' => 'start', ... ]
+     *       ],
+     *       1 => [
+     *           'text': "World",
+     *           'nspaces': 0,
+     *           'callback': ['func' => 'b', 'status' => 'end', ... ]
+     *       ],
+     *       2 => [
+     *           'text' => "!",
+     *           'nspaces' => 1,
+     *           'callback' => null
+     *       ]
+     *   ]
+     *
+     * With the next resulting output values:
+     *   $text = "extra text" (will be processed in next call)
+     *   $width = 17.489
+     */
     private function addTextWithDirectives(&$text, $x, $y, $size, &$width, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0)
     {
         $result = [];
@@ -2980,7 +3025,17 @@ class Cpdf
     }
 
     /**
-     * add text to the document, at a specified location, size and angle on the page.
+     * Add text to the document, at a specified location, size and angle on the page.
+     * @param float $x The x-coordinate of the starting point of the text
+     * @param float $y The y-coordinate of the starting point of the text
+     * @param float $size The size of the text
+     * @param string $text The text to be added
+     * @param float $width The maximum width allowed for the text (default: 0)
+     * @param string $justification The type of text justification ('left', 'right', 'center', 'full') (default: 'left')
+     * @param float $angle The angle in degrees by which the text should be rotated (default: 0)
+     * @param float $wordSpaceAdjust The amount of space between words (default: 0)
+     * @param bool $test Flag indicating whether the function is being used for testing purposes (default: 0)
+     * @return string The text that was added to the document
      */
     public function addText($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test = 0)
     {
@@ -3077,8 +3132,22 @@ class Cpdf
         return $text;
     }
 
+    /**
+     * Add wrapped text to the document at the given coordinates.
+     * @param float $x The x-coordinate of the starting point of the text.
+     * @param float $y The y-coordinate of the starting point of the text.
+     * @param int $size The font size to use for the text.
+     * @param string $text The text to add to the document.
+     * @param float $width The width of the area in which the text should wrap.
+     * @param string $justification The type of justification to use for the text. Can be 'left', 'right', 'center', or 'full'.
+     * @param int $angle The angle at which to draw the text, measured in degrees.
+     * @param float $wordSpaceAdjust The space between words in the text
+     * @param bool $test Whether to just return the calculated height without actually adding the text to the PDF.
+     * @return void
+    */
     public function addTextWrap($x, $y, $size, $text, $width = 0, $justification = 'left', $angle = 0, $wordSpaceAdjust = 0, $test = 0)
     {
+        // Split the input text into an array of lines based on line breaks and wrap the lines as necessary
         $parts = preg_split('/$\R?^/m', $text);
         foreach ($parts as $v) {
             $text = $this->addText($x, $y, $size, $v, $width, $justification, $angle, $wordSpaceAdjust, $test);
@@ -3122,6 +3191,23 @@ class Cpdf
         return $tmp[0];
     }
 
+    /**
+     * Calculates the width and height of a given text string in the current
+     * font and size, taking into account any rotation angle and a maximum width
+     * (in page units) for line wrapping
+     *
+     * @param float $size The font size to use for the text.
+     * @param string $text The text string for which to calculate the length.
+     * @param float $maxWidth The maximum width of the text string. If the text string exceeds this width, it will be truncated.
+     * @param float $angle The angle at which to draw the text, in degrees.
+     * @param float $wa word spacing (0 will use default spacing)
+     * @return array an array with five elements:
+     *  [0] => The width of the text string in the current font and size, taking into account the font size and angle.
+     *  [1] => The height of the text string in the current font and size, taking into account the font size and angle.
+     *  [2] => The index of the character at which the text string should be truncated, if it exceeds the maximum width, or -1 if no line wrapping occurs.
+     *  [3] => A boolean value indicating whether a space character should be added at the truncation point.
+     *  [4] => The number of spaces in the text string.
+     */
     private function getTextLength($size, $text, $maxWidth = 0, $angle = 0, $wa = 0)
     {
         if (!$this->numFonts) {
@@ -3132,9 +3218,9 @@ class Cpdf
         // get length of its unicode string
         $len = mb_strlen($text, 'UTF-8');
         $cf = $this->currentFont;
-        $tw = $maxWidth / $size * 1000;
+        $tw = $maxWidth / $size * 1000; // maximum width of the text in glyph units
         $break = -1;
-        $w = 0;
+        $w = 0; // accumulated total length of the string
         $nspaces = 0;
 
         for ($i = 0; $i < $len; ++$i) {
@@ -3144,7 +3230,7 @@ class Cpdf
                 continue;
             }
 
-            // verify if the charactor is a valid space (unicode supported, see $this->spaces)
+            // verify if the character is a valid space (unicode supported, see $this->spaces)
             $isSpace = in_array($cOrd, $this->spaces);
 
             if (isset($this->fonts[$cf]['differences'][$cOrd])) {
