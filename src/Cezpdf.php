@@ -1687,7 +1687,7 @@ class Cezpdf extends Cpdf
                                 $lines = [];
                             }
                             $this->y -= $options['rowGap'];
-                            foreach ($lines as $line) {
+                            foreach ($lines as $i => $line) {
                                 $line = $this->ezProcessText($line);
                                 // set the text color
                                 // grab the defined colors for this cell
@@ -1720,6 +1720,14 @@ class Cezpdf extends Cpdf
                                     } else {
                                         if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['justification'])) {
                                             $just = $options['cols'][$colName]['justification'];
+
+                                            if ($just == 'full' && (empty($lines[$i + 1]) || count($lines) == $i + 1)) {
+                                                // do not fully justify if its the absolute last line (taking line breaks into account)
+                                                $tmp = $this->addText($pos[$colName], $this->y, $options['fontSize'], $line, $maxWidth[$colName], $just, 0,0,1);
+                                                if (!strlen($tmp)) {
+                                                    $just = "left";
+                                                }
+                                            }
                                         } else {
                                             $just = 'left';
                                         }
