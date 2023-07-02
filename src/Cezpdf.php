@@ -1293,10 +1293,10 @@ class Cezpdf extends Cpdf
                     $widest = 0;
                     foreach ($cols0 as $colName => $w) {
                         if ($w > $widest) {
-                            $aWidest = [$colName];
+                            array_unshift($aWidest, $colName);
                             $nWidest = $widest;
                             $widest = $w;
-                        } elseif ($w == $widest) {
+                        } else {
                             $aWidest[] = $colName;
                         }
                     }
