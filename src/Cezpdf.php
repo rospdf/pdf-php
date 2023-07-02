@@ -1687,7 +1687,7 @@ class Cezpdf extends Cpdf
                                 $lines = [];
                             }
                             $this->y -= $options['rowGap'];
-                            foreach ($lines as $line) {
+                            foreach ($lines as $i => $line) {
                                 $line = $this->ezProcessText($line);
                                 // set the text color
                                 // grab the defined colors for this cell
@@ -1720,6 +1720,14 @@ class Cezpdf extends Cpdf
                                     } else {
                                         if (isset($options['cols'][$colName]) && isset($options['cols'][$colName]['justification'])) {
                                             $just = $options['cols'][$colName]['justification'];
+
+                                            if ($just == 'full') {
+                                                // do not fully justify if its the absolute last line (taking line breaks into account)
+                                                $tmp = $this->addText($pos[$colName], $this->y, $options['fontSize'], $line, $maxWidth[$colName], $just, 0,0,1);
+                                                if (!strlen($tmp)) {
+                                                    $just = "left";
+                                                }
+                                            }
                                         } else {
                                             $just = 'left';
                                         }
@@ -1969,7 +1977,7 @@ class Cezpdf extends Cpdf
                     $right = $this->ez['pageWidth'] - $this->ez['rightMargin'] - ((is_array($options) && isset($options['right'])) ? $options['right'] : 0);
                 }
                 
-                if ($just == 'full' && (empty($lines[$i + 1]) || $c == $i + 1)) {
+                if ($just == 'full') {
                     // do not fully justify if its the absolute last line (taking line breaks into account)
                     $tmp = $this->addText($left, $this->y, $size, $line, $right - $left, $just, 0, 0, 1);
                     if (!strlen($tmp)) {
